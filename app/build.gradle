@@ -39,6 +39,14 @@ android {
 		}
 		resValue 'string', 'tg_backup_bot_token', localProperties.getProperty('tg_backup_bot_token', '')
 	}
+	signingConfigs {
+		release {
+			storeFile = file(System.getenv('KEYSTORE_FILE') ?: 'keystore.jks')
+			storePassword = System.getenv('KEYSTORE_PASSWORD') ?: System.console()?.readPassword("Store password: ")?.toString()
+			keyAlias = System.getenv('KEY_ALIAS') ?: System.console()?.readLine("Key alias: ")
+			keyPassword = System.getenv('KEY_PASSWORD') ?: System.console()?.readPassword("Key password: ")?.toString()
+		}
+	}
 	buildTypes {
 		debug {
 			applicationIdSuffix = '.debug'
@@ -47,10 +55,12 @@ android {
 			minifyEnabled true
 			shrinkResources true
 			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+			signingConfig signingConfigs.release
 		}
 		nightly {
 			initWith release
 			applicationIdSuffix = '.nightly'
+			signingConfig signingConfigs.release
 		}
 	}
 	buildFeatures {

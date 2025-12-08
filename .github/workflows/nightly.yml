@@ -1,0 +1,101 @@
+name: Nightly Build
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'  # Every Sunday at 2:00 UTC
+  workflow_dispatch:
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.check.outputs.has_changes }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes since last nightly
+        id: check
+        run: |
+          # Get the date of the last nightly release
+          LAST_NIGHTLY=$(gh release list --limit 100 | grep -i "nightly\|^N[0-9]" | head -1)
+          
+          if [ -z "$LAST_NIGHTLY" ]; then
+            # No previous nightly, proceed with build
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            # Extract the release tag (first column)
+            LAST_TAG=$(echo "$LAST_NIGHTLY" | awk '{print $1}')
+            
+            # Check if there are commits since this tag
+            COMMIT_COUNT=$(git rev-list "$LAST_TAG"..HEAD --count 2>/dev/null || echo "0")
+            
+            if [ "$COMMIT_COUNT" -gt 0 ]; then
+              echo "has_changes=true" >> $GITHUB_OUTPUT
+              echo "Found $COMMIT_COUNT commits since last nightly ($LAST_TAG)"
+            else
+              echo "has_changes=false" >> $GITHUB_OUTPUT
+              echo "No changes since last nightly ($LAST_TAG)"
+            fi
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    needs: check-changes
+    if: needs.check-changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > keystore.jks
+
+      - name: Build nightly APK
+        env:
+          KEYSTORE_FILE: ${{ github.workspace }}/keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleNightly
+
+      - name: Get version
+        id: version
+        run: |
+          # Extract version from build (e.g., N20251208)
+          APK=$(find app/build/outputs/apk/nightly -name "*.apk" | head -1)
+          if [ -f "$APK" ]; then
+            # Get BuildInfo from APK or use current date
+            DATE=$(date -u +"%Y%m%d")
+            echo "version=N$DATE" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Nightly Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Futon Nightly ${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: true
+          files: |
+            app/build/outputs/apk/nightly/app-nightly.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up keystore
+        if: always()
+        run: rm -f keystore.jks
