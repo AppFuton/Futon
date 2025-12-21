@@ -20,7 +20,7 @@ jobs:
         id: check
         run: |
           # Get the date of the last nightly release
-          LAST_NIGHTLY=$(gh release list --limit 100 | grep -i "nightly\|^N[0-9]" | head -1)
+          LAST_NIGHTLY=$(gh release list --limit 100 | grep -E "^(nightly-|N[0-9]{8})" | head -1)
           
           if [ -z "$LAST_NIGHTLY" ]; then
             # No previous nightly, proceed with build
