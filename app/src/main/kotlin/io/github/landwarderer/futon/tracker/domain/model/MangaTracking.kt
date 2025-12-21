@@ -1,0 +1,17 @@
+package io.github.landwarderer.futon.tracker.domain.model
+
+import io.github.landwarderer.futon.parsers.model.Manga
+import java.time.Instant
+
+data class MangaTracking(
+	val manga: Manga,
+	val lastChapterId: Long,
+	val lastCheck: Instant?,
+	val lastChapterDate: Instant?,
+	val newChapters: Int,
+) {
+
+	fun isEmpty(): Boolean {
+		return lastChapterId == 0L
+	}
+}

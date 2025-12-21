@@ -1,0 +1,9 @@
+package io.github.landwarderer.futon.core.exceptions
+
+import okio.IOException
+import io.github.landwarderer.futon.parsers.model.MangaSource
+
+class InteractiveActionRequiredException(
+	val source: MangaSource,
+	val url: String,
+) : IOException("Interactive action is required for ${source.name}")

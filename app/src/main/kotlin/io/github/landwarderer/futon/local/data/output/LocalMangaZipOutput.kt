@@ -1,0 +1,172 @@
+package io.github.landwarderer.futon.local.data.output
+
+import androidx.annotation.WorkerThread
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import okhttp3.internal.closeQuietly
+import io.github.landwarderer.futon.core.model.isLocal
+import io.github.landwarderer.futon.core.util.MimeTypes
+import io.github.landwarderer.futon.core.util.ext.MimeType
+import io.github.landwarderer.futon.core.util.ext.deleteAwait
+import io.github.landwarderer.futon.core.util.ext.readText
+import io.github.landwarderer.futon.core.zip.ZipOutput
+import io.github.landwarderer.futon.local.data.MangaIndex
+import io.github.landwarderer.futon.parsers.model.Manga
+import io.github.landwarderer.futon.parsers.model.MangaChapter
+import java.io.File
+import java.util.zip.ZipFile
+
+class LocalMangaZipOutput(
+	rootFile: File,
+	manga: Manga,
+) : LocalMangaOutput(rootFile) {
+
+	private val output = ZipOutput(File(rootFile.path + ".tmp"))
+	private val index = MangaIndex(null)
+	private val mutex = Mutex()
+
+	init {
+		if (!manga.isLocal) {
+			index.setMangaInfo(manga)
+		}
+	}
+
+	override suspend fun mergeWithExisting() = mutex.withLock {
+		if (rootFile.exists()) {
+			runInterruptible(Dispatchers.IO) {
+				mergeWith(rootFile)
+			}
+		}
+	}
+
+	override suspend fun addCover(file: File, type: MimeType?) = mutex.withLock {
+		val name = buildString {
+			append(FILENAME_PATTERN.format(0, 0, 0))
+			MimeTypes.getExtension(type)?.let { ext ->
+				append('.')
+				append(ext)
+			}
+		}
+		runInterruptible(Dispatchers.IO) {
+			output.put(name, file)
+		}
+		index.setCoverEntry(name)
+	}
+
+	override suspend fun addPage(chapter: IndexedValue<MangaChapter>, file: File, pageNumber: Int, type: MimeType?) =
+		mutex.withLock {
+			val name = buildString {
+				append(FILENAME_PATTERN.format(chapter.value.branch.hashCode(), chapter.index + 1, pageNumber))
+				MimeTypes.getExtension(type)?.let { ext ->
+					append('.')
+					append(ext)
+				}
+			}
+			runInterruptible(Dispatchers.IO) {
+				output.put(name, file)
+			}
+			index.addChapter(chapter, null)
+		}
+
+	override suspend fun flushChapter(chapter: MangaChapter): Boolean = false
+
+	override suspend fun finish() = mutex.withLock {
+		runInterruptible(Dispatchers.IO) {
+			output.use { output ->
+				output.put(ENTRY_NAME_INDEX, index.toString())
+				output.finish()
+			}
+		}
+		rootFile.deleteAwait()
+		output.file.renameTo(rootFile)
+		Unit
+	}
+
+	override suspend fun cleanup() = mutex.withLock {
+		output.file.deleteAwait()
+		Unit
+	}
+
+	override fun close() {
+		output.close()
+	}
+
+	@WorkerThread
+	private fun mergeWith(other: File) {
+		var otherIndex: MangaIndex? = null
+		ZipFile(other).use { zip ->
+			for (entry in zip.entries()) {
+				if (entry.name == ENTRY_NAME_INDEX) {
+					otherIndex = MangaIndex(
+						zip.getInputStream(entry).use {
+							it.reader().readText()
+						},
+					)
+				} else {
+					output.copyEntryFrom(zip, entry)
+				}
+			}
+		}
+		otherIndex?.getMangaInfo()?.chapters?.withIndex()?.let { chapters ->
+			for (chapter in chapters) {
+				index.addChapter(chapter, null)
+			}
+		}
+	}
+
+	companion object {
+
+		private const val FILENAME_PATTERN = "%08d_%04d%04d"
+
+		suspend fun filterChapters(file: File, manga: Manga, idsToRemove: Set<Long>) =
+			runInterruptible(Dispatchers.IO) {
+				val subject = LocalMangaZipOutput(file, manga)
+				try {
+					ZipFile(subject.rootFile).use { zip ->
+						val index = MangaIndex(zip.readText(zip.getEntry(ENTRY_NAME_INDEX)))
+						idsToRemove.forEach { id -> index.removeChapter(id) }
+						val patterns = requireNotNull(index.getMangaInfo()?.chapters).map {
+							index.getChapterNamesPattern(it)
+						}
+						val coverEntryName = index.getCoverEntry()
+						for (entry in zip.entries()) {
+							when {
+								entry.name == ENTRY_NAME_INDEX -> {
+									subject.output.put(ENTRY_NAME_INDEX, index.toString())
+								}
+
+								entry.isDirectory -> {
+									subject.output.addDirectory(entry.name)
+								}
+
+								entry.name == coverEntryName -> {
+									subject.output.copyEntryFrom(zip, entry)
+								}
+
+								else -> {
+									val name = entry.name.substringBefore('.')
+									if (patterns.any { it.matches(name) }) {
+										subject.output.copyEntryFrom(zip, entry)
+									}
+								}
+							}
+						}
+						subject.output.finish()
+						subject.output.close()
+						subject.rootFile.delete()
+						subject.output.file.renameTo(subject.rootFile)
+					}
+				} catch (e: Throwable) {
+					subject.closeQuietly()
+					try {
+						subject.output.file.delete()
+					} catch (e2: Throwable) {
+						e.addSuppressed(e2)
+					}
+					throw e
+				}
+			}
+	}
+}

@@ -1,0 +1,29 @@
+package io.github.landwarderer.futon.core.model.parcelable
+
+import android.os.Parcel
+import android.os.Parcelable
+import kotlinx.parcelize.Parceler
+import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.TypeParceler
+import io.github.landwarderer.futon.core.model.MangaSource
+import io.github.landwarderer.futon.parsers.model.MangaPage
+
+object MangaPageParceler : Parceler<MangaPage> {
+	override fun create(parcel: Parcel) = MangaPage(
+		id = parcel.readLong(),
+		url = requireNotNull(parcel.readString()),
+		preview = parcel.readString(),
+		source = MangaSource(parcel.readString()),
+	)
+
+	override fun MangaPage.write(parcel: Parcel, flags: Int) {
+		parcel.writeLong(id)
+		parcel.writeString(url)
+		parcel.writeString(preview)
+		parcel.writeString(source.name)
+	}
+}
+
+@Parcelize
+@TypeParceler<MangaPage, MangaPageParceler>
+class ParcelableMangaPage(val page: MangaPage) : Parcelable

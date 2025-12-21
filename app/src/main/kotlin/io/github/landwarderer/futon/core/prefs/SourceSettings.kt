@@ -1,0 +1,78 @@
+package io.github.landwarderer.futon.core.prefs
+
+import android.content.Context
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import androidx.core.content.edit
+import io.github.landwarderer.futon.core.util.ext.getEnumValue
+import io.github.landwarderer.futon.core.util.ext.putEnumValue
+import io.github.landwarderer.futon.core.util.ext.sanitizeHeaderValue
+import io.github.landwarderer.futon.parsers.config.ConfigKey
+import io.github.landwarderer.futon.parsers.config.MangaSourceConfig
+import io.github.landwarderer.futon.parsers.model.MangaSource
+import io.github.landwarderer.futon.parsers.model.SortOrder
+import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
+import io.github.landwarderer.futon.parsers.util.nullIfEmpty
+import io.github.landwarderer.futon.settings.utils.validation.DomainValidator
+import java.io.File
+
+class SourceSettings(context: Context, source: MangaSource) : MangaSourceConfig {
+
+    private val prefs = context.getSharedPreferences(
+        source.name.replace(File.separatorChar, '$'),
+        Context.MODE_PRIVATE,
+    )
+
+	var defaultSortOrder: SortOrder?
+		get() = prefs.getEnumValue(KEY_SORT_ORDER, SortOrder::class.java)
+		set(value) = prefs.edit { putEnumValue(KEY_SORT_ORDER, value) }
+
+	val isSlowdownEnabled: Boolean
+		get() = prefs.getBoolean(KEY_SLOWDOWN, false)
+
+	val isCaptchaNotificationsDisabled: Boolean
+		get() = prefs.getBoolean(KEY_NO_CAPTCHA, false)
+
+	@Suppress("UNCHECKED_CAST")
+	override fun <T> get(key: ConfigKey<T>): T {
+		return when (key) {
+			is ConfigKey.UserAgent -> prefs.getString(key.key, key.defaultValue)
+				.ifNullOrEmpty { key.defaultValue }
+				.sanitizeHeaderValue()
+
+			is ConfigKey.Domain -> prefs.getString(key.key, key.defaultValue)
+				?.trim()
+				?.takeIf { DomainValidator.isValidDomain(it) }
+				?: key.defaultValue
+
+			is ConfigKey.ShowSuspiciousContent -> prefs.getBoolean(key.key, key.defaultValue)
+			is ConfigKey.SplitByTranslations -> prefs.getBoolean(key.key, key.defaultValue)
+			is ConfigKey.PreferredImageServer -> prefs.getString(key.key, key.defaultValue)?.nullIfEmpty()
+		} as T
+	}
+
+	operator fun <T> set(key: ConfigKey<T>, value: T) = prefs.edit {
+		when (key) {
+			is ConfigKey.Domain -> putString(key.key, value as String?)
+			is ConfigKey.ShowSuspiciousContent -> putBoolean(key.key, value as Boolean)
+			is ConfigKey.UserAgent -> putString(key.key, (value as String?)?.sanitizeHeaderValue())
+			is ConfigKey.SplitByTranslations -> putBoolean(key.key, value as Boolean)
+			is ConfigKey.PreferredImageServer -> putString(key.key, value as String? ?: "")
+		}
+	}
+
+	fun subscribe(listener: OnSharedPreferenceChangeListener) {
+		prefs.registerOnSharedPreferenceChangeListener(listener)
+	}
+
+	fun unsubscribe(listener: OnSharedPreferenceChangeListener) {
+		prefs.unregisterOnSharedPreferenceChangeListener(listener)
+	}
+
+	companion object {
+
+		const val KEY_DOMAIN = "domain"
+		const val KEY_NO_CAPTCHA = "no_captcha"
+		const val KEY_SLOWDOWN = "slowdown"
+		const val KEY_SORT_ORDER = "sort_order"
+	}
+}

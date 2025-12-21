@@ -1,0 +1,152 @@
+package io.github.landwarderer.futon.tracker.domain
+
+import android.util.Log
+import coil3.request.CachePolicy
+import io.github.landwarderer.futon.BuildConfig
+import io.github.landwarderer.futon.core.model.getPreferredBranch
+import io.github.landwarderer.futon.core.model.isLocal
+import io.github.landwarderer.futon.core.parser.CachingMangaRepository
+import io.github.landwarderer.futon.core.parser.MangaRepository
+import io.github.landwarderer.futon.core.util.MultiMutex
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
+import io.github.landwarderer.futon.core.util.ext.toInstantOrNull
+import io.github.landwarderer.futon.history.data.HistoryRepository
+import io.github.landwarderer.futon.local.data.LocalMangaRepository
+import io.github.landwarderer.futon.parsers.model.Manga
+import io.github.landwarderer.futon.parsers.util.findById
+import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import io.github.landwarderer.futon.tracker.domain.model.MangaTracking
+import io.github.landwarderer.futon.tracker.domain.model.MangaUpdates
+import java.time.Instant
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class CheckNewChaptersUseCase @Inject constructor(
+	private val repository: TrackingRepository,
+	private val historyRepository: HistoryRepository,
+	private val mangaRepositoryFactory: MangaRepository.Factory,
+	private val localMangaRepository: LocalMangaRepository,
+) {
+
+	private val mutex = MultiMutex<Long>()
+
+	suspend operator fun invoke(manga: Manga): MangaUpdates = mutex.withLock(manga.id) {
+		repository.updateTracks()
+		val tracking = repository.getTrackOrNull(manga) ?: return@withLock MangaUpdates.Failure(
+			manga = manga,
+			error = null,
+		)
+		invokeImpl(tracking)
+	}
+
+	suspend operator fun invoke(track: MangaTracking): MangaUpdates = mutex.withLock(track.manga.id) {
+		invokeImpl(track)
+	}
+
+	suspend operator fun invoke(manga: Manga, currentChapterId: Long) = mutex.withLock(manga.id) {
+		runCatchingCancellable {
+			repository.updateTracks()
+			val details = getFullManga(manga)
+			val track = repository.getTrackOrNull(manga) ?: return@withLock
+			val branch = checkNotNull(details.chapters?.findById(currentChapterId)).branch
+			val chapters = details.getChapters(branch)
+			val chapterIndex = chapters.indexOfFirst { x -> x.id == currentChapterId }
+			val lastNewChapterIndex = chapters.size - track.newChapters
+			val lastChapter = chapters.lastOrNull()
+			val tracking = MangaTracking(
+				manga = details,
+				lastChapterId = lastChapter?.id ?: 0L,
+				lastCheck = Instant.now(),
+				lastChapterDate = lastChapter?.uploadDate?.toInstantOrNull() ?: track.lastChapterDate,
+				newChapters = when {
+					track.newChapters == 0 -> 0
+					chapterIndex < 0 -> track.newChapters
+					chapterIndex >= lastNewChapterIndex -> chapters.lastIndex - chapterIndex
+					else -> track.newChapters
+				},
+			)
+			repository.mergeWith(tracking)
+		}.onFailure { e ->
+			e.printStackTraceDebug()
+		}.isSuccess
+	}
+
+	private suspend fun invokeImpl(track: MangaTracking): MangaUpdates = runCatchingCancellable {
+		val details = getFullManga(track.manga)
+		compare(track, details, getBranch(details, track.lastChapterId))
+	}.getOrElse { error ->
+		MangaUpdates.Failure(
+			manga = track.manga,
+			error = error,
+		)
+	}.also { updates ->
+		repository.saveUpdates(updates)
+	}
+
+	private suspend fun getBranch(manga: Manga, trackChapterId: Long): String? {
+		historyRepository.getOne(manga)?.let {
+			manga.chapters?.findById(it.chapterId)
+		}?.let {
+			return it.branch
+		}
+		manga.chapters?.findById(trackChapterId)?.let {
+			return it.branch
+		}
+		// fallback
+		return manga.getPreferredBranch(null)
+	}
+
+	private suspend fun getFullManga(manga: Manga): Manga = when {
+		manga.isLocal -> fetchDetails(
+			requireNotNull(localMangaRepository.getRemoteManga(manga)) {
+				"Local manga is not supported"
+			},
+		)
+
+		manga.chapters.isNullOrEmpty() -> fetchDetails(manga)
+		else -> manga
+	}
+
+	private suspend fun fetchDetails(manga: Manga): Manga {
+		val repo = mangaRepositoryFactory.create(manga.source)
+		return if (repo is CachingMangaRepository) {
+			repo.getDetails(manga, CachePolicy.WRITE_ONLY)
+		} else {
+			repo.getDetails(manga)
+		}
+	}
+
+	/**
+	 * The main functionality of tracker: check new chapters in [manga] comparing to the [track]
+	 */
+	private fun compare(track: MangaTracking, manga: Manga, branch: String?): MangaUpdates.Success {
+		if (track.isEmpty()) {
+			// first check or manga was empty on last check
+			return MangaUpdates.Success(manga, branch, emptyList(), isValid = false)
+		}
+		val chapters = requireNotNull(manga.getChapters(branch))
+		if (BuildConfig.DEBUG && chapters.findById(track.lastChapterId) == null) {
+			Log.e("Tracker", "Chapter ${track.lastChapterId} not found")
+		}
+		val newChapters = chapters.takeLastWhile { x -> x.id != track.lastChapterId }
+		return when {
+			newChapters.isEmpty() -> {
+				MangaUpdates.Success(
+					manga = manga,
+					branch = branch,
+					newChapters = emptyList(),
+					isValid = chapters.lastOrNull()?.id == track.lastChapterId,
+				)
+			}
+
+			newChapters.size == chapters.size -> {
+				MangaUpdates.Success(manga, branch, emptyList(), isValid = false)
+			}
+
+			else -> {
+				MangaUpdates.Success(manga, branch, newChapters, isValid = true)
+			}
+		}
+	}
+}

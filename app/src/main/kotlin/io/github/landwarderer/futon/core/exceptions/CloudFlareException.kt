@@ -1,0 +1,14 @@
+package io.github.landwarderer.futon.core.exceptions
+
+import okio.IOException
+import io.github.landwarderer.futon.parsers.model.MangaSource
+
+abstract class CloudFlareException(
+	message: String,
+	val state: Int,
+) : IOException(message) {
+
+	abstract val url: String
+
+	abstract val source: MangaSource
+}

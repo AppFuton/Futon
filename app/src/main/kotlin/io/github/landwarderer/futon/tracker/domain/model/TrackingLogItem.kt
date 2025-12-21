@@ -1,0 +1,12 @@
+package io.github.landwarderer.futon.tracker.domain.model
+
+import io.github.landwarderer.futon.parsers.model.Manga
+import java.time.Instant
+
+data class TrackingLogItem(
+	val id: Long,
+	val manga: Manga,
+	val chapters: List<String>,
+	val createdAt: Instant,
+	val isNew: Boolean,
+)

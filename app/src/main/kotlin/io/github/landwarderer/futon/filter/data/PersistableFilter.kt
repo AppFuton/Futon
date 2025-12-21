@@ -1,0 +1,30 @@
+package io.github.landwarderer.futon.filter.data
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonIgnoreUnknownKeys
+import io.github.landwarderer.futon.core.model.MangaSourceSerializer
+import io.github.landwarderer.futon.parsers.model.MangaListFilter
+import io.github.landwarderer.futon.parsers.model.MangaSource
+
+@Serializable
+@JsonIgnoreUnknownKeys
+data class PersistableFilter(
+    @SerialName("name")
+    val name: String,
+    @Serializable(with = MangaSourceSerializer::class)
+    @SerialName("source")
+    val source: MangaSource,
+    @Serializable(with = MangaListFilterSerializer::class)
+    @SerialName("filter")
+    val filter: MangaListFilter,
+) {
+
+    val id: Int
+        get() = name.hashCode()
+
+    companion object {
+
+        const val MAX_TITLE_LENGTH = 18
+    }
+}
