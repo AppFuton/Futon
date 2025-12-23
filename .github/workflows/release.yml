@@ -13,6 +13,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Notify Discord - Build Started
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then exit 0; fi
+          payload=$(jq -n --arg content "Build started for ${{ github.ref_name }}")
+          curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -24,6 +32,14 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+
+      - name: Notify Discord - Environment Setup Complete
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then exit 0; fi
+          payload=$(jq -n --arg content "Environment setup complete (Java 17, Android SDK)")
+          curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
 
       - name: Get version from tag
         id: version
@@ -40,6 +56,14 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > keystore.jks
 
+      - name: Notify Discord - Keystore Decoded
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then exit 0; fi
+          payload=$(jq -n --arg content "Keystore decoded")
+          curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
+
       - name: Build release APK
         env:
           KEYSTORE_FILE: ${{ github.workspace }}/keystore.jks
@@ -50,6 +74,14 @@ jobs:
           ./gradlew assembleRelease \
             -PversionName=${{ steps.version.outputs.version }} \
             -PversionCode=${{ steps.version.outputs.version_code }}
+
+      - name: Notify Discord - APK Build Complete
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then exit 0; fi
+          payload=$(jq -n --arg content "Release APK build complete")
+          curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -63,6 +95,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Notify Discord - Release Published
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+          RELEASE_URL: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then exit 0; fi
+          payload=$(jq -n --arg content "Release published: ${{ github.ref_name }}\n$RELEASE_URL")
+          curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
+
       - name: Clean up keystore
         if: always()
         run: rm -f keystore.jks
+
+      - name: Notify Discord - Build Failed
+        if: failure()
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then exit 0; fi
+          payload=$(jq -n --arg content "Build failed for ${{ github.ref_name }}\nhttps://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}")
+          curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
