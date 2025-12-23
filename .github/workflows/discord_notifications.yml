@@ -1,0 +1,86 @@
+# Sends Discord notifications for commits and releases
+# Secrets required:
+# - DISCORD_WEBHOOK_COMMITS : Webhook URL for commit notifications
+# - DISCORD_WEBHOOK_RELEASES : Webhook URL for release notifications (both tagged and nightly)
+
+name: Discord notifications
+
+on:
+  push:
+    # Notify on pushes to main and devel branches (adjust as needed)
+    branches:
+      - main
+      - devel
+  release:
+    types: [published]
+
+jobs:
+  notify_commit:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Commit metadata
+        id: meta
+        run: |
+          echo "COMMIT_SHA=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+          echo "COMMIT_URL=https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}" >> $GITHUB_OUTPUT
+          echo "REF=${GITHUB_REF}" >> $GITHUB_OUTPUT
+          echo "PUSHER=${GITHUB_ACTOR}" >> $GITHUB_OUTPUT
+          echo "MESSAGE=$(git log -1 --pretty=format:'%s' ${GITHUB_SHA})" >> $GITHUB_OUTPUT
+      - name: Send to Discord (commits)
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_COMMITS }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          URL: ${{ steps.meta.outputs.COMMIT_URL }}
+          REF: ${{ steps.meta.outputs.REF }}
+          ACTOR: ${{ steps.meta.outputs.PUSHER }}
+          MESSAGE: ${{ steps.meta.outputs.MESSAGE }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "DISCORD_WEBHOOK_COMMITS not set - skipping"
+            exit 0
+          fi
+          payload=$(jq -n --arg content "Commit pushed to $REPO ($REF) by $ACTOR:\n**${MESSAGE}**\n<${URL}>" '{content: $content}')
+          curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
+
+  notify_release:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare release payload
+        id: release_meta
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          NAME="${{ github.event.release.name }}"
+          URL="${{ github.event.release.html_url }}"
+          BODY="${{ github.event.release.body }}"
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "NAME=$NAME" >> $GITHUB_OUTPUT
+          echo "URL=$URL" >> $GITHUB_OUTPUT
+          echo "BODY=$BODY" >> $GITHUB_OUTPUT
+      - name: Send to Discord (releases)
+        env:
+          WEBHOOK_RELEASES: ${{ secrets.DISCORD_WEBHOOK_RELEASES }}
+          TAG: ${{ steps.release_meta.outputs.TAG }}
+          NAME: ${{ steps.release_meta.outputs.NAME }}
+          URL: ${{ steps.release_meta.outputs.URL }}
+          BODY: ${{ steps.release_meta.outputs.BODY }}
+        run: |
+          set -e
+          # Use single releases webhook for both nightly and normal releases
+          WEBHOOK="$WEBHOOK_RELEASES"
+          if [[ "$TAG" == nightly-* ]]; then
+            CHANNEL_NOTE="(nightly release)"
+          else
+            CHANNEL_NOTE="(release)"
+          fi
+          if [ -z "$WEBHOOK" ]; then
+            echo "DISCORD_WEBHOOK_RELEASES not set - skipping"
+            exit 0
+          fi
+          title="New release $TAG $CHANNEL_NOTE"
+          # Truncate body for readability
+          short_body=$(echo "$BODY" | head -n 20)
+          payload=$(jq -n --arg content "**$title**\n**$NAME**\n$short_body\n<$URL>" '{content: $content}')
+          curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
