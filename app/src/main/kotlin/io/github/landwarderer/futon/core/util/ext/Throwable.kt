@@ -233,7 +233,7 @@ fun Throwable.isNetworkError(): Boolean {
 }
 
 fun Throwable.report(silent: Boolean = false) {
-    val exception = CaughtException(this)
+	val exception = CaughtException(this)
 	// ACRA removed: use logging as a placeholder for crash reporting
 	if (!silent) {
 		exception.printStackTrace()
@@ -241,6 +241,8 @@ fun Throwable.report(silent: Boolean = false) {
 	} else if (!BuildConfig.DEBUG) {
 		exception.printStackTrace()
 		Log.w("Futon", "Silent exception reported", exception)
+	}
+}
 
 fun Throwable.isWebViewUnavailable(): Boolean {
     val trace = stackTraceToString()
