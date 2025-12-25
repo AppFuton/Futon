@@ -9,7 +9,7 @@
 
 **Futon is a free and open-source manga reader for Android with built-in online content sources.**
 
-![Android 6.0](https://img.shields.io/badge/android-6.0+-brightgreen) [![Sources count](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FAppFuton%2Ffuton-parsers%2Frefs%2Fheads%2Fmaster%2F.github%2Fsummary.yaml&query=total&label=manga%20sources&color=%23E9321C)](https://github.com/AppFuton/futon-parsers) [![License](https://img.shields.io/github/license/AppFuton/Futon)](https://github.com/AppFuton/Futon/blob/devel/LICENSE)![GitHub Release](https://img.shields.io/github/v/release/appfuton/futon?sort=date&display_name=tag&style=flat&link=https%3A%2F%2Fgithub.com%2FAppFuton%2FFuton%2Freleases%2Flatest)
+![Android 6.0](https://img.shields.io/badge/android-6.0+-brightgreen) [![Sources count](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FAppFuton%2Ffuton-parsers%2Frefs%2Fheads%2Fmaster%2F.github%2Fsummary.yaml&query=total&label=manga%20sources&color=%23E9321C)](https://github.com/AppFuton/futon-parsers) [![License](https://img.shields.io/github/license/AppFuton/Futon)](https://github.com/AppFuton/Futon/blob/devel/LICENSE)![GitHub Release](https://img.shields.io/github/v/release/appfuton/futon?sort=date&display_name=tag&style=flat&link=https%3A%2F%2Fgithub.com%2FAppFuton%2FFuton%2Freleases%2Flatest)[![IzzyOnDroid Yearly Downloads](https://img.shields.io/badge/dynamic/json?url=https://dlstats.izzyondroid.org/iod-stats-collector/stats/basic/yearly/rolling.json&query=$.['io.github.landwarderer.futon']&label=IzzyOnDroid%20yearly%20downloads)](https://apt.izzysoft.de/packages/io.github.landwarderer.futon)
 
 
 ### Main Features
