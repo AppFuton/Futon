@@ -3,7 +3,7 @@
 	<string name="url_github" translatable="false">https://github.com/AppFuton/Futon</string>
 	<string name="url_telegram_web" translatable="false"></string>
 	<string name="url_telegram" translatable="false"></string>
-	<string name="url_weblate" translatable="false">https://hosted.weblate.org/engage/futon</string>
+	<string name="url_weblate" translatable="false">https://hosted.weblate.org/engage/kotatsu</string>
 	<string name="url_user_manual" translatable="false">https://futonapp.pages.dev/manuals/guides/getting-started/</string>
 	<string name="account_type_sync" translatable="false">io.github.landwarderer.futon.sync</string>
 	<string name="github_updates_repo" translatable="false">AppFuton/Futon</string>
