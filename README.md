@@ -62,6 +62,10 @@
 
 **📌 Pull requests are welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.**
 
+### Community
+
+Join our Discord for support, discussion, and announcements: https://discord.gg/9sqBHXhwzz
+
 ### Certificate fingerprints
 
 ```plaintext
