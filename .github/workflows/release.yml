@@ -18,7 +18,7 @@ jobs:
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
         run: |
           if [ -z "$WEBHOOK" ]; then exit 0; fi
-          payload=$(jq -n --arg content "Build started for ${{ github.ref_name }}")
+          payload=$(jq -n --arg content "Build started for ${{ github.ref_name }}" '{content: $content}')
           curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
 
       - name: Checkout code
@@ -38,7 +38,7 @@ jobs:
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
         run: |
           if [ -z "$WEBHOOK" ]; then exit 0; fi
-          payload=$(jq -n --arg content "Environment setup complete (Java 17, Android SDK)")
+          payload=$(jq -n --arg content "Environment setup complete (Java 17, Android SDK)" '{content: $content}')
           curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
 
       - name: Get version from tag
@@ -62,7 +62,7 @@ jobs:
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
         run: |
           if [ -z "$WEBHOOK" ]; then exit 0; fi
-          payload=$(jq -n --arg content "Keystore decoded")
+          payload=$(jq -n --arg content "Keystore decoded" '{content: $content}')
           curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
 
       - name: Build release APK
@@ -81,7 +81,7 @@ jobs:
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
         run: |
           if [ -z "$WEBHOOK" ]; then exit 0; fi
-          payload=$(jq -n --arg content "Release APK build complete")
+          payload=$(jq -n --arg content "Release APK build complete" '{content: $content}')
           curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
 
       - name: Create Release
@@ -102,7 +102,7 @@ jobs:
           RELEASE_URL: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
         run: |
           if [ -z "$WEBHOOK" ]; then exit 0; fi
-          payload=$(jq -n --arg content "Release published: ${{ github.ref_name }}\n$RELEASE_URL")
+          payload=$(jq -n --arg content "Release published: ${{ github.ref_name }}\n$RELEASE_URL" '{content: $content}')
           curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true
 
       - name: Clean up keystore
@@ -115,5 +115,5 @@ jobs:
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BUILD }}
         run: |
           if [ -z "$WEBHOOK" ]; then exit 0; fi
-          payload=$(jq -n --arg content "Build failed for ${{ github.ref_name }}\nhttps://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}")
+          payload=$(jq -n --arg content "Build failed for ${{ github.ref_name }}\nhttps://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $content}')
           curl -s -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" || true

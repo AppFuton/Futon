@@ -85,7 +85,11 @@ jobs:
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
           echo "NAME=$NAME" >> $GITHUB_OUTPUT
           echo "URL=$URL" >> $GITHUB_OUTPUT
-          echo "BODY=$BODY" >> $GITHUB_OUTPUT
+          {
+            echo "BODY<<EOF"
+            echo "$BODY"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
       - name: Send to Discord (releases)
         env:
           WEBHOOK_RELEASES: ${{ secrets.DISCORD_WEBHOOK_RELEASES }}
