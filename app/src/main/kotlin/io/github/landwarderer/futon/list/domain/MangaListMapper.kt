@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.annotation.ColorRes
 import androidx.annotation.IntDef
-import androidx.collection.MutableScatterSet
-import androidx.collection.ScatterSet
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.landwarderer.futon.R
@@ -39,7 +37,6 @@ class MangaListMapper @Inject constructor(
 	private val dataRepository: MangaDataRepository,
 ) {
 
-	private val dict by lazy { readTagsDict(context) }
 
 	suspend fun toListModelList(
 		manga: Collection<Manga>,
@@ -170,25 +167,9 @@ class MangaListMapper @Inject constructor(
 
 	@ColorRes
 	private fun getTagTint(tag: MangaTag): Int {
-		return if (settings.isTagsWarningsEnabled && tag.title.lowercase() in dict) {
-			R.color.warning
-		} else {
-			0
-		}
+		return 0
 	}
 
-	private fun readTagsDict(context: Context): ScatterSet<String> =
-		context.resources.openRawResource(R.raw.tags_warnlist).use {
-			val set = MutableScatterSet<String>()
-			it.bufferedReader().forEachLine { x ->
-				val line = x.trim()
-				if (line.isNotEmpty()) {
-					set.add(line)
-				}
-			}
-			set.trim()
-			set
-		}
 
 	private fun Int.isBadgeEnabled(@Options badge: Int) = this and badge == badge
 

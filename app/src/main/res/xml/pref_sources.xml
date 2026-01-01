@@ -44,11 +44,6 @@
         android:title="@string/incognito_for_nsfw"
         app:useSimpleSummaryProvider="true" />
 
-    <SwitchPreferenceCompat
-        android:defaultValue="true"
-        android:key="tags_warnings"
-        android:summary="@string/tags_warnings_summary"
-        android:title="@string/tags_warnings" />
 
     <SwitchPreferenceCompat
         android:defaultValue="false"
