@@ -144,19 +144,25 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			onFirstStart()
 		}
 
-		viewModel.onOpenReader.observeEvent(this, this::onOpenReader)
-		viewModel.onError.observeEvent(this, SnackbarErrorObserver(viewBinding.container, null))
-		viewModel.isLoading.observe(this, this::onLoadingStateChanged)
-		viewModel.isResumeEnabled.observe(this, this::onResumeEnabledChanged)
-		viewModel.feedCounter.observe(this, ::onFeedCounterChanged)
-		viewModel.appUpdate.observe(this, MenuInvalidator(this))
-		viewModel.onFirstStart.observeEvent(this) { router.showWelcomeSheet() }
-		viewModel.isBottomNavPinned.observe(this, ::setNavbarPinned)
-		searchSuggestionViewModel.isIncognitoModeEnabled.observe(this, this::onIncognitoModeChanged)
 		viewBinding.bottomNav?.addOnLayoutChangeListener(this)
 		viewBinding.searchView.addTransitionListener(this)
 		viewBinding.searchView.addTransitionListener(exitCallback)
-		initSearch()
+
+		// Defer heavy initialization to after window is shown to prevent ANR on slow devices
+		lifecycleScope.launch {
+			lifecycle.withResumed {
+				viewModel.onOpenReader.observeEvent(this@MainActivity, this@MainActivity::onOpenReader)
+				viewModel.onError.observeEvent(this@MainActivity, SnackbarErrorObserver(viewBinding.container, null))
+				viewModel.isLoading.observe(this@MainActivity, this@MainActivity::onLoadingStateChanged)
+				viewModel.isResumeEnabled.observe(this@MainActivity, this@MainActivity::onResumeEnabledChanged)
+				viewModel.feedCounter.observe(this@MainActivity, ::onFeedCounterChanged)
+				viewModel.appUpdate.observe(this@MainActivity, MenuInvalidator(this@MainActivity))
+				viewModel.onFirstStart.observeEvent(this@MainActivity) { router.showWelcomeSheet() }
+				viewModel.isBottomNavPinned.observe(this@MainActivity, ::setNavbarPinned)
+				searchSuggestionViewModel.isIncognitoModeEnabled.observe(this@MainActivity, this@MainActivity::onIncognitoModeChanged)
+				initSearch()
+			}
+		}
 	}
 
 	override fun onRestoreInstanceState(savedInstanceState: Bundle) {
