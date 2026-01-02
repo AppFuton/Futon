@@ -22,6 +22,7 @@ import io.github.landwarderer.futon.scrobbling.common.domain.Scrobbler
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingInfo
 import io.github.landwarderer.futon.tracker.domain.TrackingRepository
 import javax.inject.Inject
+import javax.inject.Provider
 
 /* TODO: remove */
 class DetailsInteractor @Inject constructor(
@@ -30,8 +31,9 @@ class DetailsInteractor @Inject constructor(
 	private val localMangaRepository: LocalMangaRepository,
 	private val trackingRepository: TrackingRepository,
 	private val settings: AppSettings,
-	private val scrobblers: Set<@JvmSuppressWildcards Scrobbler>,
+	private val scrobblersProvider: Provider<Set<@JvmSuppressWildcards Scrobbler>>,
 ) {
+	private val scrobblers: Set<@JvmSuppressWildcards Scrobbler> by lazy { scrobblersProvider.get() }
 
 	fun observeFavourite(mangaId: Long): Flow<Set<FavouriteCategory>> {
 		return favouritesRepository.observeCategories(mangaId)

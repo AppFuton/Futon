@@ -40,11 +40,12 @@ import javax.inject.Provider
 class HistoryRepository @Inject constructor(
 	private val db: MangaDatabase,
 	private val settings: AppSettings,
-	private val scrobblers: Set<@JvmSuppressWildcards Scrobbler>,
+	private val scrobblersProvider: Provider<Set<@JvmSuppressWildcards Scrobbler>>,
 	private val mangaRepository: MangaDataRepository,
 	private val localObserver: HistoryLocalObserver,
 	private val newChaptersUseCaseProvider: Provider<CheckNewChaptersUseCase>,
 ) {
+	private val scrobblers: Set<@JvmSuppressWildcards Scrobbler> by lazy { scrobblersProvider.get() }
 
 	suspend fun getList(offset: Int, limit: Int): List<Manga> {
 		val entities = db.getHistoryDao().findAll(offset, limit)

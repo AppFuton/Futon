@@ -28,15 +28,16 @@ import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblerUser
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingInfo
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingStatus
 import javax.inject.Inject
+import javax.inject.Provider
 
 @HiltViewModel
 class ScrobblerConfigViewModel @Inject constructor(
 	savedStateHandle: SavedStateHandle,
-	scrobblers: Set<@JvmSuppressWildcards Scrobbler>,
+	scrobblersProvider: Provider<Set<@JvmSuppressWildcards Scrobbler>>,
 ) : BaseViewModel() {
 
 	private val scrobblerService = getScrobblerService(savedStateHandle)
-	private val scrobbler = scrobblers.first { it.scrobblerService == scrobblerService }
+	private val scrobbler = scrobblersProvider.get().first { it.scrobblerService == scrobblerService }
 
 	val titleResId = scrobbler.scrobblerService.titleResId
 

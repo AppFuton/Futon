@@ -55,13 +55,14 @@ import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingInf
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingStatus
 import io.github.landwarderer.futon.stats.data.StatsRepository
 import javax.inject.Inject
+import javax.inject.Provider
 
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
 	private val historyRepository: HistoryRepository,
 	bookmarksRepository: BookmarksRepository,
 	settings: AppSettings,
-	private val scrobblers: Set<@JvmSuppressWildcards Scrobbler>,
+	private val scrobblersProvider: Provider<Set<@JvmSuppressWildcards Scrobbler>>,
 	@LocalStorageChanges localStorageChanges: SharedFlow<LocalManga?>,
 	downloadScheduler: DownloadWorker.Scheduler,
 	interactor: DetailsInteractor,
@@ -86,6 +87,7 @@ class DetailsViewModel @Inject constructor(
 	private val intent = MangaIntent(savedStateHandle)
 	private var loadingJob: Job
 	val mangaId = intent.mangaId
+	private val scrobblers: Set<@JvmSuppressWildcards Scrobbler> by lazy { scrobblersProvider.get() }
 
 	init {
 		mangaDetails.value = intent.manga?.let { MangaDetails(it) }

@@ -16,6 +16,7 @@ import io.github.landwarderer.futon.scrobbling.common.domain.Scrobbler
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingStatus
 import io.github.landwarderer.futon.tracker.data.TrackEntity
 import javax.inject.Inject
+import javax.inject.Provider
 
 class MigrateUseCase
 @Inject
@@ -24,8 +25,9 @@ constructor(
 	private val mangaDataRepository: MangaDataRepository,
 	private val database: MangaDatabase,
 	private val progressUpdateUseCase: ProgressUpdateUseCase,
-	private val scrobblers: Set<@JvmSuppressWildcards Scrobbler>,
+	private val scrobblersProvider: Provider<Set<@JvmSuppressWildcards Scrobbler>>,
 ) {
+	private val scrobblers: Set<@JvmSuppressWildcards Scrobbler> by lazy { scrobblersProvider.get() }
 	suspend operator fun invoke(
 		oldManga: Manga,
 		newManga: Manga,

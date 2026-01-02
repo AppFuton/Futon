@@ -34,16 +34,18 @@ import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblerMang
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingStatus
 import io.github.landwarderer.futon.scrobbling.common.ui.selector.model.ScrobblerHint
 import javax.inject.Inject
+import javax.inject.Provider
 
 @HiltViewModel
 class ScrobblingSelectorViewModel @Inject constructor(
 	savedStateHandle: SavedStateHandle,
-	scrobblers: Set<@JvmSuppressWildcards Scrobbler>,
+	scrobblersProvider: Provider<Set<@JvmSuppressWildcards Scrobbler>>,
 	private val historyRepository: HistoryRepository,
 ) : BaseViewModel() {
 
 	val manga = savedStateHandle.require<ParcelableManga>(AppRouter.KEY_MANGA).manga
 
+	private val scrobblers by lazy { scrobblersProvider.get() }
 	val availableScrobblers = scrobblers.filter { it.isEnabled }
 
 	val selectedScrobblerIndex = MutableStateFlow(0)
