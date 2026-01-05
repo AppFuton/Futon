@@ -3,6 +3,12 @@
 > 
 > This fork continues development and maintenance of the manga reader, building upon the excellent foundation created by the Kotatsu team.
 
+> [!WARNING]
+> Most of the sources are currently outdated or just straight up nonexistent. I am sorry for this as I've never been able to conpletely fix all the sources.
+>
+> But a lot of the sources do actually still work and work really well so dont worry about you not being able to enjoy manga
+>
+> We welcome contributions if anyone is willing to provide fixes for any sources.
 ---
 
 <div align="center">
