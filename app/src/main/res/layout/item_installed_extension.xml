@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:layout_margin="@dimen/margin_small"
+	app:cardElevation="2dp"
+	app:cardCornerRadius="8dp">
+
+	<androidx.constraintlayout.widget.ConstraintLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:padding="@dimen/margin_normal">
+
+		<ImageView
+			android:id="@+id/imageView_icon"
+			android:layout_width="48dp"
+			android:layout_height="48dp"
+			android:scaleType="centerCrop"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toTopOf="parent"
+			tools:src="@tools:sample/avatars" />
+
+		<TextView
+			android:id="@+id/textView_name"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_marginStart="16dp"
+			android:layout_marginEnd="8dp"
+			android:ellipsize="end"
+			android:maxLines="1"
+			android:textAppearance="?attr/textAppearanceTitleMedium"
+			app:layout_constraintEnd_toStartOf="@+id/switch_enabled"
+			app:layout_constraintStart_toEndOf="@+id/imageView_icon"
+			app:layout_constraintTop_toTopOf="@+id/imageView_icon"
+			tools:text="MangaDex" />
+
+		<TextView
+			android:id="@+id/textView_version"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_marginStart="16dp"
+			android:layout_marginTop="4dp"
+			android:layout_marginEnd="8dp"
+			android:ellipsize="end"
+			android:maxLines="1"
+			android:textAppearance="?attr/textAppearanceBodySmall"
+			app:layout_constraintEnd_toStartOf="@+id/switch_enabled"
+			app:layout_constraintStart_toEndOf="@+id/imageView_icon"
+			app:layout_constraintTop_toBottomOf="@+id/textView_name"
+			tools:text="v1.5.7 • 3 sources" />
+
+		<com.google.android.material.chip.Chip
+			android:id="@+id/chip_nsfw"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginStart="16dp"
+			android:layout_marginTop="4dp"
+			android:text="@string/extension_nsfw"
+			android:visibility="gone"
+			app:chipBackgroundColor="?attr/colorErrorContainer"
+			app:chipStrokeWidth="0dp"
+			app:layout_constraintStart_toEndOf="@+id/imageView_icon"
+			app:layout_constraintTop_toBottomOf="@+id/textView_version"
+			tools:visibility="visible" />
+
+		<com.google.android.material.materialswitch.MaterialSwitch
+			android:id="@+id/switch_enabled"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			app:layout_constraintEnd_toEndOf="parent"
+			app:layout_constraintTop_toTopOf="parent" />
+
+		<TextView
+			android:id="@+id/textView_sources"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="8dp"
+			android:ellipsize="end"
+			android:maxLines="3"
+			android:textAppearance="?attr/textAppearanceBodySmall"
+			app:layout_constraintEnd_toEndOf="parent"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toBottomOf="@+id/chip_nsfw"
+			tools:text="Sources: MangaDex, MangaPlus, MangaSee" />
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/button_uninstall"
+			style="@style/Widget.Material3.Button.OutlinedButton"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="8dp"
+			android:text="@string/uninstall_extension"
+			app:icon="@drawable/ic_delete"
+			app:layout_constraintEnd_toEndOf="parent"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toBottomOf="@+id/textView_sources" />
+
+	</androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>
