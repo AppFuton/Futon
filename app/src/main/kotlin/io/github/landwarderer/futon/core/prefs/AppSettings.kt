@@ -338,6 +338,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_SOURCES_ENABLED_ALL, false)
 		set(value) = prefs.edit { putBoolean(KEY_SOURCES_ENABLED_ALL, value) }
 
+	var isTachiyomiExtensionsEnabled: Boolean
+		get() = prefs.getBoolean(KEY_TACHIYOMI_EXTENSIONS_ENABLED, true)
+		set(value) = prefs.edit { putBoolean(KEY_TACHIYOMI_EXTENSIONS_ENABLED, value) }
+
 	val isPagesNumbersEnabled: Boolean
 		get() = prefs.getBoolean(KEY_PAGES_NUMBERS, false)
 
@@ -817,6 +821,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_DISCORD_RPC = "discord_rpc"
 		const val KEY_DISCORD_RPC_SKIP_NSFW = "discord_rpc_skip_nsfw"
 		const val KEY_DISCORD_TOKEN = "discord_token"
+		const val KEY_TACHIYOMI_EXTENSIONS_ENABLED = "tachiyomi_extensions_enabled"
 
 		// keys for non-persistent preferences
 		const val KEY_APP_VERSION = "app_version"

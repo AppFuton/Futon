@@ -25,6 +25,8 @@ import io.github.landwarderer.futon.core.model.MangaSourceInfo
 import io.github.landwarderer.futon.core.model.getTitle
 import io.github.landwarderer.futon.core.model.isNsfw
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
+import io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionRepository
+import io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiMangaSource
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.observeAsFlow
 import io.github.landwarderer.futon.core.ui.util.ReversibleHandle
@@ -46,6 +48,7 @@ class MangaSourcesRepository @Inject constructor(
 	@LocalizedAppContext private val context: Context,
 	private val db: MangaDatabase,
 	private val settings: AppSettings,
+	private val tachiyomiExtensionRepository: TachiyomiExtensionRepository,
 ) {
 
 	private val isNewSourcesAssimilated = AtomicBoolean(false)
@@ -64,8 +67,10 @@ class MangaSourcesRepository @Inject constructor(
 		return dao.findAll(!settings.isAllSourcesEnabled, order).toSources(settings.isNsfwContentDisabled, order)
 			.let { enabled ->
 				val external = getExternalSources()
-				val list = ArrayList<MangaSourceInfo>(enabled.size + external.size)
+				val tachiyomi = getTachiyomiSources()
+				val list = ArrayList<MangaSourceInfo>(enabled.size + external.size + tachiyomi.size)
 				external.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = true) }
+				tachiyomi.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = false) }
 				list.addAll(enabled)
 				list
 			}
@@ -183,6 +188,12 @@ class MangaSourcesRepository @Inject constructor(
 			val list = ArrayList<MangaSourceInfo>(enabled.size + external.size)
 			external.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = true) }
 			list.addAll(enabled)
+			list
+		}
+		.combine(observeTachiyomiSources()) { combined, tachiyomi ->
+			val list = ArrayList<MangaSourceInfo>(combined.size + tachiyomi.size)
+			list.addAll(combined)
+			tachiyomi.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = false) }
 			list
 		}
 
@@ -360,6 +371,37 @@ class MangaSourcesRepository @Inject constructor(
 			packageName = resolveInfo.providerInfo.packageName,
 			authority = resolveInfo.providerInfo.authority,
 		)
+	}
+
+	private suspend fun getTachiyomiSources(): List<TachiyomiMangaSource> {
+		val extensions = tachiyomiExtensionRepository.getEnabledExtensions()
+		val skipNsfw = settings.isNsfwContentDisabled
+		return extensions.flatMap { ext ->
+			ext.sources.mapNotNull { tachiyomiSource ->
+				if (skipNsfw && ext.isNsfw) {
+					null
+				} else {
+					TachiyomiMangaSource(tachiyomiSource.id)
+				}
+			}
+		}
+	}
+
+	private fun observeTachiyomiSources(): Flow<List<TachiyomiMangaSource>> {
+		return combine(
+			tachiyomiExtensionRepository.observeEnabledExtensions(),
+			observeIsNsfwDisabled(),
+		) { extensions, skipNsfw ->
+			extensions.flatMap { ext ->
+				ext.sources.mapNotNull { tachiyomiSource ->
+					if (skipNsfw && ext.isNsfw) {
+						null
+					} else {
+						TachiyomiMangaSource(tachiyomiSource.id)
+					}
+				}
+			}
+		}
 	}
 
 	private fun List<MangaSourceEntity>.toSources(

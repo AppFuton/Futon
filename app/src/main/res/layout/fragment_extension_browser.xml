@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+
+	<com.google.android.material.appbar.AppBarLayout
+		android:id="@+id/appBarLayout"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+
+		<com.google.android.material.appbar.MaterialToolbar
+			android:id="@+id/toolbar"
+			android:layout_width="match_parent"
+			android:layout_height="?attr/actionBarSize"
+			app:title="@string/extension_browser"
+			app:navigationIcon="?attr/homeAsUpIndicator" />
+
+		<com.google.android.material.textfield.TextInputLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_margin="@dimen/margin_normal"
+			style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+			<com.google.android.material.textfield.TextInputEditText
+				android:id="@+id/searchBar"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:hint="@string/search_extensions"
+				android:inputType="text"
+				android:maxLines="1" />
+
+		</com.google.android.material.textfield.TextInputLayout>
+
+	</com.google.android.material.appbar.AppBarLayout>
+
+	<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+		android:id="@+id/swipeRefreshLayout"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+		<io.github.landwarderer.futon.core.ui.list.fastscroll.FastScrollRecyclerView
+			android:id="@+id/recyclerView"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:clipChildren="false"
+			android:clipToPadding="false"
+			android:orientation="vertical"
+			android:padding="@dimen/list_spacing_normal"
+			app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+			tools:listitem="@layout/item_extension" />
+
+	</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+	<com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+		android:id="@+id/fabFilter"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom|end"
+		android:layout_margin="@dimen/margin_normal"
+		android:text="@string/show_nsfw_extensions"
+		app:icon="@drawable/ic_eye_off" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

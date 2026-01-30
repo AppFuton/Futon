@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.inSpans
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
+import io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiMangaSource
 import io.github.landwarderer.futon.core.util.ext.getDisplayName
 import io.github.landwarderer.futon.core.util.ext.toLocale
 import io.github.landwarderer.futon.core.util.ext.toLocaleOrNull
@@ -41,6 +42,10 @@ fun MangaSource(name: String?): MangaSource {
 	if (name.startsWith("content:")) {
 		val parts = name.substringAfter(':').splitTwoParts('/') ?: return UnknownMangaSource
 		return ExternalMangaSource(packageName = parts.first, authority = parts.second)
+	}
+	if (name.startsWith("tachiyomi:")) {
+		val sourceId = name.substringAfter(':').toLongOrNull() ?: return UnknownMangaSource
+		return TachiyomiMangaSource(sourceId = sourceId)
 	}
 	MangaParserSource.entries.forEach {
 		if (it.name == name) return it
@@ -90,6 +95,8 @@ fun MangaSource.getSummary(context: Context): String? = when (val source = unwra
 
 	is ExternalMangaSource -> context.getString(R.string.external_source)
 
+	is TachiyomiMangaSource -> "Tachiyomi Extension"
+
 	else -> null
 }
 
@@ -98,6 +105,7 @@ fun MangaSource.getTitle(context: Context): String = when (val source = unwrap()
 	LocalMangaSource -> context.getString(R.string.local_storage)
 	TestMangaSource -> context.getString(R.string.test_parser)
 	is ExternalMangaSource -> source.resolveName(context)
+	is TachiyomiMangaSource -> source.resolveName(context)
 	else -> context.getString(R.string.unknown)
 }
 

@@ -15,6 +15,12 @@
         android:title="@string/remote_sources" />
 
     <PreferenceScreen
+        android:fragment="io.github.landwarderer.futon.settings.extensions.ExtensionsSettingsFragment"
+        android:icon="@drawable/ic_app_update"
+        android:key="extensions"
+        android:title="@string/extensions" />
+
+    <PreferenceScreen
         android:fragment="io.github.landwarderer.futon.settings.ReaderSettingsFragment"
         android:icon="@drawable/ic_book_page"
         android:key="reader"

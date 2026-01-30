@@ -16,6 +16,7 @@ import io.github.landwarderer.futon.core.db.dao.ChaptersDao
 import io.github.landwarderer.futon.core.db.dao.MangaDao
 import io.github.landwarderer.futon.core.db.dao.MangaSourcesDao
 import io.github.landwarderer.futon.core.db.dao.PreferencesDao
+import io.github.landwarderer.futon.core.db.dao.TachiyomiExtensionsDao
 import io.github.landwarderer.futon.core.db.dao.TagsDao
 import io.github.landwarderer.futon.core.db.dao.TrackLogsDao
 import io.github.landwarderer.futon.core.db.entity.ChapterEntity
@@ -23,6 +24,7 @@ import io.github.landwarderer.futon.core.db.entity.MangaEntity
 import io.github.landwarderer.futon.core.db.entity.MangaPrefsEntity
 import io.github.landwarderer.futon.core.db.entity.MangaSourceEntity
 import io.github.landwarderer.futon.core.db.entity.MangaTagsEntity
+import io.github.landwarderer.futon.core.db.entity.TachiyomiExtensionEntity
 import io.github.landwarderer.futon.core.db.entity.TagEntity
 import io.github.landwarderer.futon.core.db.migrations.Migration10To11
 import io.github.landwarderer.futon.core.db.migrations.Migration11To12
@@ -43,6 +45,7 @@ import io.github.landwarderer.futon.core.db.migrations.Migration24To23
 import io.github.landwarderer.futon.core.db.migrations.Migration24To25
 import io.github.landwarderer.futon.core.db.migrations.Migration25To26
 import io.github.landwarderer.futon.core.db.migrations.Migration26To27
+import io.github.landwarderer.futon.core.db.migrations.Migration27To28
 import io.github.landwarderer.futon.core.db.migrations.Migration2To3
 import io.github.landwarderer.futon.core.db.migrations.Migration3To4
 import io.github.landwarderer.futon.core.db.migrations.Migration4To5
@@ -70,14 +73,14 @@ import io.github.landwarderer.futon.tracker.data.TrackEntity
 import io.github.landwarderer.futon.tracker.data.TrackLogEntity
 import io.github.landwarderer.futon.tracker.data.TracksDao
 
-const val DATABASE_VERSION = 27
+const val DATABASE_VERSION = 28
 
 @Database(
 	entities = [
 		MangaEntity::class, TagEntity::class, HistoryEntity::class, MangaTagsEntity::class, ChapterEntity::class,
 		FavouriteCategoryEntity::class, FavouriteEntity::class, MangaPrefsEntity::class, TrackEntity::class,
 		TrackLogEntity::class, SuggestionEntity::class, BookmarkEntity::class, ScrobblingEntity::class,
-		MangaSourceEntity::class, StatsEntity::class, LocalMangaIndexEntity::class,
+		MangaSourceEntity::class, StatsEntity::class, LocalMangaIndexEntity::class, TachiyomiExtensionEntity::class,
 	],
 	version = DATABASE_VERSION,
 )
@@ -112,6 +115,8 @@ abstract class MangaDatabase : RoomDatabase() {
 	abstract fun getLocalMangaIndexDao(): LocalMangaIndexDao
 
 	abstract fun getChaptersDao(): ChaptersDao
+
+	abstract fun getTachiyomiExtensionsDao(): TachiyomiExtensionsDao
 }
 
 fun getDatabaseMigrations(context: Context): Array<Migration> = arrayOf(
@@ -142,6 +147,7 @@ fun getDatabaseMigrations(context: Context): Array<Migration> = arrayOf(
 	Migration24To25(),
 	Migration25To26(),
 	Migration26To27(),
+	Migration27To28(),
 )
 
 fun MangaDatabase(context: Context): MangaDatabase = Room

@@ -1,0 +1,120 @@
+package io.github.landwarderer.futon.core.parser.tachiyomi
+
+import android.content.Context
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.pm.PackageInfoCompat
+import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
+import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class TachiyomiExtensionScanner @Inject constructor(
+	@ApplicationContext private val context: Context,
+) {
+
+	private val pkgManager: PackageManager = context.packageManager
+
+	fun scanInstalledExtensions(): List<ExtensionPackageInfo> {
+		val sharedExtensions = scanSharedExtensions()
+		val privateExtensions = scanPrivateExtensions()
+
+		return mergeAndDeduplicateExtensions(sharedExtensions, privateExtensions)
+	}
+
+	fun scanSharedExtensions(): List<ExtensionPackageInfo> {
+		val installedPackages = try {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+				pkgManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(PACKAGE_FLAGS.toLong()))
+			} else {
+				@Suppress("DEPRECATION")
+				pkgManager.getInstalledPackages(PACKAGE_FLAGS)
+			}
+		} catch (e: Exception) {
+			e.printStackTraceDebug()
+			return emptyList()
+		}
+
+		return installedPackages
+			.filter { isPackageAnExtension(it) }
+			.map { ExtensionPackageInfo(packageInfo = it, isShared = true) }
+	}
+
+	fun scanPrivateExtensions(): List<ExtensionPackageInfo> {
+		val privateExtDir = getPrivateExtensionDir()
+		if (!privateExtDir.exists()) {
+			return emptyList()
+		}
+
+		return privateExtDir.listFiles()
+			?.filter { it.isFile && it.extension == PRIVATE_EXTENSION_EXTENSION }
+			?.mapNotNull { file ->
+				try {
+					val path = file.absolutePath
+					val pkgInfo = pkgManager.getPackageArchiveInfo(path, PACKAGE_FLAGS)
+					pkgInfo?.apply {
+						applicationInfo?.fixBasePaths(path)
+					}?.takeIf { isPackageAnExtension(it) }
+						?.let { ExtensionPackageInfo(packageInfo = it, isShared = false) }
+				} catch (e: Exception) {
+					e.printStackTraceDebug()
+					null
+				}
+			} ?: emptyList()
+	}
+
+	fun isPackageAnExtension(pkgInfo: PackageInfo): Boolean {
+		return pkgInfo.reqFeatures.orEmpty().any { it.name == EXTENSION_FEATURE }
+	}
+
+	fun getPrivateExtensionDir(): File = File(context.filesDir, "tachiyomi_exts")
+
+	private fun mergeAndDeduplicateExtensions(
+		shared: List<ExtensionPackageInfo>,
+		private: List<ExtensionPackageInfo>,
+	): List<ExtensionPackageInfo> {
+		val sharedByPkg = shared.associateBy { it.packageInfo.packageName }
+		val privateByPkg = private.associateBy { it.packageInfo.packageName }
+
+		val allPackageNames = (sharedByPkg.keys + privateByPkg.keys).distinct()
+
+		return allPackageNames.mapNotNull { pkgName ->
+			val sharedPkg = sharedByPkg[pkgName]
+			val privatePkg = privateByPkg[pkgName]
+
+			when {
+				sharedPkg != null && privatePkg != null -> {
+					val sharedVersion = PackageInfoCompat.getLongVersionCode(sharedPkg.packageInfo)
+					val privateVersion = PackageInfoCompat.getLongVersionCode(privatePkg.packageInfo)
+					if (privateVersion >= sharedVersion) privatePkg else sharedPkg
+				}
+				sharedPkg != null -> sharedPkg
+				privatePkg != null -> privatePkg
+				else -> null
+			}
+		}
+	}
+
+	private fun android.content.pm.ApplicationInfo.fixBasePaths(apkPath: String) {
+		sourceDir = apkPath
+		publicSourceDir = apkPath
+	}
+
+	companion object {
+		private const val EXTENSION_FEATURE = "tachiyomi.extension"
+		private const val PRIVATE_EXTENSION_EXTENSION = "ext"
+
+		@Suppress("DEPRECATION")
+		private val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or
+			PackageManager.GET_META_DATA or
+			PackageManager.GET_SIGNATURES or
+			(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+				PackageManager.GET_SIGNING_CERTIFICATES
+			} else {
+				0
+			})
+	}
+}

@@ -11,6 +11,9 @@ import io.github.landwarderer.futon.core.model.TestMangaSource
 import io.github.landwarderer.futon.core.model.UnknownMangaSource
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaRepository
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
+import io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionRepository
+import io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiMangaRepository
+import io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiMangaSource
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.parsers.MangaLoaderContext
 import io.github.landwarderer.futon.parsers.model.Manga
@@ -22,6 +25,8 @@ import io.github.landwarderer.futon.parsers.model.MangaPage
 import io.github.landwarderer.futon.parsers.model.MangaParserSource
 import io.github.landwarderer.futon.parsers.model.MangaSource
 import io.github.landwarderer.futon.parsers.model.SortOrder
+import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.runBlocking
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -60,6 +65,7 @@ interface MangaRepository {
 		private val loaderContext: MangaLoaderContext,
 		private val contentCache: MemoryContentCache,
 		private val mirrorSwitcher: MirrorSwitcher,
+		private val tachiyomiExtensionRepository: TachiyomiExtensionRepository,
 	) {
 
 		private val cache = ArrayMap<MangaSource, WeakReference<MangaRepository>>()
@@ -106,7 +112,29 @@ interface MangaRepository {
 				EmptyMangaRepository(source)
 			}
 
+			is TachiyomiMangaSource -> runBlocking {
+				runCatchingCancellable {
+					val tachiyomiSource = findTachiyomiSource(source.sourceId)
+					if (tachiyomiSource != null) {
+						TachiyomiMangaRepository(
+							source = source,
+							tachiyomiSource = tachiyomiSource,
+							cache = contentCache,
+						)
+					} else {
+						null
+					}
+				}.getOrNull()
+			}
+
 			else -> null
+		}
+
+		private suspend fun findTachiyomiSource(sourceId: Long): io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiSource? {
+			val extensions = tachiyomiExtensionRepository.getEnabledExtensions()
+			return extensions.asSequence()
+				.flatMap { it.sources }
+				.find { it.id == sourceId }
 		}
 	}
 }
