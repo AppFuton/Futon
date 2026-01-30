@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -38,8 +39,18 @@ class ExtensionBrowserViewModel @Inject constructor(
 	init {
 		if (settings.isTachiyomiExtensionsEnabled) {
 			loadExtensions()
+			observeInstalledExtensions()
 		} else {
 			_availableExtensions.value = emptyList()
+		}
+	}
+
+	private fun observeInstalledExtensions() {
+		viewModelScope.launch(Dispatchers.Default) {
+			extensionRepository.observeAllExtensions().collectLatest { extensions ->
+				installedPackages = extensions.map { it.pkgName }.toSet()
+				applyFilters()
+			}
 		}
 	}
 
@@ -51,10 +62,6 @@ class ExtensionBrowserViewModel @Inject constructor(
 
 		launchLoadingJob(Dispatchers.Default) {
 			_availableExtensions.value = listOf(LoadingState)
-
-			installedPackages = extensionRepository.getAllExtensions()
-				.map { it.pkgName }
-				.toSet()
 
 			val remote = indexParser.fetchExtensions()
 			allExtensions = remote
