@@ -16,6 +16,7 @@ import android.graphics.drawable.Drawable
  * @property icon The extension's icon drawable
  * @property isShared Whether this is a system-installed extension (true) or private extension (false)
  * @property hasUpdate Whether an update is available for this extension
+ * @property isEnabled Whether this extension is currently enabled
  */
 data class TachiyomiExtension(
 	val pkgName: String,
@@ -28,6 +29,7 @@ data class TachiyomiExtension(
 	val icon: Drawable?,
 	val isShared: Boolean,
 	val hasUpdate: Boolean = false,
+	val isEnabled: Boolean = true,
 )
 
 /**
