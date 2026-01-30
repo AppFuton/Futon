@@ -27,6 +27,7 @@ import io.github.landwarderer.futon.databinding.FragmentExtensionBrowserBinding
 import io.github.landwarderer.futon.databinding.ItemExtensionBinding
 import io.github.landwarderer.futon.list.ui.adapter.ListStateHolderListener
 import io.github.landwarderer.futon.list.ui.adapter.TypedListSpacingDecoration
+import io.github.landwarderer.futon.list.ui.adapter.loadingStateAD
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -44,9 +45,9 @@ class ExtensionBrowserFragment : Fragment(), OnListItemClickListener<ExtensionBr
 	private val binding get() = _binding!!
 
 	private val adapter by lazy {
-		val delegate = extensionItemDelegate()
 		com.hannesdorfmann.adapterdelegates4.ListDelegationAdapter<List<ListModel>>(
-			delegate,
+			loadingStateAD(),
+			extensionItemDelegate(),
 		)
 	}
 
