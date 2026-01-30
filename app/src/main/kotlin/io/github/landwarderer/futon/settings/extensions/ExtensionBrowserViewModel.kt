@@ -36,10 +36,19 @@ class ExtensionBrowserViewModel @Inject constructor(
 	private var installedPackages: Set<String> = emptySet()
 
 	init {
-		loadExtensions()
+		if (settings.isTachiyomiExtensionsEnabled) {
+			loadExtensions()
+		} else {
+			_availableExtensions.value = emptyList()
+		}
 	}
 
 	fun loadExtensions() {
+		if (!settings.isTachiyomiExtensionsEnabled) {
+			_availableExtensions.value = emptyList()
+			return
+		}
+
 		launchLoadingJob(Dispatchers.Default) {
 			_availableExtensions.value = listOf(LoadingState)
 
