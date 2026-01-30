@@ -18,7 +18,9 @@ import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
@@ -55,22 +57,43 @@ class TachiyomiExtensionRepository @Inject constructor(
 	}
 
 	fun observeEnabledExtensions(): Flow<List<TachiyomiExtension>> {
-		return dao.observeEnabled()
-			.onStart { ensureExtensionsLoaded() }
-			.map { entities -> loadExtensionDetails(entities) }
+		return observePackageChanges()
+			.onStart { emit(Unit) }
+			.onEach { 
+				isExtensionsLoaded.set(false)
+				ensureExtensionsLoaded()
+			}
+			.flatMapLatest {
+				dao.observeEnabled()
+					.map { entities -> loadExtensionDetails(entities) }
+			}
 	}
 
 	fun observeAllExtensions(): Flow<List<TachiyomiExtension>> {
-		return dao.observeAll()
-			.onStart { ensureExtensionsLoaded() }
-			.map { entities -> loadExtensionDetails(entities) }
+		return observePackageChanges()
+			.onStart { emit(Unit) }
+			.onEach { 
+				isExtensionsLoaded.set(false)
+				ensureExtensionsLoaded()
+			}
+			.flatMapLatest {
+				dao.observeAll()
+					.map { entities -> loadExtensionDetails(entities) }
+			}
 	}
 
 	fun observeExtensionCount(): Flow<Int> {
-		return dao.observeEnabled()
-			.map { it.size }
-			.distinctUntilChanged()
-			.onStart { ensureExtensionsLoaded() }
+		return observePackageChanges()
+			.onStart { emit(Unit) }
+			.onEach { 
+				isExtensionsLoaded.set(false)
+				ensureExtensionsLoaded()
+			}
+			.flatMapLatest {
+				dao.observeEnabled()
+					.map { it.size }
+					.distinctUntilChanged()
+			}
 	}
 
 	suspend fun setExtensionEnabled(pkgName: String, isEnabled: Boolean) {
@@ -162,24 +185,9 @@ class TachiyomiExtensionRepository @Inject constructor(
 			versionCode = versionCode,
 			libVersion = libVersion,
 			isNsfw = isNsfw,
-			isEnabled = true,
+			isEnabled = isEnabled,
 			isShared = isShared,
 			installedAt = System.currentTimeMillis(),
 		)
 	}
-}
-
-private fun TachiyomiExtension.copy(isEnabled: Boolean): TachiyomiExtension {
-	return TachiyomiExtension(
-		pkgName = pkgName,
-		name = name,
-		versionName = versionName,
-		versionCode = versionCode,
-		libVersion = libVersion,
-		isNsfw = isNsfw,
-		sources = sources,
-		icon = icon,
-		isShared = isShared,
-		hasUpdate = hasUpdate,
-	)
 }
