@@ -77,10 +77,10 @@ class TachiyomiExtensionLoader @Inject constructor(
 								listOf(createTachiyomiSource(sourceInstance))
 							}
 							isSourceFactoryInstance(sourceInstance) -> {
-								val factoryMethod = sourceClass.getMethod("createSources")
-								val sourcesFromFactory = factoryMethod.invoke(sourceInstance) as? List<*>
-									?: emptyList()
-								sourcesFromFactory.mapNotNull { src ->
+						val factoryMethod = sourceClass.getMethod("createSources")
+						val sourcesFromFactory = factoryMethod.invoke(sourceInstance) as? List<*>
+							?: emptyList<Any>()
+						sourcesFromFactory.mapNotNull { src ->
 									if (src != null && isSourceInstance(src)) {
 										createTachiyomiSource(src)
 									} else {

@@ -45,7 +45,7 @@ class ExtensionBrowserFragment : Fragment(), OnListItemClickListener<ExtensionBr
 
 	private val adapter by lazy {
 		val delegate = extensionItemDelegate()
-		com.hannesdorfmann.adapterdelegates4.ListDelegationAdapter(
+		com.hannesdorfmann.adapterdelegates4.ListDelegationAdapter<List<ListModel>>(
 			delegate,
 		)
 	}
@@ -130,8 +130,8 @@ class ExtensionBrowserFragment : Fragment(), OnListItemClickListener<ExtensionBr
 		}
 	}
 
-	private fun extensionItemDelegate(): AdapterDelegate<List<ExtensionBrowserItem>> {
-		return adapterDelegateViewBinding<ExtensionBrowserItem, ExtensionBrowserItem, ItemExtensionBinding>(
+	private fun extensionItemDelegate(): AdapterDelegate<List<ListModel>> {
+		return adapterDelegateViewBinding<ExtensionBrowserItem, ListModel, ItemExtensionBinding>(
 			{ inflater, parent -> ItemExtensionBinding.inflate(inflater, parent, false) },
 		) {
 			binding.buttonAction.setOnClickListener {

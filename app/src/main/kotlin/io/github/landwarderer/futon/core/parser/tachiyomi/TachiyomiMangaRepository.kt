@@ -75,8 +75,8 @@ class TachiyomiMangaRepository(
 					method.invoke(sourceInstance, page)
 				}
 
-				// Convert RxJava Observable to coroutine
-				val mangasPage = awaitObservable(observable)
+			// Convert RxJava Observable to coroutine
+			val mangasPage = awaitObservable<Any>(observable)
 
 			// Extract manga list from MangasPage
 			val mangaListField = mangasPage.javaClass.getDeclaredField("mangas")
@@ -102,7 +102,7 @@ class TachiyomiMangaRepository(
 			val method = sourceClass.getMethod("fetchMangaDetails", sManga::class.java)
 			val observable = method.invoke(sourceInstance, sManga)
 
-				val detailedSManga = awaitObservable(observable)
+				val detailedSManga = awaitObservable<Any>(observable)
 
 				convertToFutonManga(detailedSManga, manga)
 			}.getOrElse { error ->

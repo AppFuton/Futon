@@ -50,7 +50,9 @@ class AppBackupAgent : BackupAgent() {
 					settings = AppSettings(applicationContext),
 					tachiyomiExtensionRepository = io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionRepository(
 						context = applicationContext,
-						db = MangaDatabase(context = applicationContext),
+						database = MangaDatabase(context = applicationContext),
+						loader = io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionLoader(applicationContext),
+						settings = AppSettings(applicationContext),
 					),
 				),
 				savedFiltersRepository = SavedFiltersRepository(
@@ -87,7 +89,9 @@ class AppBackupAgent : BackupAgent() {
 						settings = AppSettings(applicationContext),
 						tachiyomiExtensionRepository = io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionRepository(
 							context = applicationContext,
-							db = MangaDatabase(context = applicationContext),
+							database = MangaDatabase(context = applicationContext),
+							loader = io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionLoader(applicationContext),
+							settings = AppSettings(applicationContext),
 						),
 					),
 					savedFiltersRepository = SavedFiltersRepository(
