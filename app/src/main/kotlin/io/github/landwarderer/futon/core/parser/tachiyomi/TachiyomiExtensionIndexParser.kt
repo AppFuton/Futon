@@ -1,5 +1,6 @@
 package io.github.landwarderer.futon.core.parser.tachiyomi
 
+import io.github.landwarderer.futon.core.network.MangaHttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -13,7 +14,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class TachiyomiExtensionIndexParser @Inject constructor(
-	private val okHttpClient: OkHttpClient,
+	@MangaHttpClient private val okHttpClient: OkHttpClient,
 ) {
 
 	/**
