@@ -78,10 +78,10 @@ class TachiyomiMangaRepository(
 				// Convert RxJava Observable to coroutine
 				val mangasPage = awaitObservable(observable)
 
-				// Extract manga list from MangasPage
-				val mangaListField = mangasPage.javaClass.getDeclaredField("mangas")
-				mangaListField.isAccessible = true
-				val sMangaList = mangaListField.get(mangasPage) as? List<*> ?: emptyList<Any>()
+			// Extract manga list from MangasPage
+			val mangaListField = mangasPage.javaClass.getDeclaredField("mangas")
+			mangaListField.isAccessible = true
+			val sMangaList = mangaListField.get(mangasPage) as? List<Any?> ?: emptyList()
 
 				sMangaList.mapNotNull { sManga ->
 					if (sManga != null) convertToFutonManga(sManga) else null
@@ -98,9 +98,9 @@ class TachiyomiMangaRepository(
 			runCatchingCancellable {
 				val sManga = convertToTachiyomiManga(manga)
 
-				// fetchMangaDetails(manga: SManga): Observable<SManga>
-				val method = sourceClass.getMethod("fetchMangaDetails", sManga.javaClass)
-				val observable = method.invoke(sourceInstance, sManga)
+			// fetchMangaDetails(manga: SManga): Observable<SManga>
+			val method = sourceClass.getMethod("fetchMangaDetails", sManga::class.java)
+			val observable = method.invoke(sourceInstance, sManga)
 
 				val detailedSManga = awaitObservable(observable)
 
@@ -186,28 +186,27 @@ class TachiyomiMangaRepository(
 			else -> null
 		}
 
-		return Manga(
-			id = generateMangaId(url),
-			title = title,
-			altTitle = null,
-			url = url,
-			publicUrl = (tachiyomiSource.baseUrl ?: "") + url,
-			rating = existingManga?.rating ?: 0f,
-			isNsfw = tachiyomiSource.sourceInstance?.let { isNsfwSource(it) } ?: false,
-			coverUrl = thumbnailUrl,
-			tags = tags,
-			state = mangaState,
-			author = author,
-			largeCoverUrl = null,
-			description = description,
-			chapters = existingManga?.chapters, // Preserve existing chapters if updating
-			source = source,
-			contentRating = if (tachiyomiSource.sourceInstance?.let { isNsfwSource(it) } == true) {
-				ContentRating.ADULT
-			} else {
-				ContentRating.SAFE
-			},
-		)
+	return Manga(
+		id = generateMangaId(url),
+		title = title,
+		altTitles = emptySet(),
+		url = url,
+		publicUrl = (tachiyomiSource.baseUrl ?: "") + url,
+		rating = existingManga?.rating ?: 0f,
+		contentRating = if (tachiyomiSource.sourceInstance?.let { isNsfwSource(it) } == true) {
+			ContentRating.ADULT
+		} else {
+			ContentRating.SAFE
+		},
+		coverUrl = thumbnailUrl,
+		tags = tags,
+		state = mangaState,
+		authors = if (author.isNullOrBlank()) emptySet() else setOf(author),
+		largeCoverUrl = null,
+		description = description,
+		chapters = existingManga?.chapters, // Preserve existing chapters if updating
+		source = source,
+	)
 	}
 
 	/**

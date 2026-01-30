@@ -15,6 +15,8 @@ import androidx.lifecycle.lifecycleScope
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import com.hannesdorfmann.adapterdelegates4.AdapterDelegate
+import io.github.landwarderer.futon.core.ui.image.ImageViewTarget
+import io.github.landwarderer.futon.core.util.ext.enqueueWith
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.landwarderer.futon.R
@@ -66,7 +68,7 @@ class ExtensionBrowserFragment : Fragment(), OnListItemClickListener<ExtensionBr
 
 		binding.recyclerView.adapter = adapter
 		binding.recyclerView.addItemDecoration(
-			SpacingItemDecoration(resources.resolveDp(8)),
+			SpacingItemDecoration(resources.resolveDp(8), withBottomPadding = true),
 		)
 
 		binding.swipeRefreshLayout.setOnRefreshListener {
@@ -154,13 +156,12 @@ class ExtensionBrowserFragment : Fragment(), OnListItemClickListener<ExtensionBr
 				}
 				binding.buttonAction.isEnabled = !item.isInstalled
 
-				if (item.metadata.iconUrl?.isNotEmpty() == true) {
-					val request = ImageRequest.Builder(context)
-						.data(item.metadata.iconUrl)
-						.target(binding.imageViewIcon)
-						.build()
-					imageLoader.enqueue(request)
-				}
+			if (item.metadata.iconUrl?.isNotEmpty() == true) {
+				ImageRequest.Builder(context)
+					.data(item.metadata.iconUrl)
+					.target(ImageViewTarget(binding.imageViewIcon))
+					.enqueueWith(imageLoader)
+			}
 			}
 		}
 	}

@@ -23,8 +23,8 @@ class ExtensionBrowserViewModel @Inject constructor(
 	private val settings: AppSettings,
 ) : BaseViewModel() {
 
-	private val _availableExtensions = MutableStateFlow<List<ExtensionBrowserItem>>(listOf(LoadingState))
-	val availableExtensions: StateFlow<List<ExtensionBrowserItem>> = _availableExtensions.asStateFlow()
+	private val _availableExtensions = MutableStateFlow<List<ListModel>>(listOf(LoadingState))
+	val availableExtensions: StateFlow<List<ListModel>> = _availableExtensions.asStateFlow()
 
 	private val _searchQuery = MutableStateFlow("")
 	val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()

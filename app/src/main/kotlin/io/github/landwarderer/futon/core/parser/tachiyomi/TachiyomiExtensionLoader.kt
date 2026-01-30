@@ -28,7 +28,7 @@ class TachiyomiExtensionLoader @Inject constructor(
 		deferred.awaitAll()
 	}
 
-	suspend fun loadExtension(extPkgInfo: ExtensionPackageInfo): ExtensionLoadResult =
+	internal suspend fun loadExtension(extPkgInfo: ExtensionPackageInfo): ExtensionLoadResult =
 		withContext(Dispatchers.Default) {
 			runCatching {
 				val pkgInfo = extPkgInfo.packageInfo

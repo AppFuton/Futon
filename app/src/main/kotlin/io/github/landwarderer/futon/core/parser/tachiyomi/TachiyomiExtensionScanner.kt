@@ -18,14 +18,14 @@ class TachiyomiExtensionScanner @Inject constructor(
 
 	private val pkgManager: PackageManager = context.packageManager
 
-	fun scanInstalledExtensions(): List<ExtensionPackageInfo> {
+	internal fun scanInstalledExtensions(): List<ExtensionPackageInfo> {
 		val sharedExtensions = scanSharedExtensions()
 		val privateExtensions = scanPrivateExtensions()
 
 		return mergeAndDeduplicateExtensions(sharedExtensions, privateExtensions)
 	}
 
-	fun scanSharedExtensions(): List<ExtensionPackageInfo> {
+	internal fun scanSharedExtensions(): List<ExtensionPackageInfo> {
 		val installedPackages = try {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 				pkgManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(PACKAGE_FLAGS.toLong()))
@@ -43,7 +43,7 @@ class TachiyomiExtensionScanner @Inject constructor(
 			.map { ExtensionPackageInfo(packageInfo = it, isShared = true) }
 	}
 
-	fun scanPrivateExtensions(): List<ExtensionPackageInfo> {
+	internal fun scanPrivateExtensions(): List<ExtensionPackageInfo> {
 		val privateExtDir = getPrivateExtensionDir()
 		if (!privateExtDir.exists()) {
 			return emptyList()
