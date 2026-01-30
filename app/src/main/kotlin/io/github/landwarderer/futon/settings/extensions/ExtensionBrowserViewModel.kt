@@ -29,7 +29,7 @@ class ExtensionBrowserViewModel @Inject constructor(
 	private val _searchQuery = MutableStateFlow("")
 	val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-	private val _showNsfw = MutableStateFlow(settings.isNsfwContentDisabled.not())
+	private val _showNsfw = MutableStateFlow(false)
 	val showNsfw: StateFlow<Boolean> = _showNsfw.asStateFlow()
 
 	private var allExtensions: List<TachiyomiExtensionMetadata> = emptyList()

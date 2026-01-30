@@ -92,7 +92,7 @@ class TachiyomiExtensionIndexParser @Inject constructor(
 	 * Builds the icon URL for an extension.
 	 */
 	private fun buildIconUrl(pkgName: String, apkName: String): String {
-		// Icon path follows pattern: apks/<lang>/<source>/icon.png
+		// Icon path follows pattern: apk/<lang>/<source>/icon.png
 		// Extract from APK name: tachiyomi-<lang>.<source>-v<version>.apk
 		val baseName = apkName.removeSuffix(".apk")
 		val parts = baseName.removePrefix("tachiyomi-").split("-")
@@ -108,8 +108,8 @@ class TachiyomiExtensionIndexParser @Inject constructor(
 	}
 
 	companion object {
-		private const val INDEX_URL = "https://raw.githubusercontent.com/keiyoushi/extensions/repo/index.min.json"
-		private const val ICON_BASE_URL = "https://raw.githubusercontent.com/keiyoushi/extensions/repo/apks"
-		const val APK_BASE_URL = "https://raw.githubusercontent.com/keiyoushi/extensions/repo/apks"
+		private const val INDEX_URL = "https://github.com/keiyoushi/extensions/raw/refs/heads/repo/index.min.json"
+		private const val ICON_BASE_URL = "https://github.com/keiyoushi/extensions/raw/refs/heads/repo/apk"
+		const val APK_BASE_URL = "https://github.com/keiyoushi/extensions/raw/refs/heads/repo/apk"
 	}
 }
