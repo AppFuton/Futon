@@ -13,6 +13,13 @@
         android:title="@string/manage">
 
         <Preference
+            android:key="installed_extensions"
+            android:title="@string/installed_extensions"
+            android:summary="@string/installed_extensions_summary"
+            android:dependency="tachiyomi_extensions_enabled"
+            app:iconSpaceReserved="false" />
+
+        <Preference
             android:key="browse_extensions"
             android:title="@string/browse_extensions"
             android:summary="@string/browse_extensions_summary"
