@@ -51,7 +51,10 @@ class AppBackupAgent : BackupAgent() {
 					tachiyomiExtensionRepository = io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionRepository(
 						context = applicationContext,
 						database = MangaDatabase(context = applicationContext),
-						loader = io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionLoader(applicationContext),
+						loader = io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionLoader(
+							context = applicationContext,
+							scanner = io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionScanner(applicationContext),
+						),
 						settings = AppSettings(applicationContext),
 					),
 				),
@@ -90,7 +93,10 @@ class AppBackupAgent : BackupAgent() {
 						tachiyomiExtensionRepository = io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionRepository(
 							context = applicationContext,
 							database = MangaDatabase(context = applicationContext),
-							loader = io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionLoader(applicationContext),
+							loader = io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionLoader(
+								context = applicationContext,
+								scanner = io.github.landwarderer.futon.core.parser.tachiyomi.TachiyomiExtensionScanner(applicationContext),
+							),
 							settings = AppSettings(applicationContext),
 						),
 					),
