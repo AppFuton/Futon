@@ -64,11 +64,13 @@ android {
 			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 			signingConfig signingConfigs.release
 		}
-		nightly {
-			initWith release
-			applicationIdSuffix = '.nightly'
-			signingConfig signingConfigs.release
-		}
+	nightly {
+		initWith release
+		applicationIdSuffix = '.nightly'
+		signingConfig signingConfigs.release
+		// Fallback to release variant for dependencies without nightly variant
+		matchingFallbacks = ['release']
+	}
 	}
 	buildFeatures {
 		viewBinding true
