@@ -133,7 +133,9 @@ android {
 	}
 }
 dependencies {
-	implementation project(':source-api')
+	// Runtime-only: source-api provides stubs for Tachiyomi extensions at runtime
+	// but should not be on app's compile classpath (app has real androidx.preference)
+	runtimeOnly project(':source-api')
 
 	def parsersVersion = libs.versions.parsers.get()
 	if (System.properties.containsKey('parsersVersionOverride')) {
