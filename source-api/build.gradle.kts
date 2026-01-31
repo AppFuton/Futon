@@ -43,4 +43,9 @@ dependencies {
 	
 	// Kotlin stdlib
 	implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.10")
+	
+	// CompileOnly: androidx.preference for type-checking extension references
+	// The app provides the real implementation at runtime
+	// DO NOT use 'api' or 'implementation' - that would package duplicate classes
+	compileOnly("androidx.preference:preference-ktx:1.2.1")
 }
