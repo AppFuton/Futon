@@ -17,9 +17,10 @@ android {
 		release {
 			isMinifyEnabled = false
 		}
-		// Match app's nightly variant
+		// Match app's nightly variant (inherits release configuration)
 		create("nightly") {
 			initWith(getByName("release"))
+			isMinifyEnabled = false
 		}
 	}
 
