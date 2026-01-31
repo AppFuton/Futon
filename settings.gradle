@@ -29,4 +29,5 @@ dependencyResolutionManagement {
 }
 
 include ':app'
+include ':source-api'
 rootProject.name = "Futon"

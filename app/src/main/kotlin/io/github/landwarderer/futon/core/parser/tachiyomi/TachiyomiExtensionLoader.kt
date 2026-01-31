@@ -54,12 +54,17 @@ class TachiyomiExtensionLoader @Inject constructor(
 					?.map { it.trim() }
 					?: return@withContext ExtensionLoadResult.Error
 
-				val classLoader = try {
-					ChildFirstPathClassLoader(appInfo.sourceDir, null, context.classLoader)
-				} catch (e: Exception) {
-					e.printStackTraceDebug()
-					return@withContext ExtensionLoadResult.Error
-				}
+			val classLoader = try {
+				ChildFirstPathClassLoader(appInfo.sourceDir, null, context.classLoader)
+			} catch (e: Exception) {
+				e.printStackTraceDebug()
+				return@withContext ExtensionLoadResult.Error
+			}
+
+			android.util.Log.d(
+				"TachiyomiExtLoader",
+				"ClassLoader created for $pkgName. Parent: ${classLoader.parent?.javaClass?.simpleName}"
+			)
 
 				val sources = sourceClassNames.flatMap { className ->
 					try {
@@ -69,8 +74,14 @@ class TachiyomiExtensionLoader @Inject constructor(
 							className
 						}
 
-						val sourceClass = Class.forName(fullClassName, false, classLoader)
-						val sourceInstance = sourceClass.getDeclaredConstructor().newInstance()
+				val sourceClass = Class.forName(fullClassName, false, classLoader)
+				
+				android.util.Log.d(
+					"TachiyomiExtLoader",
+					"Loaded class: ${sourceClass.name}, ClassLoader: ${sourceClass.classLoader?.javaClass?.simpleName}"
+				)
+				
+				val sourceInstance = sourceClass.getDeclaredConstructor().newInstance()
 
 						when {
 							isSourceInstance(sourceInstance) -> {
@@ -126,14 +137,21 @@ class TachiyomiExtensionLoader @Inject constructor(
 			}
 		}
 
-	private fun isSourceInstance(obj: Any): Boolean {
-		return try {
-			val sourceInterface = obj.javaClass.classLoader?.loadClass(SOURCE_CLASS_NAME)
-			sourceInterface?.isInstance(obj) == true
-		} catch (e: Exception) {
-			false
-		}
+private fun isSourceInstance(obj: Any): Boolean {
+	return try {
+		val sourceInterface = obj.javaClass.classLoader?.loadClass(SOURCE_CLASS_NAME)
+		val result = sourceInterface?.isInstance(obj) == true
+		android.util.Log.d(
+			"TachiyomiExtLoader",
+			"isSourceInstance check: $result, obj class: ${obj.javaClass.name}, " +
+				"sourceInterface loader: ${sourceInterface?.classLoader?.javaClass?.simpleName}"
+		)
+		result
+	} catch (e: Exception) {
+		android.util.Log.w("TachiyomiExtLoader", "isSourceInstance failed", e)
+		false
 	}
+}
 
 	private fun isSourceFactoryInstance(obj: Any): Boolean {
 		return try {

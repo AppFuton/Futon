@@ -41,6 +41,10 @@ class InstalledExtensionsViewModel @Inject constructor(
 	private fun observeInstalledExtensions() {
 		viewModelScope.launch(Dispatchers.Default) {
 			extensionRepository.observeAllExtensions().collectLatest { extensions ->
+				android.util.Log.d("InstalledExtVM", "Received ${extensions.size} extensions")
+				extensions.forEach { ext ->
+					android.util.Log.d("InstalledExtVM", "Extension: ${ext.name} (${ext.pkgName})")
+				}
 				_installedExtensions.value = if (extensions.isEmpty()) {
 					emptyList()
 				} else {

@@ -141,18 +141,29 @@ class TachiyomiExtensionRepository @Inject constructor(
 
 		withContext(Dispatchers.Default) {
 			try {
+				android.util.Log.d("TachiyomiExtRepo", "Loading extensions...")
 				val loadResults = loader.loadExtensions()
+				android.util.Log.d("TachiyomiExtRepo", "Loaded ${loadResults.size} extension results")
 				val entities = loadResults.mapNotNull { result ->
 					when (result) {
-						is ExtensionLoadResult.Success -> result.extension.toEntity()
-						else -> null
+						is ExtensionLoadResult.Success -> {
+							android.util.Log.d("TachiyomiExtRepo", "Success: ${result.extension.name}")
+							result.extension.toEntity()
+						}
+						else -> {
+							android.util.Log.d("TachiyomiExtRepo", "Failed load result: $result")
+							null
+						}
 					}
 				}
+				android.util.Log.d("TachiyomiExtRepo", "Created ${entities.size} entities")
 
 				database.withTransaction {
 					dao.sync(entities)
 				}
+				android.util.Log.d("TachiyomiExtRepo", "Synced to database")
 			} catch (e: Exception) {
+				android.util.Log.e("TachiyomiExtRepo", "Error loading extensions", e)
 				e.printStackTraceDebug()
 				isExtensionsLoaded.set(false)
 			}

@@ -38,9 +38,18 @@ class TachiyomiExtensionScanner @Inject constructor(
 			return emptyList()
 		}
 
-		return installedPackages
+		android.util.Log.d("TachiyomiExtScanner", "Found ${installedPackages.size} total installed packages")
+		
+		val extensions = installedPackages
 			.filter { isPackageAnExtension(it) }
 			.map { ExtensionPackageInfo(packageInfo = it, isShared = true) }
+		
+		android.util.Log.d("TachiyomiExtScanner", "Found ${extensions.size} Tachiyomi extensions")
+		extensions.forEach { ext ->
+			android.util.Log.d("TachiyomiExtScanner", "Extension: ${ext.packageInfo.packageName}")
+		}
+		
+		return extensions
 	}
 
 	internal fun scanPrivateExtensions(): List<ExtensionPackageInfo> {
@@ -67,7 +76,29 @@ class TachiyomiExtensionScanner @Inject constructor(
 	}
 
 	fun isPackageAnExtension(pkgInfo: PackageInfo): Boolean {
-		return pkgInfo.reqFeatures.orEmpty().any { it.name == EXTENSION_FEATURE }
+		// Primary check: uses-feature declaration
+		val hasFeature = pkgInfo.reqFeatures.orEmpty().any { it.name == EXTENSION_FEATURE }
+		if (hasFeature) {
+			return true
+		}
+		
+		// Fallback check: package name pattern
+		// Tachiyomi extensions follow the pattern: eu.kanade.tachiyomi.extension.*
+		val pkgName = pkgInfo.packageName
+		if (pkgName.startsWith("eu.kanade.tachiyomi.extension.") || 
+		    pkgName.startsWith("eu.mihon.extension.")) {
+			android.util.Log.d("TachiyomiExtScanner", "Detected extension by package name: $pkgName")
+			return true
+		}
+		
+		// Additional check: has tachiyomi.extension.class metadata
+		val hasMetadata = pkgInfo.applicationInfo?.metaData?.containsKey("tachiyomi.extension.class") == true
+		if (hasMetadata) {
+			android.util.Log.d("TachiyomiExtScanner", "Detected extension by metadata: $pkgName")
+			return true
+		}
+		
+		return false
 	}
 
 	fun getPrivateExtensionDir(): File = File(context.filesDir, "tachiyomi_exts")
