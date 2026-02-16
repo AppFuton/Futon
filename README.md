@@ -37,6 +37,68 @@
 
 </div>
 
+## Development Setup
+
+### Prerequisites
+
+- **JDK 17** (recommended: [Temurin](https://adoptium.net/temurin/releases/) distribution)
+- **Android SDK** (compile SDK 36, build tools 35.0.0, minimum SDK 23)
+- **Android Studio** (recommended) or Android SDK command-line tools
+
+### Building the Project
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/AppFuton/Futon.git
+   cd Futon
+   ```
+
+2. **Build debug APK:**
+   ```bash
+   ./gradlew assembleDebug
+   ```
+   Output: `app/build/outputs/apk/debug/app-debug.apk`
+
+3. **Build release APK:**
+   ```bash
+   ./gradlew assembleRelease
+   ```
+   Output: `app/build/outputs/apk/release/app-release.apk`
+   
+   *Note: Requires keystore setup via environment variables or `local.properties`*
+
+4. **Build nightly APK:**
+   ```bash
+   ./gradlew assembleNightly
+   ```
+   Output: `app/build/outputs/apk/nightly/app-nightly.apk`
+
+### Running Tests
+
+- **Unit tests:**
+  ```bash
+  ./gradlew test
+  ```
+
+- **Instrumented tests:**
+  ```bash
+  ./gradlew connectedDebugAndroidTest
+  ```
+
+### Code Quality
+
+- **Lint check:**
+  ```bash
+  ./gradlew lint
+  ```
+
+- **Full check (lint + tests):**
+  ```bash
+  ./gradlew check
+  ```
+
+For detailed contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+
 ### In-App Screenshots
 
 <div align="center">
