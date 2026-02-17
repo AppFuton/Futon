@@ -36,7 +36,7 @@
 * Support for older devices running Android 6.0+
 
 </div>
-
+<div align="left">
 ## Development Setup
 
 ### Prerequisites
@@ -98,7 +98,7 @@
   ```
 
 For detailed contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
-
+</div>
 ### In-App Screenshots
 
 <div align="center">
