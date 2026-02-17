@@ -47,10 +47,10 @@ class FavoriteDialogViewModel @Inject constructor(
 	) { categories, _, tracker ->
 		mapList(categories, tracker)
 	}.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	fun setChecked(categoryId: Long, isChecked: Boolean) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			if (isChecked) {
 				favouritesRepository.addToCategory(categoryId, manga)
 			} else {

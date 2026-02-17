@@ -43,13 +43,13 @@ class OverrideConfigViewModel @Inject constructor(
 	val onSaved = MutableEventFlow<Unit>()
 
 	init {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			data.value = manga to (dataRepository.getOverride(manga.id) ?: emptyOverride())
 		}
 	}
 
 	fun save(title: String?) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val override = checkNotNull(data.value).second.let {
 				it.copy(
 					title = title,

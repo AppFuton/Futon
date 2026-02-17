@@ -29,7 +29,7 @@ class DiscordSettingsViewModel @Inject constructor(
 	).flatMapLatest {
 		checkToken()
 	}.stateIn(
-		viewModelScope + Dispatchers.Default,
+		viewModelScope + Dispatchers.IO,
 		SharingStarted.Eagerly,
 		TokenState.CHECKING to settings.discordToken,
 	)

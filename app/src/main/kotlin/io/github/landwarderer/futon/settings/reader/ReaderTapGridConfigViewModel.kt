@@ -23,22 +23,22 @@ class ReaderTapGridConfigViewModel @Inject constructor(
 	val content = tapGridSettings.observeChanges()
 		.onStart { emit(null) }
 		.map { getData() }
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyMap())
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, emptyMap())
 
 	fun reset() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			tapGridSettings.reset()
 		}
 	}
 
 	fun disableAll() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			tapGridSettings.disableAll()
 		}
 	}
 
 	fun setTapAction(area: TapGridArea, isLongTap: Boolean, action: TapAction?) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			tapGridSettings.setTapAction(area, isLongTap, action)
 		}
 	}

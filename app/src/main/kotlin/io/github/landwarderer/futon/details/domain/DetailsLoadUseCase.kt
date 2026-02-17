@@ -64,7 +64,7 @@ class DetailsLoadUseCase @Inject constructor(
 			loadRemote(manga, override, force)
 		}
 	}.distinctUntilChanged()
-		.flowOn(Dispatchers.Default)
+		.flowOn(Dispatchers.IO)
 
 	/**
 	 * Load local manga + try to load the linked remote one if network is not restricted
@@ -171,7 +171,7 @@ class DetailsLoadUseCase @Inject constructor(
 			parseAsHtml(imageGetter = imageGetter)
 		}.filterSpans()
 	} else {
-		runInterruptible(Dispatchers.Default) {
+		runInterruptible(Dispatchers.IO) {
 			parseAsHtml()
 		}.filterSpans().sanitize()
 	}.trim().nullIfEmpty()

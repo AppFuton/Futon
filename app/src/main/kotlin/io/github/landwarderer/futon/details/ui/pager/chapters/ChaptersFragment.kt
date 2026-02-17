@@ -94,7 +94,7 @@ class ChaptersFragment :
 		viewModel.isLoading.observe(viewLifecycleOwner, this::onLoadingStateChanged)
 		viewModel.chapters
 			.map { it.withVolumeHeaders(requireContext()) }
-			.flowOn(Dispatchers.Default)
+			.flowOn(Dispatchers.IO)
 			.observe(viewLifecycleOwner, this::onChaptersChanged)
 		viewModel.quickFilter.observe(viewLifecycleOwner, this::onFilterChanged)
 		viewModel.emptyReason.observe(viewLifecycleOwner) {

@@ -52,7 +52,7 @@ class SourcesCatalogViewModel @Inject constructor(
 	)
 
 	val hasNewSources = repository.observeHasNewSources()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, false)
 
 	val contentTypes = MutableStateFlow<List<ContentType>>(emptyList())
 
@@ -62,11 +62,11 @@ class SourcesCatalogViewModel @Inject constructor(
 		db.invalidationTrackerFlow(TABLE_SOURCES),
 	) { q, f, _ ->
 		buildSourcesList(f, q)
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
 		repository.clearNewSourcesBadge()
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			contentTypes.value = getContentTypes(settings.isNsfwContentDisabled)
 		}
 	}
@@ -80,7 +80,7 @@ class SourcesCatalogViewModel @Inject constructor(
 	}
 
 	fun addSource(source: MangaSource) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val rollback = repository.setSourcesEnabled(setOf(source), true)
 			onActionDone.call(ReversibleAction(R.string.source_enabled, rollback))
 		}

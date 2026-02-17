@@ -33,7 +33,7 @@ class StatsViewModel @Inject constructor(
 	val readingStats = MutableStateFlow<List<StatsRecord>>(emptyList())
 
 	init {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			combine<StatsPeriod, Set<Long>, Pair<StatsPeriod, Set<Long>>>(
 				period,
 				selectedCategories,
@@ -57,7 +57,7 @@ class StatsViewModel @Inject constructor(
 	}
 
 	fun clearStats() {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			repository.clearStats()
 			readingStats.value = emptyList()
 			onActionDone.call(ReversibleAction(R.string.stats_cleared, null))

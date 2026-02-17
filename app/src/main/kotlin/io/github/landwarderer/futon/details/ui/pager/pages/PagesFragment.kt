@@ -92,7 +92,7 @@ class PagesFragment :
 			} else {
 				null
 			}
-		}.flowOn(Dispatchers.Default)
+		}.flowOn(Dispatchers.IO)
 			.observe(this, viewModel::updateState)
 	}
 

@@ -28,11 +28,11 @@ class SourcesSettingsViewModel @Inject constructor(
 
 	val enabledSourcesCount = sourcesRepository.observeEnabledSourcesCount()
 		.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, -1)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, -1)
 
 	val availableSourcesCount = sourcesRepository.observeAvailableSourcesCount()
 		.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, -1)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, -1)
 
 	val isLinksEnabled = MutableStateFlow(isLinksEnabled())
 

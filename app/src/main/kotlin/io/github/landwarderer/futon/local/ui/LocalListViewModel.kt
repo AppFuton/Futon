@@ -65,7 +65,7 @@ class LocalListViewModel @Inject constructor(
 	private val showInlineFilter: Boolean = savedStateHandle[AppRouter.KEY_IS_BOTTOMTAB] ?: false
 
 	init {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			localStorageChanges
 				.collect {
 					loadList(filterCoordinator.snapshot(), append = false).join()
@@ -131,7 +131,7 @@ class LocalListViewModel @Inject constructor(
 	}
 
 	fun delete(ids: Set<Long>) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			deleteLocalMangaUseCase(ids)
 			onMangaRemoved.call(Unit)
 		}

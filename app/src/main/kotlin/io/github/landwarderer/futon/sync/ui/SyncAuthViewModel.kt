@@ -25,7 +25,7 @@ class SyncAuthViewModel @Inject constructor(
 	val syncURL = MutableStateFlow(context.resources.getStringArray(R.array.sync_url_list).first())
 
 	init {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val am = AccountManager.get(context)
 			val accounts = am.getAccountsByType(context.getString(R.string.account_type_sync))
 			if (accounts.isNotEmpty()) {
@@ -36,7 +36,7 @@ class SyncAuthViewModel @Inject constructor(
 
 	fun obtainToken(email: String, password: String) {
 		val urlValue = syncURL.value
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val token = api.authenticate(urlValue, email, password)
 			val result = SyncAuthResult(syncURL.value, email, password, token)
 			onTokenObtained.call(result)

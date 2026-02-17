@@ -46,7 +46,7 @@ class FilterHeaderFragment : BaseFragment<FragmentFilterHeaderBinding>(), ChipsV
         binding.chipsTags.onChipClickListener = this
         binding.chipsTags.onChipCloseClickListener = this
         filterHeaderProducer.observeHeader(filter)
-            .flowOn(Dispatchers.Default)
+            .flowOn(Dispatchers.IO)
             .observe(viewLifecycleOwner, ::onDataChanged)
     }
 

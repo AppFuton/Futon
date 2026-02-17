@@ -20,7 +20,7 @@ class RealImageProxyInterceptor @Inject constructor(
 ) : ImageProxyInterceptor {
 
 	private val delegate = settings.observeAsStateFlow(
-		scope = processLifecycleScope + Dispatchers.Default,
+		scope = processLifecycleScope + Dispatchers.IO,
 		key = AppSettings.KEY_IMAGES_PROXY,
 		valueProducer = { createDelegate() },
 	)

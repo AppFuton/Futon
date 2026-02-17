@@ -31,9 +31,9 @@ class SavedFiltersRepository @Inject constructor(
         .map {
             getAll(source)
         }.distinctUntilChanged()
-        .flowOn(Dispatchers.Default)
+        .flowOn(Dispatchers.IO)
 
-    suspend fun getAll(source: MangaSource): List<PersistableFilter> = withContext(Dispatchers.Default) {
+    suspend fun getAll(source: MangaSource): List<PersistableFilter> = withContext(Dispatchers.IO) {
         val prefs = getPrefs(source)
         val keys = prefs.all.keys.filter { it.startsWith(FILTER_PREFIX) }
         keys.mapNotNull { key ->
@@ -51,7 +51,7 @@ class SavedFiltersRepository @Inject constructor(
         source: MangaSource,
         name: String,
         filter: MangaListFilter,
-    ): PersistableFilter = withContext(Dispatchers.Default) {
+    ): PersistableFilter = withContext(Dispatchers.IO) {
         val persistableFilter = PersistableFilter(
             name = name,
             source = source,
@@ -63,11 +63,11 @@ class SavedFiltersRepository @Inject constructor(
 
     suspend fun save(
         filter: PersistableFilter,
-    ) = withContext(Dispatchers.Default) {
+    ) = withContext(Dispatchers.IO) {
         persist(filter)
     }
 
-    suspend fun rename(source: MangaSource, id: Int, newName: String) = withContext(Dispatchers.Default) {
+    suspend fun rename(source: MangaSource, id: Int, newName: String) = withContext(Dispatchers.IO) {
         val filter = load(source, id) ?: return@withContext
         val newFilter = filter.copy(name = newName)
         val prefs = getPrefs(source)
@@ -78,7 +78,7 @@ class SavedFiltersRepository @Inject constructor(
         newFilter
     }
 
-    suspend fun delete(source: MangaSource, id: Int) = withContext(Dispatchers.Default) {
+    suspend fun delete(source: MangaSource, id: Int) = withContext(Dispatchers.IO) {
         val prefs = getPrefs(source)
         prefs.edit(commit = true) {
             remove(key(id))

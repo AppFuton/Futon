@@ -40,7 +40,7 @@ class LocalInfoViewModel @Inject constructor(
 	}
 
 	fun cleanup() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			try {
 				isCleaningUp.value = true
 				val oldSize = size.value
@@ -54,7 +54,7 @@ class LocalInfoViewModel @Inject constructor(
 		}
 	}
 
-	private fun computeSize() = launchLoadingJob(Dispatchers.Default) {
+	private fun computeSize() = launchLoadingJob(Dispatchers.IO) {
 		val file = manga.url.toUri().toFileOrNull() ?: localMangaRepository.findSavedManga(manga)?.file
 		requireNotNull(file)
 		path.value = file.path

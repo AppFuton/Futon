@@ -44,7 +44,7 @@ class DeleteReadChaptersUseCase @Inject constructor(
 		}
 		return channelFlow {
 			for (manga in list) {
-				launch(Dispatchers.Default) {
+				launch(Dispatchers.IO) {
 					val task = runCatchingCancellable {
 						getDeletionTask(LocalManga(manga))
 					}.onFailure {

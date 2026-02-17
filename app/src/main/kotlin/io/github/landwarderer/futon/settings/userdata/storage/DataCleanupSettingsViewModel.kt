@@ -59,24 +59,24 @@ class DataCleanupSettingsViewModel @Inject constructor(
         CacheDir.entries.forEach {
             cacheSizes[it] = MutableStateFlow(-1L)
         }
-        launchJob(Dispatchers.Default) {
+        launchJob(Dispatchers.IO) {
             searchHistoryCount.value = searchRepository.getSearchHistoryCount()
         }
-        launchJob(Dispatchers.Default) {
+        launchJob(Dispatchers.IO) {
             feedItemsCount.value = trackingRepository.getLogsCount()
         }
         CacheDir.entries.forEach { cache ->
-            launchJob(Dispatchers.Default) {
+            launchJob(Dispatchers.IO) {
                 checkNotNull(cacheSizes[cache]).value = storageManager.computeCacheSize(cache)
             }
         }
-        launchJob(Dispatchers.Default) {
+        launchJob(Dispatchers.IO) {
             httpCacheSize.value = runInterruptible { httpCache.size() }
         }
     }
 
     fun clearCache(key: String, vararg caches: CacheDir) {
-        launchJob(Dispatchers.Default) {
+        launchJob(Dispatchers.IO) {
             try {
                 loadingKeys.update { it + key }
                 for (cache in caches) {
@@ -93,7 +93,7 @@ class DataCleanupSettingsViewModel @Inject constructor(
     }
 
     fun clearHttpCache() {
-        launchJob(Dispatchers.Default) {
+        launchJob(Dispatchers.IO) {
             try {
                 loadingKeys.update { it + AppSettings.KEY_HTTP_CACHE_CLEAR }
                 val size = runInterruptible(Dispatchers.IO) {
@@ -108,7 +108,7 @@ class DataCleanupSettingsViewModel @Inject constructor(
     }
 
     fun clearSearchHistory() {
-        launchJob(Dispatchers.Default) {
+        launchJob(Dispatchers.IO) {
             searchRepository.clearSearchHistory()
             searchHistoryCount.value = searchRepository.getSearchHistoryCount()
             onActionDone.call(ReversibleAction(R.string.search_history_cleared, null))
@@ -141,7 +141,7 @@ class DataCleanupSettingsViewModel @Inject constructor(
     }
 
     fun clearUpdatesFeed() {
-        launchJob(Dispatchers.Default) {
+        launchJob(Dispatchers.IO) {
             try {
                 loadingKeys.update { it + AppSettings.KEY_UPDATES_FEED_CLEAR }
                 trackingRepository.clearLogs()
@@ -154,7 +154,7 @@ class DataCleanupSettingsViewModel @Inject constructor(
     }
 
     fun clearMangaData() {
-        launchJob(Dispatchers.Default) {
+        launchJob(Dispatchers.IO) {
             try {
                 loadingKeys.update { it + AppSettings.KEY_CLEAR_MANGA_DATA }
                 trackingRepository.gc()
@@ -169,7 +169,7 @@ class DataCleanupSettingsViewModel @Inject constructor(
     }
 
     fun cleanupChapters() {
-        launchJob(Dispatchers.Default) {
+        launchJob(Dispatchers.IO) {
             try {
                 loadingKeys.update { it + AppSettings.KEY_CHAPTERS_CLEAR }
                 val oldSize = storageManager.computeStorageSize()

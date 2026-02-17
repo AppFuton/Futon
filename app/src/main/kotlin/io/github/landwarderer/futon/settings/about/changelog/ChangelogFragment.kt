@@ -43,7 +43,7 @@ class ChangelogFragment : BaseFragment<FragmentChangelogBinding>() {
 		viewModel.onError.observeEvent(viewLifecycleOwner, DialogErrorObserver(binding.root, this))
 		viewModel.changelog.filterNotNull()
 			.map { markwon.toMarkdown(it) }
-			.flowOn(Dispatchers.Default)
+			.flowOn(Dispatchers.IO)
 			.observe(viewLifecycleOwner) {
 				markwon.setParsedMarkdown(binding.textViewContent, it)
 			}

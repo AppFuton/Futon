@@ -75,7 +75,7 @@ class AppUpdateActivity : BaseActivity<ActivityAppUpdateBinding>(), View.OnClick
 			return
 		}
 		val markwon = Markwon.create(this)
-		val message = withContext(Dispatchers.Default) {
+		val message = withContext(Dispatchers.IO) {
 			buildSpannedString {
 				append(getString(R.string.new_version_s, version.name))
 				appendLine()

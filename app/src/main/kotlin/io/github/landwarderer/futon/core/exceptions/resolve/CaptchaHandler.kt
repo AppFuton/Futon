@@ -103,7 +103,7 @@ class CaptchaHandler @Inject constructor(
 		source: MangaSource,
 		exception: CloudFlareException?,
 		notify: Boolean,
-	): Boolean = withContext(Dispatchers.Default) {
+	): Boolean = withContext(Dispatchers.IO) {
 		if (source == UnknownMangaSource) {
 			return@withContext false
 		}

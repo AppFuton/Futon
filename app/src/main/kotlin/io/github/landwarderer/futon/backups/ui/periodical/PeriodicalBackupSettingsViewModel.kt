@@ -40,7 +40,7 @@ class PeriodicalBackupSettingsViewModel @Inject constructor(
 	}
 
 	fun checkTelegram() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			try {
 				isTelegramCheckLoading.value = true
 				telegramUploader.sendTestMessage()
@@ -56,7 +56,7 @@ class PeriodicalBackupSettingsViewModel @Inject constructor(
 		updateLastBackupDate()
 	}
 
-	private fun updateBackupsDirectory() = launchJob(Dispatchers.Default) {
+	private fun updateBackupsDirectory() = launchJob(Dispatchers.IO) {
 		val dir = settings.periodicalBackupDirectory
 		backupsDirectory.value = if (dir != null) {
 			dir.toUserFriendlyString()
@@ -65,7 +65,7 @@ class PeriodicalBackupSettingsViewModel @Inject constructor(
 		}
 	}
 
-	private fun updateLastBackupDate() = launchJob(Dispatchers.Default) {
+	private fun updateLastBackupDate() = launchJob(Dispatchers.IO) {
 		lastBackupDate.value = backupStorage.getLastBackupDate()
 	}
 

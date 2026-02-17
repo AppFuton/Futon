@@ -299,7 +299,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	private fun onFirstStart() = try {
 		lifecycleScope.launch(Dispatchers.Main) { // not a default `Main.immediate` dispatcher
-			withContext(Dispatchers.Default) {
+			withContext(Dispatchers.IO) {
 				LocalStorageCleanupWorker.enqueue(applicationContext)
 			}
 			withResumed {

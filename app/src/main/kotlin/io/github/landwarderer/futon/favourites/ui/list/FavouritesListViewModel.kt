@@ -65,7 +65,7 @@ class FavouritesListViewModel @Inject constructor(
 	private val isPaginationReady = AtomicBoolean(false)
 
 	override val listMode = settings.observeAsFlow(AppSettings.KEY_LIST_MODE_FAVORITES) { favoritesListMode }
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, settings.favoritesListMode)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, settings.favoritesListMode)
 
 	val sortOrder: StateFlow<ListSortOrder?> = if (categoryId == NO_ID) {
 		settings.observeAsFlow(AppSettings.KEY_FAVORITES_ORDER) {
@@ -75,7 +75,7 @@ class FavouritesListViewModel @Inject constructor(
 		repository.observeCategory(categoryId)
 			.withErrorHandling()
 			.map { it?.order }
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, null)
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
 
 	override val content = combine(
 		observeFavorites(),
@@ -88,7 +88,7 @@ class FavouritesListViewModel @Inject constructor(
 		isPaginationReady.set(true)
 	}.catch {
 		emit(listOf(it.toErrorState(canRetry = false)))
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	override fun onRefresh() {
 		refreshTrigger.value = Any()
@@ -104,7 +104,7 @@ class FavouritesListViewModel @Inject constructor(
 	override fun clearFilter() = quickFilter.clearFilter()
 
 	fun markAsRead(items: Set<Manga>) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			markAsReadUseCase(items)
 			onRefresh()
 		}
@@ -114,7 +114,7 @@ class FavouritesListViewModel @Inject constructor(
 		if (ids.isEmpty()) {
 			return
 		}
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val handle = if (categoryId == NO_ID) {
 				repository.removeFromFavourites(ids)
 			} else {

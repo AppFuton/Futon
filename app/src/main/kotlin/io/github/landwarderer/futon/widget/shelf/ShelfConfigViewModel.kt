@@ -31,7 +31,7 @@ class ShelfConfigViewModel @Inject constructor(
 			CategoryItem(it.id, it.title, selectedId == it.id)
 		}
 		list
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, emptyList())
 
 	var checkedId: Long
 		get() = selectedCategoryId.value

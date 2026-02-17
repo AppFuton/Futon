@@ -45,10 +45,10 @@ class FavouritesCategoriesViewModel @Inject constructor(
 	) { cats, all, showAll, hasActions ->
 		cats.toUiList(all, showAll, hasActions)
 	}.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	fun deleteCategories(ids: Set<Long>) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			repository.removeCategories(ids)
 		}
 	}
@@ -73,7 +73,7 @@ class FavouritesCategoriesViewModel @Inject constructor(
 	}
 
 	fun setIsVisible(ids: Set<Long>, isVisible: Boolean) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			for (id in ids) {
 				repository.updateCategory(id, isVisible)
 			}

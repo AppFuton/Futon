@@ -48,17 +48,17 @@ class AllBookmarksViewModel @Inject constructor(
 			}
 		}
 		.catch { e -> emit(listOf(e.toErrorState(canRetry = false))) }
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	fun removeBookmarks(ids: Set<Long>) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val handle = repository.removeBookmarks(ids)
 			onActionDone.call(ReversibleAction(R.string.bookmarks_removed, handle))
 		}
 	}
 
 	fun savePages(pageSaveHelper: PageSaveHelper, ids: Set<Long>) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val tasks = content.value.mapNotNull {
 				if (it !is Bookmark || it.pageId !in ids) return@mapNotNull null
 				PageSaveHelper.Task(

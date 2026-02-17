@@ -82,7 +82,7 @@ class AlternativesViewModel @Inject constructor(
 			includeDisabled -> list
 			else -> list + ButtonFooter(R.string.search_disabled_sources)
 		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
 		doSearch(throughDisabledSources = false)
@@ -100,7 +100,7 @@ class AlternativesViewModel @Inject constructor(
 			return
 		}
 		val prevJob = searchJob
-		searchJob = launchLoadingJob(Dispatchers.Default) {
+		searchJob = launchLoadingJob(Dispatchers.IO) {
 			includeDisabledSources.value = true
 			prevJob?.join()
 			doSearch(throughDisabledSources = true)
@@ -111,7 +111,7 @@ class AlternativesViewModel @Inject constructor(
 		if (migrationJob?.isActive == true) {
 			return
 		}
-		migrationJob = launchLoadingJob(Dispatchers.Default) {
+		migrationJob = launchLoadingJob(Dispatchers.IO) {
 			migrateUseCase(manga, target)
 			onMigrated.call(target)
 		}
@@ -119,7 +119,7 @@ class AlternativesViewModel @Inject constructor(
 
 	private fun doSearch(throughDisabledSources: Boolean) {
 		val prevJob = searchJob
-		searchJob = launchLoadingJob(Dispatchers.Default) {
+		searchJob = launchLoadingJob(Dispatchers.IO) {
 			prevJob?.cancelAndJoin()
 			val ref = mangaDetails.getOrDefault(manga)
 			val refCount = ref.chaptersCount()

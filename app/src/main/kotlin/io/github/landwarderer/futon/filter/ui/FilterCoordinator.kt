@@ -58,7 +58,7 @@ class FilterCoordinator @Inject constructor(
     lifecycle: ViewModelLifecycle,
 ) {
 
-    private val coroutineScope = lifecycle.lifecycleScope + Dispatchers.Default
+    private val coroutineScope = lifecycle.lifecycleScope + Dispatchers.IO
     private val repository = mangaRepositoryFactory.create(MangaSource(savedStateHandle[RemoteListFragment.ARG_SOURCE]))
     private val sourceLocale = (repository.source as? MangaParserSource)?.locale
 

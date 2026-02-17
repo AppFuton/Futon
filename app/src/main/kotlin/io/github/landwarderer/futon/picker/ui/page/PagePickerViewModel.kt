@@ -45,13 +45,13 @@ class PagePickerViewModel @Inject constructor(
 	}
 
 	val gridScale = settings.observeAsStateFlow(
-		scope = viewModelScope + Dispatchers.Default,
+		scope = viewModelScope + Dispatchers.IO,
 		key = AppSettings.KEY_GRID_SIZE_PAGES,
 		valueProducer = { gridSizePages / 100f },
 	)
 
 	init {
-		loadingJob = launchLoadingJob(Dispatchers.Default) {
+		loadingJob = launchLoadingJob(Dispatchers.IO) {
 			doInit()
 		}
 	}
@@ -72,7 +72,7 @@ class PagePickerViewModel @Inject constructor(
 		if (loadingJob?.isActive == true || loadingNextJob?.isActive == true) {
 			return
 		}
-		loadingNextJob = launchJob(Dispatchers.Default) {
+		loadingNextJob = launchJob(Dispatchers.IO) {
 			isLoadingDown.value = true
 			try {
 				val currentId = chaptersLoader.last().chapterId

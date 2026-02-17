@@ -75,10 +75,10 @@ class UpdatesViewModel @Inject constructor(
 		loadingCounter.decrement()
 	}.catch {
 		emit(listOf(it.toErrorState(canRetry = false)))
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			repository.gc()
 		}
 	}
@@ -88,7 +88,7 @@ class UpdatesViewModel @Inject constructor(
 	override fun onRetry() = Unit
 
 	fun remove(ids: Set<Long>) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			repository.clearUpdates(ids)
 		}
 	}

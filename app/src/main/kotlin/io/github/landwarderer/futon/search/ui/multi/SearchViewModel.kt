@@ -96,7 +96,7 @@ class SearchViewModel @Inject constructor(
 			includeDisabled -> filteredList
 			else -> filteredList + ButtonFooter(R.string.search_disabled_sources)
 		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
 		doSearch()
@@ -138,7 +138,7 @@ class SearchViewModel @Inject constructor(
 			return
 		}
 		val prevJob = searchJob
-		searchJob = launchLoadingJob(Dispatchers.Default) {
+		searchJob = launchLoadingJob(Dispatchers.IO) {
 			includeDisabledSources.value = true
 			prevJob?.join()
 			val sources = if (pinnedOnly.value) {
@@ -160,7 +160,7 @@ class SearchViewModel @Inject constructor(
 
 	private fun doSearch() {
 		val prevJob = searchJob
-		searchJob = launchLoadingJob(Dispatchers.Default) {
+		searchJob = launchLoadingJob(Dispatchers.IO) {
 			prevJob?.cancelAndJoin()
 			appendResult(searchHistory())
 			appendResult(searchFavorites())

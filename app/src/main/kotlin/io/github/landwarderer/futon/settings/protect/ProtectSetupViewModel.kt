@@ -25,7 +25,7 @@ class ProtectSetupViewModel @Inject constructor(
 
 	val isSecondStep = firstPassword.map {
 		it != null
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, false)
 	val onPasswordSet = MutableEventFlow<Unit>()
 	val onPasswordMismatch = MutableEventFlow<Unit>()
 	val onClearText = MutableEventFlow<Unit>()

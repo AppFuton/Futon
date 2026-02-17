@@ -165,7 +165,7 @@ class DownloadsSettingsFragment :
 		viewLifecycleScope.launch {
 			try {
 				preference?.isEnabled = false
-				withContext(Dispatchers.Default) {
+				withContext(Dispatchers.IO) {
 					val option = when (settings.allowDownloadOnMeteredNetwork) {
 						TriStateOption.ENABLED -> true
 						TriStateOption.ASK -> return@withContext

@@ -65,7 +65,7 @@ class ScrollTimerControlView @JvmOverloads constructor(
 			binding.switchScrollTimer.setOnCheckedChangeListener(this)
 		}
 		settings.observeAsStateFlow(
-			scope = lifecycleOwner.lifecycleScope + Dispatchers.Default,
+			scope = lifecycleOwner.lifecycleScope + Dispatchers.IO,
 			key = AppSettings.KEY_READER_AUTOSCROLL_SPEED,
 			valueProducer = { readerAutoscrollSpeed },
 		).observe(lifecycleOwner) {
@@ -77,7 +77,7 @@ class ScrollTimerControlView @JvmOverloads constructor(
 			}
 		}
 		settings.observeAsStateFlow(
-			scope = lifecycleOwner.lifecycleScope + Dispatchers.Default,
+			scope = lifecycleOwner.lifecycleScope + Dispatchers.IO,
 			key = AppSettings.KEY_READER_AUTOSCROLL_FAB,
 			valueProducer = { isReaderAutoscrollFabVisible },
 		).observe(lifecycleOwner) {

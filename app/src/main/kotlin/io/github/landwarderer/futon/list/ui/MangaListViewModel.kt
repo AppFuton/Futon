@@ -35,10 +35,10 @@ abstract class MangaListViewModel(
 
 	abstract val content: StateFlow<List<ListModel>>
 	open val listMode = settings.observeAsFlow(AppSettings.KEY_LIST_MODE) { listMode }
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, settings.listMode)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, settings.listMode)
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 	val gridScale = settings.observeAsStateFlow(
-		scope = viewModelScope + Dispatchers.Default,
+		scope = viewModelScope + Dispatchers.IO,
 		key = AppSettings.KEY_GRID_SIZE,
 		valueProducer = { gridSize / 100f },
 	)

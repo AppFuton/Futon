@@ -52,7 +52,7 @@ class WelcomeViewModel @Inject constructor(
 	)
 
 	init {
-		updateJob = launchJob(Dispatchers.Default) {
+		updateJob = launchJob(Dispatchers.IO) {
 			val contentTypes = allSources.mapSortedByCount { it.contentType }
 			types.value = types.value.copy(
 				availableItems = contentTypes,
@@ -84,7 +84,7 @@ class WelcomeViewModel @Inject constructor(
 			},
 		)
 		val prevJob = updateJob
-		updateJob = launchJob(Dispatchers.Default) {
+		updateJob = launchJob(Dispatchers.IO) {
 			prevJob.join()
 			commit()
 		}
@@ -100,7 +100,7 @@ class WelcomeViewModel @Inject constructor(
 			},
 		)
 		val prevJob = updateJob
-		updateJob = launchJob(Dispatchers.Default) {
+		updateJob = launchJob(Dispatchers.IO) {
 			prevJob.join()
 			commit()
 		}

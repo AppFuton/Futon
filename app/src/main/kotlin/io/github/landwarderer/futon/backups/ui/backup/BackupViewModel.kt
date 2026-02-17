@@ -33,7 +33,7 @@ class BackupViewModel @Inject constructor(
 	private val contentResolver: ContentResolver = context.contentResolver
 
 	init {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			ZipOutputStream(checkNotNull(contentResolver.openOutputStream(destination))).use {
 				it.setLevel(Deflater.BEST_COMPRESSION)
 				repository.createBackup(it, progress)

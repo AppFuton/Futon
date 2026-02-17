@@ -24,13 +24,13 @@ class ImageServerDelegate(
 		mangaRepositoryFactory.create(checkNotNull(mangaSource)) as ParserMangaRepository
 	}
 
-	suspend fun isAvailable() = withContext(Dispatchers.Default) {
+	suspend fun isAvailable() = withContext(Dispatchers.IO) {
 		repositoryLazy.getOrNull()?.let { repository ->
 			repository.getConfigKeys().any { it is ConfigKey.PreferredImageServer }
 		} == true
 	}
 
-	suspend fun getValue(): String? = withContext(Dispatchers.Default) {
+	suspend fun getValue(): String? = withContext(Dispatchers.IO) {
 		repositoryLazy.getOrNull()?.let { repository ->
 			val key = repository.getConfigKeys().firstNotNullOfOrNull { it as? ConfigKey.PreferredImageServer }
 			if (key != null) {
@@ -42,7 +42,7 @@ class ImageServerDelegate(
 	}
 
 	suspend fun showDialog(context: Context): Boolean {
-		val repository = withContext(Dispatchers.Default) {
+		val repository = withContext(Dispatchers.IO) {
 			repositoryLazy.getOrNull()
 		} ?: return false
 		val key = repository.getConfigKeys().firstNotNullOfOrNull {

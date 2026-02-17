@@ -36,7 +36,7 @@ class RestoreViewModel @Inject constructor(
 	val backupDate = MutableStateFlow<Date?>(null)
 
 	init {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			loadBackupInfo()
 		}
 	}

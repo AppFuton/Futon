@@ -34,7 +34,7 @@ class MangaDirectoriesViewModel @Inject constructor(
     }
 
     fun onCustomDirectoryPicked(uri: Uri) {
-        launchLoadingJob(Dispatchers.Default) {
+        launchLoadingJob(Dispatchers.IO) {
             loadingJob?.cancelAndJoin()
             storageManager.takePermissions(uri)
             val dir = storageManager.resolveUri(uri)
@@ -58,7 +58,7 @@ class MangaDirectoriesViewModel @Inject constructor(
 
     private fun loadList() {
         val prevJob = loadingJob
-        loadingJob = launchJob(Dispatchers.Default) {
+        loadingJob = launchJob(Dispatchers.IO) {
             prevJob?.cancelAndJoin()
             val downloadDir = storageManager.getDefaultWriteableDir()
             val applicationDirs = storageManager.getApplicationStorageDirs()

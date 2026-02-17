@@ -82,7 +82,7 @@ class SourceSettingsViewModel @Inject constructor(
 
 	fun clearCookies() {
 		if (repository !is ParserMangaRepository) return
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val url = HttpUrl.Builder()
 				.scheme("https")
 				.host(repository.domain)
@@ -94,13 +94,13 @@ class SourceSettingsViewModel @Inject constructor(
 	}
 
 	fun setEnabled(value: Boolean) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			mangaSourcesRepository.setSourcesEnabled(setOf(source), value)
 		}
 	}
 
 	private fun loadUsername(authProvider: MangaParserAuthProvider?) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			try {
 				username.value = null
 				isAuthorized.value = null

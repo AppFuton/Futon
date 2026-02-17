@@ -57,10 +57,10 @@ class FeedViewModel @Inject constructor(
 	private val isReady = AtomicBoolean(false)
 
 	val isRunning = scheduler.observeIsRunning()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, false)
 
 	val isHeaderEnabled = settings.observeAsStateFlow(
-		scope = viewModelScope + Dispatchers.Default,
+		scope = viewModelScope + Dispatchers.IO,
 		key = AppSettings.KEY_FEED_HEADER,
 		valueProducer = { isFeedHeaderVisible },
 	)
@@ -93,16 +93,16 @@ class FeedViewModel @Inject constructor(
 		result as List<ListModel>
 	}.catch { e ->
 		emit(listOf(e.toErrorState(canRetry = false)))
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			repository.gc()
 		}
 	}
 
 	fun clearFeed(clearCounters: Boolean) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			repository.clearLogs()
 			if (clearCounters) {
 				repository.clearCounters()
@@ -126,7 +126,7 @@ class FeedViewModel @Inject constructor(
 	}
 
 	fun onItemClick(item: FeedItem) {
-		launchJob(Dispatchers.Default, CoroutineStart.ATOMIC) {
+		launchJob(Dispatchers.IO, CoroutineStart.ATOMIC) {
 			repository.markAsRead(item.id)
 		}
 	}

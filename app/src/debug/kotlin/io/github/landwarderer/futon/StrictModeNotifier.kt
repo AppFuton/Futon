@@ -23,7 +23,7 @@ class StrictModeNotifier(
 	private val context: Context,
 ) : StrictMode.OnVmViolationListener, StrictMode.OnThreadViolationListener, FragmentStrictMode.OnViolationListener {
 
-	val executor = Dispatchers.Default.asExecutor()
+	val executor = Dispatchers.IO.asExecutor()
 
 	private val notificationManager by lazy {
 		val nm = checkNotNull(context.getSystemService<NotificationManager>())

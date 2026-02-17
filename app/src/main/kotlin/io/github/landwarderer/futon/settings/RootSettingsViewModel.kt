@@ -19,5 +19,5 @@ class RootSettingsViewModel @Inject constructor(
 
 	val enabledSourcesCount = sourcesRepository.observeEnabledSourcesCount()
 		.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, -1)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, -1)
 }

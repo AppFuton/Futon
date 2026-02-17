@@ -30,7 +30,7 @@ class ParserMangaRepository(
 	cache: MemoryContentCache,
 ) : CachingMangaRepository(cache), Interceptor {
 
-	private val filterOptionsLazy = suspendLazy(Dispatchers.Default) {
+	private val filterOptionsLazy = suspendLazy(Dispatchers.IO) {
 		withMirrors {
 			parser.getFilterOptions()
 		}

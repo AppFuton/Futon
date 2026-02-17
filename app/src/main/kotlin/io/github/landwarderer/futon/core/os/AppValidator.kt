@@ -15,7 +15,7 @@ class AppValidator @Inject constructor(
 	@ApplicationContext private val context: Context,
 ) {
 	@SuppressLint("InlinedApi")
-	val isOriginalApp = suspendLazy(Dispatchers.Default) {
+	val isOriginalApp = suspendLazy(Dispatchers.IO) {
 		val certificates = mapOf(CERT_SHA256.hexToByteArray() to PackageManager.CERT_INPUT_SHA256)
 		PackageInfoCompat.hasSignatures(context.packageManager, context.packageName, certificates, false)
 	}

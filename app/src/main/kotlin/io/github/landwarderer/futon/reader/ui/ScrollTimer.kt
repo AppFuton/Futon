@@ -53,7 +53,7 @@ class ScrollTimer @AssistedInject constructor(
 	init {
 		settings.observeAsFlow(AppSettings.KEY_READER_AUTOSCROLL_SPEED) {
 			readerAutoscrollSpeed
-		}.flowOn(Dispatchers.Default)
+		}.flowOn(Dispatchers.IO)
 			.onEach {
 				onSpeedChanged(it)
 			}.launchIn(coroutineScope)

@@ -67,7 +67,7 @@ class HistoryListViewModel @Inject constructor(
 	)
 
 	override val listMode = settings.observeAsStateFlow(
-		scope = viewModelScope + Dispatchers.Default,
+		scope = viewModelScope + Dispatchers.IO,
 		key = AppSettings.KEY_LIST_MODE_HISTORY,
 		valueProducer = { historyListMode },
 	)
@@ -83,7 +83,7 @@ class HistoryListViewModel @Inject constructor(
 	private val isPaginationReady = AtomicBoolean(false)
 
 	val isStatsEnabled = settings.observeAsStateFlow(
-		scope = viewModelScope + Dispatchers.Default,
+		scope = viewModelScope + Dispatchers.IO,
 		key = AppSettings.KEY_STATS_ENABLED,
 		valueProducer = { isStatsEnabled },
 	)
@@ -100,14 +100,14 @@ class HistoryListViewModel @Inject constructor(
 		isPaginationReady.set(true)
 	}.catch { e ->
 		emit(listOf(e.toErrorState(canRetry = false)))
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	override fun onRefresh() = Unit
 
 	override fun onRetry() = Unit
 
 	fun clearHistory(minDate: Instant?) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val stringRes = if (minDate == null) {
 				repository.clear()
 				R.string.history_cleared
@@ -120,7 +120,7 @@ class HistoryListViewModel @Inject constructor(
 	}
 
 	fun removeNotFavorite() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			repository.deleteNotFavorite()
 			onActionDone.call(ReversibleAction(R.string.removed_from_history, null))
 		}
@@ -130,14 +130,14 @@ class HistoryListViewModel @Inject constructor(
 		if (ids.isEmpty()) {
 			return
 		}
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val handle = repository.delete(ids)
 			onActionDone.call(ReversibleAction(R.string.removed_from_history, handle))
 		}
 	}
 
 	fun markAsRead(items: Set<Manga>) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			markAsReadUseCase(items)
 		}
 	}

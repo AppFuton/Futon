@@ -30,7 +30,7 @@ class MangaStatsViewModel @Inject constructor(
 	val totalPagesRead = MutableStateFlow(0)
 
 	init {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val timeline = repository.getMangaTimeline(manga.id)
 			if (timeline.isEmpty()) {
 				startDate.value = null
@@ -48,7 +48,7 @@ class MangaStatsViewModel @Inject constructor(
 				startDate.value = calculateTimeAgo(Instant.ofEpochMilli(timeline.firstKey()))
 			}
 		}
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			totalPagesRead.value = repository.getTotalPagesRead(manga.id)
 		}
 	}

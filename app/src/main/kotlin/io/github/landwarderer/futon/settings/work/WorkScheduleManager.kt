@@ -38,14 +38,14 @@ class WorkScheduleManager @Inject constructor(
 
 	fun init() {
 		settings.subscribe(this)
-		processLifecycleScope.launch(Dispatchers.Default) {
+		processLifecycleScope.launch(Dispatchers.IO) {
 			updateWorkerImpl(trackerScheduler, settings.isTrackerEnabled, true) // always force due to adaptive interval
 			updateWorkerImpl(suggestionScheduler, settings.isSuggestionsEnabled, false)
 		}
 	}
 
 	private fun updateWorker(scheduler: PeriodicWorkScheduler, isEnabled: Boolean, force: Boolean) {
-		processLifecycleScope.launch(Dispatchers.Default) {
+		processLifecycleScope.launch(Dispatchers.IO) {
 			updateWorkerImpl(scheduler, isEnabled, force)
 		}
 	}

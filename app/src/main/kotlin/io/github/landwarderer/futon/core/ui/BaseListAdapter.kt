@@ -21,7 +21,7 @@ import kotlin.coroutines.suspendCoroutine
 
 open class BaseListAdapter<T : ListModel> : AsyncListDifferDelegationAdapter<T>(
 	AsyncDifferConfig.Builder(ListModelDiffCallback<T>())
-		.setBackgroundThreadExecutor(Dispatchers.Default.limitedParallelism(2).asExecutor())
+		.setBackgroundThreadExecutor(Dispatchers.IO.limitedParallelism(2).asExecutor())
 		.build(),
 ), FlowCollector<List<T>?> {
 

@@ -38,7 +38,7 @@ class MainViewModel @Inject constructor(
 	val isResumeEnabled = readingResumeEnabledUseCase()
 		.withErrorHandling()
 		.stateIn(
-			scope = viewModelScope + Dispatchers.Default,
+			scope = viewModelScope + Dispatchers.IO,
 			started = SharingStarted.WhileSubscribed(5000),
 			initialValue = false,
 		)
@@ -47,22 +47,22 @@ class MainViewModel @Inject constructor(
 
 	val feedCounter = trackingRepository.observeUnreadUpdatesCount()
 		.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, 0)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, 0)
 
 	val isBottomNavPinned = settings.observeAsFlow(
 		AppSettings.KEY_NAV_PINNED,
 	) {
 		isNavBarPinned
-	}.flowOn(Dispatchers.Default)
+	}.flowOn(Dispatchers.IO)
 
 	val isIncognitoModeEnabled = settings.observeAsStateFlow(
-		scope = viewModelScope + Dispatchers.Default,
+		scope = viewModelScope + Dispatchers.IO,
 		key = AppSettings.KEY_INCOGNITO_MODE,
 		valueProducer = { isIncognitoModeEnabled },
 	)
 
 	init {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			if (sourcesRepository.isSetupRequired()) {
 				onFirstStart.call(Unit)
 			}
@@ -70,7 +70,7 @@ class MainViewModel @Inject constructor(
 	}
 
 	fun openLastReader() {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val manga = historyRepository.getLastOrNull() ?: throw EmptyHistoryException()
 			onOpenReader.call(manga)
 		}

@@ -58,7 +58,7 @@ class RelatedListViewModel @Inject constructor(
 			list.isEmpty() -> listOf(createEmptyState())
 			else -> mangaListMapper.toListModelList(list, mode)
 		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
 		loadList()
@@ -76,7 +76,7 @@ class RelatedListViewModel @Inject constructor(
 		loadingJob?.let {
 			if (it.isActive) return it
 		}
-		return launchLoadingJob(Dispatchers.Default) {
+		return launchLoadingJob(Dispatchers.IO) {
 			try {
 				listError.value = null
 				mangaList.value = repository.getRelated(seed)

@@ -32,7 +32,7 @@ class ImageViewModel @Inject constructor(
 	val onImageSaved = MutableEventFlow<Uri>()
 
 	fun saveImage(destination: Uri) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val request = ImageRequest.Builder(context)
 				.memoryCachePolicy(CachePolicy.READ_ONLY)
 				.data(savedStateHandle.require<Uri>(AppRouter.KEY_DATA))

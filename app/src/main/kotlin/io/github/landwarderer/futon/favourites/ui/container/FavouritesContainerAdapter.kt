@@ -20,7 +20,7 @@ class FavouritesContainerAdapter(fragment: Fragment) : FragmentStateAdapter(frag
 	private val differ = AsyncListDiffer(
 		AdapterListUpdateCallback(this),
 		AsyncDifferConfig.Builder(ListModelDiffCallback<FavouriteTabModel>())
-			.setBackgroundThreadExecutor(Dispatchers.Default.limitedParallelism(2).asExecutor())
+			.setBackgroundThreadExecutor(Dispatchers.IO.limitedParallelism(2).asExecutor())
 			.build(),
 	)
 

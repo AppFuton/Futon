@@ -109,7 +109,7 @@ data class ReaderSettings(
 		override fun onActive() {
 			assert(job?.isActive != true)
 			job?.cancel()
-			job = processLifecycleScope.launch(Dispatchers.Default) {
+			job = processLifecycleScope.launch(Dispatchers.IO) {
 				observeImpl()
 			}
 		}

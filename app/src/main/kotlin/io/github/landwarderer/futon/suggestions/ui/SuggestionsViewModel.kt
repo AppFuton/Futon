@@ -40,7 +40,7 @@ class SuggestionsViewModel @Inject constructor(
 ) : MangaListViewModel(settings, mangaDataRepository, localStorageChanges), QuickFilterListener by quickFilter {
 
 	override val listMode = settings.observeAsFlow(AppSettings.KEY_LIST_MODE_SUGGESTIONS) { suggestionsListMode }
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, settings.suggestionsListMode)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, settings.suggestionsListMode)
 
 	override val content = combine(
 		quickFilter.appliedOptions.combineWithSettings().flatMapLatest { repository.observeAll(0, it) },
@@ -80,14 +80,14 @@ class SuggestionsViewModel @Inject constructor(
 		loadingCounter.decrement()
 	}.catch {
 		emit(listOf(it.toErrorState(canRetry = false)))
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	override fun onRefresh() = Unit
 
 	override fun onRetry() = Unit
 
 	fun updateSuggestions() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			suggestionsScheduler.startNow()
 		}
 	}

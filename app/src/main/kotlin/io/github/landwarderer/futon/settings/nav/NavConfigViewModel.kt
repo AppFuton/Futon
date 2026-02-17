@@ -43,7 +43,7 @@ class NavConfigViewModel @Inject constructor(
 			}
 		}
 	}.stateIn(
-		viewModelScope + Dispatchers.Default,
+		viewModelScope + Dispatchers.IO,
 		SharingStarted.WhileSubscribed(5000),
 		emptyList(),
 	)

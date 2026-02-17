@@ -121,7 +121,7 @@ class FilterSheetFragment : BaseAdaptiveSheet<SheetFilterBinding>(),
             filter.observe().map { it.listFilter.isNotEmpty() }.distinctUntilChanged(),
             filter.savedFilters.map { it.selectedItems.isEmpty() }.distinctUntilChanged(),
             Boolean::and,
-        ).flowOn(Dispatchers.Default)
+        ).flowOn(Dispatchers.IO)
             .observe(viewLifecycleOwner) {
                 binding.buttonSave.isEnabled = it
             }

@@ -24,13 +24,13 @@ class TrackerSettingsViewModel @Inject constructor(
 		updateCategoriesCount()
 		val databaseObserver = DatabaseObserver(this)
 		addCloseable(databaseObserver)
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			database.invalidationTracker.addObserver(databaseObserver)
 		}
 	}
 
 	private fun updateCategoriesCount() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			categoriesCount.value = repository.getCategoriesCount()
 		}
 	}

@@ -266,7 +266,7 @@ class LocalMangaParser(private val uri: Uri) {
 					}
 				}
 			}
-		}.flowOn(Dispatchers.Default).firstOrNull()
+		}.flowOn(Dispatchers.IO).firstOrNull()
 
 		private fun Path.isImage(): Boolean = MimeTypes.getMimeTypeFromExtension(name)?.isImage == true
 

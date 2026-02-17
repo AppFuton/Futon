@@ -178,7 +178,7 @@ class MangaListActivity :
 		} else {
 			filter.observe().map {
 				it.listFilter.getSummary()
-			}.flowOn(Dispatchers.Default)
+			}.flowOn(Dispatchers.IO)
 				.observe(this) {
 					supportActionBar?.subtitle = it
 				}

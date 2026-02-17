@@ -40,21 +40,21 @@ class SourcesListProducer @Inject constructor(
 	private var query: String = ""
 	val list = MutableStateFlow(emptyList<SourceConfigItem>())
 
-	private var job = scope.launch(Dispatchers.Default) {
+	private var job = scope.launch(Dispatchers.IO) {
 		list.value = buildList()
 	}
 
 	init {
 		settings.observeChanges()
 			.filter { it == AppSettings.KEY_TIPS_CLOSED || it == AppSettings.KEY_DISABLE_NSFW }
-			.flowOn(Dispatchers.Default)
+			.flowOn(Dispatchers.IO)
 			.onEach { onInvalidated(emptySet()) }
 			.launchIn(scope)
 	}
 
 	override fun onInvalidated(tables: Set<String>) {
 		val prevJob = job
-		job = scope.launch(Dispatchers.Default) {
+		job = scope.launch(Dispatchers.IO) {
 			prevJob.cancelAndJoin()
 			list.update { buildList() }
 		}

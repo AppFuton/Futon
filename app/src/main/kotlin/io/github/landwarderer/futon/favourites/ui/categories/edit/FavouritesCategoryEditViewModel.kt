@@ -34,10 +34,10 @@ class FavouritesCategoryEditViewModel @Inject constructor(
 
 	val isTrackerEnabled = flow {
 		emit(settings.isTrackerEnabled && AppSettings.TRACK_FAVOURITES in settings.trackSources)
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, false)
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, false)
 
 	init {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			category.value = if (categoryId != NO_ID) {
 				repository.getCategory(categoryId)
 			} else {
@@ -52,7 +52,7 @@ class FavouritesCategoryEditViewModel @Inject constructor(
 		isTrackerEnabled: Boolean,
 		isVisibleOnShelf: Boolean,
 	) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			check(title.isNotEmpty())
 			if (categoryId == NO_ID) {
 				repository.createCategory(title, sortOrder, isTrackerEnabled, isVisibleOnShelf)

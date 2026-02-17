@@ -47,7 +47,7 @@ class DiscordRpc @Inject constructor(
 	lifecycle: ViewModelLifecycle,
 ) : RetainedLifecycle.OnClearedListener {
 
-	private val coroutineScope = lifecycle.lifecycleScope + Dispatchers.Default
+	private val coroutineScope = lifecycle.lifecycleScope + Dispatchers.IO
 	private val appId = context.getString(R.string.discord_app_id)
 	private val appName = context.getString(R.string.app_name)
 	private val appIcon = context.getString(R.string.app_icon_url)

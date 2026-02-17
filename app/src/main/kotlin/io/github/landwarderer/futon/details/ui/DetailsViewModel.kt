@@ -97,15 +97,15 @@ class DetailsViewModel @Inject constructor(
 		.onEach { h ->
 			readingState.value = h?.let(::ReaderState)
 		}.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, null)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
 
 	val favouriteCategories = interactor.observeFavourite(mangaId)
 		.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptySet())
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, emptySet())
 
 	val isStatsAvailable = statsRepository.observeHasStats(mangaId)
 		.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, false)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, false)
 
 	val remoteManga = MutableStateFlow<Manga?>(null)
 
@@ -119,7 +119,7 @@ class DetailsViewModel @Inject constructor(
 		HistoryInfo(m, b, h, im == TriStateOption.ENABLED, estimatedTime)
 	}.withErrorHandling()
 		.stateIn(
-			scope = viewModelScope + Dispatchers.Default,
+			scope = viewModelScope + Dispatchers.IO,
 			started = SharingStarted.Eagerly,
 			initialValue = HistoryInfo(null, null, null, false, null),
 		)
@@ -136,14 +136,14 @@ class DetailsViewModel @Inject constructor(
 			} else {
 				0L
 			}
-		}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), 0L)
+		}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.WhileSubscribed(5000), 0L)
 
 	val isScrobblingAvailable: Boolean
 		get() = scrobblers.any { it.isEnabled }
 
 	val scrobblingInfo: StateFlow<List<ScrobblingInfo>> = interactor.observeScrobblingInfo(mangaId)
 		.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, emptyList())
 
 	val relatedManga: StateFlow<List<MangaListModel>> = manga.mapLatest {
 		if (it != null && settings.isRelatedMangaEnabled) {
@@ -154,11 +154,11 @@ class DetailsViewModel @Inject constructor(
 		} else {
 			emptyList()
 		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList())
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, emptyList())
 
 	val tags = manga.mapLatest {
 		mangaListMapper.mapTags(it?.tags.orEmpty())
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, emptyList())
 
 	val branches: StateFlow<List<MangaBranch>> = combine(
 		mangaDetails,
@@ -178,21 +178,21 @@ class DetailsViewModel @Inject constructor(
 				isCurrent = h != null && x.key == currentBranch,
 			)
 		}.sortedWith(BranchComparator())
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, emptyList())
 
 	val selectedBranchValue: String?
 		get() = selectedBranch.value
 
 	init {
 		loadingJob = doLoad(force = false)
-		launchJob(Dispatchers.Default + SkipErrors) {
+		launchJob(Dispatchers.IO + SkipErrors) {
 			val manga = mangaDetails.firstOrNull { !it?.chapters.isNullOrEmpty() } ?: return@launchJob
 			val h = history.firstOrNull()
 			if (h != null) {
 				progressUpdateUseCase(manga.toManga())
 			}
 		}
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val manga = mangaDetails.firstOrNull { it != null && it.isLocal } ?: return@launchJob
 			remoteManga.value = interactor.findRemote(manga.toManga())
 		}
@@ -205,7 +205,7 @@ class DetailsViewModel @Inject constructor(
 
 	fun updateScrobbling(index: Int, rating: Float, status: ScrobblingStatus?) {
 		val scrobbler = getScrobbler(index) ?: return
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			scrobbler.updateScrobblingInfo(
 				mangaId = mangaId,
 				rating = rating,
@@ -217,7 +217,7 @@ class DetailsViewModel @Inject constructor(
 
 	fun unregisterScrobbling(index: Int) {
 		val scrobbler = getScrobbler(index) ?: return
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			scrobbler.unregisterScrobbling(
 				mangaId = mangaId,
 			)
@@ -225,13 +225,13 @@ class DetailsViewModel @Inject constructor(
 	}
 
 	fun removeFromHistory() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val handle = historyRepository.delete(setOf(mangaId))
 			onActionDone.call(ReversibleAction(R.string.removed_from_history, handle))
 		}
 	}
 
-	private fun doLoad(force: Boolean) = launchLoadingJob(Dispatchers.Default) {
+	private fun doLoad(force: Boolean) = launchLoadingJob(Dispatchers.IO) {
 		detailsLoadUseCase.invoke(intent, force)
 			.onEachWhile {
 				if (it.allChapters.isNotEmpty()) {

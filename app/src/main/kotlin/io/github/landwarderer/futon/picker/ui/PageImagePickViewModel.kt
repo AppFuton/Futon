@@ -15,7 +15,7 @@ class PageImagePickViewModel @Inject constructor() : BaseViewModel() {
 	val onFileReady = MutableEventFlow<File>()
 
 	fun savePageToTempFile(pageSaveHelper: PageSaveHelper, task: PageSaveHelper.Task) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val file = pageSaveHelper.saveToTempFile(task)
 			onFileReady.call(file)
 		}

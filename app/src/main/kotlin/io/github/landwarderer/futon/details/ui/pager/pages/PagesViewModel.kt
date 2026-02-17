@@ -42,17 +42,17 @@ class PagesViewModel @Inject constructor(
 	val onPageSaved = MutableEventFlow<Collection<Uri>>()
 
 	val gridScale = settings.observeAsStateFlow(
-		scope = viewModelScope + Dispatchers.Default,
+		scope = viewModelScope + Dispatchers.IO,
 		key = AppSettings.KEY_GRID_SIZE_PAGES,
 		valueProducer = { gridSizePages / 100f },
 	)
 
 	init {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			state.filterNotNull()
 				.collect {
 					val prevJob = loadingJob
-					loadingJob = launchLoadingJob(Dispatchers.Default) {
+					loadingJob = launchLoadingJob(Dispatchers.IO) {
 						prevJob?.cancelAndJoin()
 						doInit(it)
 					}
@@ -84,7 +84,7 @@ class PagesViewModel @Inject constructor(
 		pageSaveHelper: PageSaveHelper,
 		pages: Set<ReaderPage>,
 	) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val manga = state.requireValue().details.toManga()
 			val tasks = pages.map {
 				PageSaveHelper.Task(
@@ -117,7 +117,7 @@ class PagesViewModel @Inject constructor(
 		updateList(state.readerState)
 	}
 
-	private fun loadPrevNextChapter(isNext: Boolean): Job = launchJob(Dispatchers.Default) {
+	private fun loadPrevNextChapter(isNext: Boolean): Job = launchJob(Dispatchers.IO) {
 		val indicator = if (isNext) isLoadingDown else isLoadingUp
 		indicator.value = true
 		try {

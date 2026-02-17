@@ -68,5 +68,5 @@ class ExitCallback(
 
 	private fun observeSettings(): Flow<Boolean> = activity.settings
 		.observeAsFlow(AppSettings.KEY_EXIT_CONFIRM) { isExitConfirmationEnabled }
-		.flowOn(Dispatchers.Default)
+		.flowOn(Dispatchers.IO)
 }

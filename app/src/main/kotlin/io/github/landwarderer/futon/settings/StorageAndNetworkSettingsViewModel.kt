@@ -22,7 +22,7 @@ class StorageAndNetworkSettingsViewModel @Inject constructor(
     val storageUsage: StateFlow<StorageUsage?> = flow {
         emit(loadStorageUsage())
     }.withErrorHandling()
-        .stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(1000), null)
+        .stateIn(viewModelScope + Dispatchers.IO, SharingStarted.WhileSubscribed(1000), null)
 
     private suspend fun loadStorageUsage(): StorageUsage {
         val pagesCacheSize = storageManager.computeCacheSize(CacheDir.PAGES)

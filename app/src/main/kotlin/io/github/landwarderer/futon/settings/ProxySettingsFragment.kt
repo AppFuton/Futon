@@ -117,7 +117,7 @@ class ProxySettingsFragment : BasePreferenceFragment(R.string.proxy),
 				isEnabled = false
 			}
 			try {
-				withContext(Dispatchers.Default) {
+				withContext(Dispatchers.IO) {
 					val request = Request.Builder()
 						.get()
 						.url("http://neverssl.com")

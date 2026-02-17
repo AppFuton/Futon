@@ -77,7 +77,7 @@ abstract class CachingMangaRepository(
 	private suspend fun <T> asyncSafe(block: suspend CoroutineScope.() -> T): SafeDeferred<T> {
 		var dispatcher = currentCoroutineContext()[CoroutineDispatcher.Key]
 		if (dispatcher == null || dispatcher is MainCoroutineDispatcher) {
-			dispatcher = Dispatchers.Default
+			dispatcher = Dispatchers.IO
 		}
 		return SafeDeferred(
 			processLifecycleScope.async(dispatcher) {

@@ -32,18 +32,18 @@ class FavouritesContainerViewModel @Inject constructor(
 
 	private val categoriesStateFlow = favouritesRepository.observeCategoriesForLibrary()
 		.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, null)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
 
 	val categories = combine(
 		categoriesStateFlow.filterNotNull(),
 		observeAllFavouritesVisibility(),
 	) { list, showAll ->
 		list.toUi(showAll)
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, emptyList())
 
 	val isEmpty = categoriesStateFlow.map {
 		it?.isEmpty() == true
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, false)
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, false)
 
 	private fun List<FavouriteCategory>.toUi(showAll: Boolean): List<FavouriteTabModel> {
 		if (isEmpty()) {
@@ -58,7 +58,7 @@ class FavouritesContainerViewModel @Inject constructor(
 	}
 
 	fun hide(categoryId: Long) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			if (categoryId == NO_ID) {
 				settings.isAllFavouritesVisible = false
 			} else {
@@ -72,7 +72,7 @@ class FavouritesContainerViewModel @Inject constructor(
 	}
 
 	fun deleteCategory(categoryId: Long) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			favouritesRepository.removeCategories(setOf(categoryId))
 		}
 	}

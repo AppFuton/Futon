@@ -28,7 +28,7 @@ class ScreenshotPolicyHelper @Inject constructor(
 	}
 
 	private fun ContentContainer.setupScreenshotPolicy(activity: Activity) =
-		lifecycleScope.launch(Dispatchers.Default) {
+		lifecycleScope.launch(Dispatchers.IO) {
 			settings.observeAsFlow(AppSettings.KEY_SCREENSHOTS_POLICY) { screenshotsPolicy }
 				.flatMapLatest { policy ->
 					when (policy) {

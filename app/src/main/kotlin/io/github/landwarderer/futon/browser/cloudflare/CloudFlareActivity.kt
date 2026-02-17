@@ -135,7 +135,7 @@ class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 		}
 	}
 
-	private suspend fun clearCfCookies(url: HttpUrl) = runInterruptible(Dispatchers.Default) {
+	private suspend fun clearCfCookies(url: HttpUrl) = runInterruptible(Dispatchers.IO) {
 		cookieJar.removeCookies(url) { cookie ->
 			CloudFlareHelper.isCloudFlareCookie(cookie.name)
 		}

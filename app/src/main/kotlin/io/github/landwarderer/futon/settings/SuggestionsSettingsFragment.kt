@@ -57,7 +57,7 @@ class SuggestionsSettingsFragment : BasePreferenceFragment(R.string.suggestions)
 	}
 
 	private fun updateSuggestions() {
-		lifecycleScope.launch(Dispatchers.Default) {
+		lifecycleScope.launch(Dispatchers.IO) {
 			suggestionsScheduler.startNow()
 		}
 	}

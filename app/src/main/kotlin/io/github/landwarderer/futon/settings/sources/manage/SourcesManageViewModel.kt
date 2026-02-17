@@ -31,7 +31,7 @@ class SourcesManageViewModel @Inject constructor(
 	private var commitJob: Job? = null
 
 	init {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			database.invalidationTracker.addObserver(listProducer)
 		}
 	}
@@ -43,7 +43,7 @@ class SourcesManageViewModel @Inject constructor(
 
 	fun saveSourcesOrder(snapshot: List<SourceConfigItem>) {
 		val prevJob = commitJob
-		commitJob = launchJob(Dispatchers.Default) {
+		commitJob = launchJob(Dispatchers.IO) {
 			prevJob?.cancelAndJoin()
 			val newSourcesList = snapshot.mapNotNull { x ->
 				if (x is SourceConfigItem.SourceItem && x.isDraggable) {
@@ -64,7 +64,7 @@ class SourcesManageViewModel @Inject constructor(
 	}
 
 	fun setEnabled(source: MangaSource, isEnabled: Boolean) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val rollback = repository.setSourcesEnabled(setOf(source), isEnabled)
 			if (!isEnabled) {
 				onActionDone.call(ReversibleAction(R.string.source_disabled, rollback))
@@ -73,7 +73,7 @@ class SourcesManageViewModel @Inject constructor(
 	}
 
 	fun setPinned(source: MangaSource, isPinned: Boolean) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val rollback = repository.setIsPinned(setOf(source), isPinned)
 			val message = if (isPinned) R.string.source_pinned else R.string.source_unpinned
 			onActionDone.call(ReversibleAction(message, rollback))
@@ -82,7 +82,7 @@ class SourcesManageViewModel @Inject constructor(
 
 	fun bringToTop(source: MangaSource) {
 		val snapshot = content.value
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			var oldPos = -1
 			var newPos = -1
 			for ((i, x) in snapshot.withIndex()) {
@@ -110,7 +110,7 @@ class SourcesManageViewModel @Inject constructor(
 	}
 
 	fun disableAll() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			repository.disableAllSources()
 		}
 	}
@@ -120,7 +120,7 @@ class SourcesManageViewModel @Inject constructor(
 	}
 
 	fun onTipClosed(item: SourceConfigItem.Tip) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			settings.closeTip(item.key)
 		}
 	}

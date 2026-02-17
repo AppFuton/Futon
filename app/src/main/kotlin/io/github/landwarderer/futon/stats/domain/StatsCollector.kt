@@ -63,7 +63,7 @@ class StatsCollector @Inject constructor(
 	}
 
 	private fun commit(entity: StatsEntity) {
-		viewModelScope.launch(Dispatchers.Default) {
+		viewModelScope.launch(Dispatchers.IO) {
 			runCatchingCancellable {
 				db.getStatsDao().upsert(entity)
 			}.onFailure { e ->

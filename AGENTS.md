@@ -323,7 +323,7 @@ withContext(Dispatchers.IO) {
     // I/O operations
 }
 
-viewModelScope + Dispatchers.Default  // Combined scope
+viewModelScope + Dispatchers.IO  // Combined scope
 ```
 
 ### Flow Patterns
@@ -331,7 +331,7 @@ viewModelScope + Dispatchers.Default  // Combined scope
 #### StateFlow for UI State
 ```kotlin
 val isRunning = scheduler.observeIsRunning()
-    .stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
+    .stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, false)
 ```
 
 #### SharedFlow for Events
@@ -352,7 +352,7 @@ combine(
     // Transform
 }.catch { e ->
     emit(listOf(e.toErrorState(canRetry = false)))
-}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 ```
 
 ### Concurrency Control
@@ -549,7 +549,7 @@ class MyViewModel @Inject constructor(
     
     val data = repository.observeData()
         .withErrorHandling()
-        .stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList())
+        .stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, emptyList())
 }
 ```
 

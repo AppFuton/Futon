@@ -39,7 +39,7 @@ abstract class CoroutineIntentService : BaseService() {
 		mutex.withLock {
 			try {
 				if (intent != null) {
-					withContext(Dispatchers.Default) {
+					withContext(Dispatchers.IO) {
 						intentJobContext.processIntent(intent)
 					}
 				}

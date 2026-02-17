@@ -19,7 +19,7 @@ open class ReorderableListAdapter<T : ListModel> : ListDelegationAdapter<List<T>
 	override suspend fun emit(value: List<T>?) {
 		val oldList = items.orEmpty()
 		val newList = value.orEmpty()
-		val diffResult = withContext(Dispatchers.Default) {
+		val diffResult = withContext(Dispatchers.IO) {
 			val diffCallback = DiffCallback(oldList, newList)
 			DiffUtil.calculateDiff(diffCallback)
 		}

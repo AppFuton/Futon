@@ -50,7 +50,7 @@ class SearchSuggestionViewModel @Inject constructor(
 	private val invalidationTrigger = MutableStateFlow(0)
 
 	val isIncognitoModeEnabled = settings.observeAsStateFlow(
-		scope = viewModelScope + Dispatchers.Default,
+		scope = viewModelScope + Dispatchers.IO,
 		key = AppSettings.KEY_INCOGNITO_MODE,
 		valueProducer = { isIncognitoModeEnabled },
 	)
@@ -67,7 +67,7 @@ class SearchSuggestionViewModel @Inject constructor(
 		buildSearchSuggestion(searchQuery, enabledSources, types)
 	}.distinctUntilChanged()
 		.withErrorHandling()
-		.flowOn(Dispatchers.Default)
+		.flowOn(Dispatchers.IO)
 
 	fun onQueryChanged(newQuery: String) {
 		query.value = newQuery
@@ -81,20 +81,20 @@ class SearchSuggestionViewModel @Inject constructor(
 	}
 
 	fun clearSearchHistory() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			repository.clearSearchHistory()
 			invalidationTrigger.value++
 		}
 	}
 
 	fun onSourceToggle(source: MangaSource, isEnabled: Boolean) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			sourcesRepository.setSourcesEnabled(setOf(source), isEnabled)
 		}
 	}
 
 	fun deleteQuery(query: String) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			repository.deleteSearchQuery(query)
 			invalidationTrigger.value++
 		}

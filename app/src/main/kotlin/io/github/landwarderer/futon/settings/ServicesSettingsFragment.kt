@@ -128,7 +128,7 @@ class ServicesSettingsFragment : BasePreferenceFragment(R.string.services),
 		} else {
 			pref.setSummary(R.string.loading_)
 			viewLifecycleScope.launch {
-				pref.summary = withContext(Dispatchers.Default) {
+				pref.summary = withContext(Dispatchers.IO) {
 					runCatching {
 						val user = scrobblerAuthHelper.getUser(scrobblerService)
 						getString(R.string.logged_in_as, user.nickname)
@@ -151,7 +151,7 @@ class ServicesSettingsFragment : BasePreferenceFragment(R.string.services),
 
 	private fun bindSyncSummary() {
 		viewLifecycleScope.launch {
-			val account = withContext(Dispatchers.Default) {
+			val account = withContext(Dispatchers.IO) {
 				val type = getString(R.string.account_type_sync)
 				AccountManager.get(requireContext()).getAccountsByType(type).firstOrNull()
 			}

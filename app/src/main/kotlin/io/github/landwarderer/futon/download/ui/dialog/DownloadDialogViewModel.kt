@@ -70,10 +70,10 @@ class DownloadDialogViewModel @Inject constructor(
 	val isOptionsLoading = MutableStateFlow(true)
 
 	init {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			defaultFormat.value = settings.preferredDownloadFormat
 		}
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			try {
 				loadAvailableOptions()
 			} finally {
@@ -90,7 +90,7 @@ class DownloadDialogViewModel @Inject constructor(
 		destination: DirectoryModel?,
 		allowMetered: Boolean,
 	) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val tasks = mangaDetails.get().map { m ->
 				val chapters = checkNotNull(m.chapters) { "Manga \"${m.title}\" cannot be loaded" }
 				m to DownloadTask(
@@ -195,7 +195,7 @@ class DownloadDialogViewModel @Inject constructor(
 		)
 	}
 
-	private fun loadAvailableDestinations() = launchJob(Dispatchers.Default) {
+	private fun loadAvailableDestinations() = launchJob(Dispatchers.IO) {
 		val defaultDir = manga.mapToSet {
 			localMangaRepository.getOutputDir(it, null)
 		}.singleOrNull()

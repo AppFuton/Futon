@@ -14,7 +14,7 @@ fun interface ReversibleHandle {
 	suspend fun reverse()
 }
 
-fun ReversibleHandle.reverseAsync() = processLifecycleScope.launch(Dispatchers.Default, CoroutineStart.ATOMIC) {
+fun ReversibleHandle.reverseAsync() = processLifecycleScope.launch(Dispatchers.IO, CoroutineStart.ATOMIC) {
 	runCatchingCancellable {
 		withContext(NonCancellable) {
 			reverse()

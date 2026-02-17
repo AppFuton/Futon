@@ -32,7 +32,7 @@ class HistoryUpdateUseCase @Inject constructor(
 		manga: Manga,
 		readerState: ReaderState,
 		percent: Float
-	) = processLifecycleScope.launch(Dispatchers.Default, CoroutineStart.ATOMIC) {
+	) = processLifecycleScope.launch(Dispatchers.IO, CoroutineStart.ATOMIC) {
 		runCatchingCancellable {
 			withContext(NonCancellable) {
 				invoke(manga, readerState, percent)

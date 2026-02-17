@@ -103,7 +103,7 @@ open class RemoteListViewModel @Inject constructor(
 			}
 			onBuildList(this)
 		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, listOf(LoadingState))
 
 	init {
 		filterCoordinator.observe()
@@ -116,7 +116,7 @@ open class RemoteListViewModel @Inject constructor(
 				listError.value = error
 			}.launchIn(viewModelScope)
 
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			sourcesRepository.trackUsage(source)
 		}
 
@@ -144,7 +144,7 @@ open class RemoteListViewModel @Inject constructor(
 		loadingJob?.let {
 			if (it.isActive) return it
 		}
-		return launchLoadingJob(Dispatchers.Default) {
+		return launchLoadingJob(Dispatchers.IO) {
 			try {
 				listError.value = null
 				val list = repository.getList(
@@ -207,7 +207,7 @@ open class RemoteListViewModel @Inject constructor(
 		if (randomJob?.isActive == true) {
 			return
 		}
-		randomJob = launchLoadingJob(Dispatchers.Default) {
+		randomJob = launchLoadingJob(Dispatchers.IO) {
 			isRandomLoading.value = true
 			val manga = exploreRepository.findRandomManga(source, 16)
 			onOpenManga.call(manga)

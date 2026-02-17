@@ -29,11 +29,11 @@ class SettingsSearchViewModel @Inject constructor(
 		} else {
 			allSettings.filter { it.title.contains(q, ignoreCase = true) }
 		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList())
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, emptyList())
 
 	val isSearchActive = query.map {
 		it != null
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, query.value != null)
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, query.value != null)
 
 	val onNavigateToPreference = MutableEventFlow<SettingsItem>()
 	val currentQuery: String

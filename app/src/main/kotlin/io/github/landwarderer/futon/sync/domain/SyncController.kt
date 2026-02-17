@@ -74,11 +74,11 @@ class SyncController @Inject constructor(
 		awaitClose { ContentResolver.removeStatusChangeListener(handle) }
 	}
 
-	suspend fun requestFullSync() = withContext(Dispatchers.Default) {
+	suspend fun requestFullSync() = withContext(Dispatchers.IO) {
 		requestSyncImpl(favourites = true, history = true)
 	}
 
-	private fun requestSync(favourites: Boolean, history: Boolean) = processLifecycleScope.launch(Dispatchers.Default) {
+	private fun requestSync(favourites: Boolean, history: Boolean) = processLifecycleScope.launch(Dispatchers.IO) {
 		requestSyncImpl(favourites = favourites, history = history)
 	}
 

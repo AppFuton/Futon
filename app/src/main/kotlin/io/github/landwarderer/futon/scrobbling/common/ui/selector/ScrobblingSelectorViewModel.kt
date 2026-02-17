@@ -80,7 +80,7 @@ class ScrobblingSelectorViewModel @Inject constructor(
 				},
 			)
 		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	val selectedItemId = MutableStateFlow(NO_ID)
 	val onClose = MutableEventFlow<Unit>()
@@ -123,7 +123,7 @@ class ScrobblingSelectorViewModel @Inject constructor(
 		if (loadingJob?.isActive == true) {
 			return
 		}
-		loadingJob = launchJob(Dispatchers.Default) {
+		loadingJob = launchJob(Dispatchers.IO) {
 			listError.value = null
 			val offset = if (append) scrobblerMangaList.value.size else 0
 			runCatchingCancellable {
@@ -153,7 +153,7 @@ class ScrobblingSelectorViewModel @Inject constructor(
 		if (targetId == NO_ID) {
 			onClose.call(Unit)
 		}
-		doneJob = launchLoadingJob(Dispatchers.Default) {
+		doneJob = launchLoadingJob(Dispatchers.IO) {
 			val prevInfo = currentScrobbler.getScrobblingInfoOrNull(manga.id)
 			currentScrobbler.linkManga(manga.id, targetId)
 			val history = historyRepository.getOne(manga)
@@ -188,7 +188,7 @@ class ScrobblingSelectorViewModel @Inject constructor(
 		loadingJob?.cancel()
 		hasNextPage.value = true
 		scrobblerMangaList.value = emptyList()
-		initJob = launchJob(Dispatchers.Default) {
+		initJob = launchJob(Dispatchers.IO) {
 			try {
 				val info = currentScrobbler.getScrobblingInfoOrNull(manga.id)
 				if (info != null) {

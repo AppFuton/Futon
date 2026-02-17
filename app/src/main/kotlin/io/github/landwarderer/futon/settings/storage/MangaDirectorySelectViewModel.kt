@@ -37,7 +37,7 @@ class MangaDirectorySelectViewModel @Inject constructor(
 	}
 
 	fun onCustomDirectoryPicked(uri: Uri) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			storageManager.takePermissions(uri)
 			val dir = storageManager.resolveUri(uri)
 			if (!dir.isWriteable()) {
@@ -52,7 +52,7 @@ class MangaDirectorySelectViewModel @Inject constructor(
 	}
 
 	fun refresh() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val defaultValue = storageManager.getDefaultWriteableDir()
 			val available = storageManager.getWriteableDirs()
 			items.value = buildList(available.size + 1) {

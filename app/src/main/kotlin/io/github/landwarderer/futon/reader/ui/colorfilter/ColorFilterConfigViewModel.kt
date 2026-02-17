@@ -65,14 +65,14 @@ class ColorFilterConfigViewModel @Inject constructor(
 	}
 
 	fun save() {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			mangaDataRepository.saveColorFilter(manga, colorFilter.value)
 			onDismiss.call(Unit)
 		}
 	}
 
 	fun saveGlobally() {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			settings.readerColorFilter = colorFilter.value
 			mangaDataRepository.resetColorFilters()
 			onDismiss.call(Unit)

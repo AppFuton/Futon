@@ -76,10 +76,10 @@ class ExploreViewModel @Inject constructor(
 		} else {
 			createContentFlow()
 		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, getLoadingStateList())
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, getLoadingStateList())
 
 	init {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			if (!settings.isSuggestionsEnabled && settings.isTipEnabled(TIP_SUGGESTIONS)) {
 				onShowSuggestionsTip.call(Unit)
 			}
@@ -90,7 +90,7 @@ class ExploreViewModel @Inject constructor(
 		if (isRandomLoading.value) {
 			return
 		}
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			isRandomLoading.value = true
 			try {
 				val manga = exploreRepository.findRandomManga(tagsLimit = 8)
@@ -102,7 +102,7 @@ class ExploreViewModel @Inject constructor(
 	}
 
 	fun disableSources(sources: Collection<MangaSource>) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val rollback = sourcesRepository.setSourcesEnabled(sources, isEnabled = false)
 			val message = if (sources.size == 1) R.string.source_disabled else R.string.sources_disabled
 			onActionDone.call(ReversibleAction(message, rollback))
@@ -110,13 +110,13 @@ class ExploreViewModel @Inject constructor(
 	}
 
 	fun requestPinShortcut(source: MangaSource) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			shortcutManager.requestPinShortcut(source)
 		}
 	}
 
 	fun setSourcesPinned(sources: Collection<MangaSource>, isPinned: Boolean) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			sourcesRepository.setIsPinned(sources, isPinned)
 			val message = if (sources.size == 1) {
 				if (isPinned) R.string.source_pinned else R.string.source_unpinned

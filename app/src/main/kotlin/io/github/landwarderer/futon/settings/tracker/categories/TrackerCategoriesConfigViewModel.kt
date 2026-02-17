@@ -18,13 +18,13 @@ class TrackerCategoriesConfigViewModel @Inject constructor(
 ) : BaseViewModel() {
 
 	val content = favouritesRepository.observeCategories()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, emptyList())
 
 	private var updateJob: Job? = null
 
 	fun toggleItem(category: FavouriteCategory) {
 		val prevJob = updateJob
-		updateJob = launchJob(Dispatchers.Default) {
+		updateJob = launchJob(Dispatchers.IO) {
 			prevJob?.join()
 			favouritesRepository.updateCategoryTracking(category.id, !category.isTrackingEnabled)
 		}

@@ -65,7 +65,7 @@ class AppShortcutManager @Inject constructor(
 			return
 		}
 		val prevJob = shortcutsUpdateJob
-		shortcutsUpdateJob = processLifecycleScope.launch(Dispatchers.Default) {
+		shortcutsUpdateJob = processLifecycleScope.launch(Dispatchers.IO) {
 			prevJob?.join()
 			updateShortcutsImpl()
 		}
@@ -134,7 +134,7 @@ class AppShortcutManager @Inject constructor(
 		}
 	}
 
-	private suspend fun buildShortcutInfo(manga: Manga): ShortcutInfoCompat = withContext(Dispatchers.Default) {
+	private suspend fun buildShortcutInfo(manga: Manga): ShortcutInfoCompat = withContext(Dispatchers.IO) {
 		val icon = runCatchingCancellable {
 			coil.execute(
 				ImageRequest.Builder(context)
@@ -168,7 +168,7 @@ class AppShortcutManager @Inject constructor(
 			).build()
 	}
 
-	private suspend fun buildShortcutInfo(source: MangaSource): ShortcutInfoCompat = withContext(Dispatchers.Default) {
+	private suspend fun buildShortcutInfo(source: MangaSource): ShortcutInfoCompat = withContext(Dispatchers.IO) {
 		val icon = runCatchingCancellable {
 			coil.execute(
 				ImageRequest.Builder(context)

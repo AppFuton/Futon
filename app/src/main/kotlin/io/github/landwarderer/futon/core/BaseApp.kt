@@ -76,7 +76,7 @@ open class BaseApp : Application(), Configuration.Provider {
 			Security.insertProviderAt(Conscrypt.newProvider(), 1)
 		}
 		setupActivityLifecycleCallbacks()
-		processLifecycleScope.launch(Dispatchers.Default) {
+		processLifecycleScope.launch(Dispatchers.IO) {
 			setupDatabaseObservers()
 			localStorageChanges.collect(localMangaIndexProvider.get())
 		}

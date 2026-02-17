@@ -31,7 +31,7 @@ class MultiMutexTest {
 	fun doubleLock() = runTest {
 		val mutex = MultiMutex<Int>()
 		repeat(2) {
-			launch(Dispatchers.Default) {
+			launch(Dispatchers.IO) {
 				mutex.lock(1)
 			}
 		}

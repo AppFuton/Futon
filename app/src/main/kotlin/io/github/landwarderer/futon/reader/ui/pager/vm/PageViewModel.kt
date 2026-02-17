@@ -46,7 +46,7 @@ class PageViewModel(
 
 	fun onBind(page: MangaPage) {
 		val prevJob = job
-		job = scope.launch(Dispatchers.Default) {
+		job = scope.launch(Dispatchers.IO) {
 			prevJob?.cancelAndJoin()
 			doLoad(page, force = false)
 		}
@@ -62,7 +62,7 @@ class PageViewModel(
 					exceptionResolver.resolve(e)
 				}
 			}
-			withContext(Dispatchers.Default) {
+			withContext(Dispatchers.IO) {
 				doLoad(page, force = true)
 			}
 		}
@@ -109,7 +109,7 @@ class PageViewModel(
 
 	private fun tryConvert(uri: Uri, e: Exception) {
 		val prevJob = job
-		job = scope.launch(Dispatchers.Default) {
+		job = scope.launch(Dispatchers.IO) {
 			prevJob?.join()
 			state.value = PageState.Converting()
 			try {

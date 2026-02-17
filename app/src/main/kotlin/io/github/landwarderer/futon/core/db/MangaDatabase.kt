@@ -153,7 +153,7 @@ fun MangaDatabase(context: Context): MangaDatabase = Room
 fun InvalidationTracker.removeObserverAsync(observer: InvalidationTracker.Observer) {
 	val scope = processLifecycleScope
 	if (scope.isActive) {
-		processLifecycleScope.launch(Dispatchers.Default, CoroutineStart.ATOMIC) {
+		processLifecycleScope.launch(Dispatchers.IO, CoroutineStart.ATOMIC) {
 			removeObserver(observer)
 		}
 	}

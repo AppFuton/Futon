@@ -63,7 +63,7 @@ class PreviewViewModel @Inject constructor(
 			totalChapters = chapters.size,
 			isIncognito = incognito,
 		)
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, null)
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, null)
 
 	val description = manga
 		.distinctUntilChangedBy { it.description.orEmpty() }
@@ -77,14 +77,14 @@ class PreviewViewModel @Inject constructor(
 			}
 		}.combine(isLoading) { desc, loading ->
 			if (loading) null else desc ?: ""
-		}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), null)
+		}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.WhileSubscribed(5000), null)
 
 	val tagsChips = manga.map {
 		mangaListMapper.mapTags(it.tags)
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, emptyList())
 
 	init {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val repo = repositoryFactory.create(manga.value.source)
 			manga.value = repo.getDetails(manga.value)
 		}

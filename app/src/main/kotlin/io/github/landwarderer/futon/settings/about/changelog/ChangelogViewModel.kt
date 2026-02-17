@@ -16,7 +16,7 @@ class ChangelogViewModel @Inject constructor(
 	val changelog = MutableStateFlow<String?>(null)
 
 	init {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val version = appUpdateRepository.fetchUpdate()
 			changelog.value = version?.let { "# ${it.name}\n\n${it.description}" }
 		}

@@ -121,7 +121,7 @@ interface AppModule {
 				okHttpClientProvider.get().newBuilder().cache(null).build()
 			}
 			return ImageLoader.Builder(context)
-				.interceptorCoroutineContext(Dispatchers.Default)
+				.interceptorCoroutineContext(Dispatchers.IO)
 				.diskCache(diskCacheFactory)
 				.logger(if (BuildConfig.DEBUG) DebugLogger() else null)
 				.allowRgb565(context.isLowRamDevice())

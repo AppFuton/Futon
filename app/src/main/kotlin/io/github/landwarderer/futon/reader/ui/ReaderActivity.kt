@@ -176,7 +176,7 @@ class ReaderActivity :
             viewModel.isLoading,
             viewModel.content.map { it.pages.isNotEmpty() }.distinctUntilChanged(),
             ::Pair,
-        ).flowOn(Dispatchers.Default)
+        ).flowOn(Dispatchers.IO)
             .observe(this, this::onLoadingStateChanged)
         viewModel.isKeepScreenOnEnabled.observe(this, this::setKeepScreenOn)
         viewModel.isInfoBarTransparent.observe(this) { viewBinding.infoBar.drawBackground = !it }
@@ -333,7 +333,7 @@ class ReaderActivity :
     }
 
     override fun onPageSelected(page: ReaderPage): Boolean {
-        lifecycleScope.launch(Dispatchers.Default) {
+        lifecycleScope.launch(Dispatchers.IO) {
             val pages = viewModel.content.value.pages
             val index = pages.indexOfFirst { it.chapterId == page.chapterId && it.id == page.id }
             if (index != -1) {

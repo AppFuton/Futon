@@ -93,7 +93,7 @@ class PageLoader @Inject constructor(
 	private val downloadSlowdownDispatcher: DownloadSlowdownDispatcher,
 ) {
 
-	val loaderScope = lifecycle.lifecycleScope + InternalErrorHandler() + Dispatchers.Default
+	val loaderScope = lifecycle.lifecycleScope + InternalErrorHandler() + Dispatchers.IO
 
 	private val tasks = LongSparseArray<ProgressDeferred<Uri, Float>>()
 	private val semaphore = Semaphore(3)

@@ -40,7 +40,7 @@ class AppUpdateRepository @Inject constructor(
 
 	fun observeAvailableUpdate() = availableUpdate.asStateFlow()
 
-	suspend fun fetchUpdate(): AppVersion? = withContext(Dispatchers.Default) {
+	suspend fun fetchUpdate(): AppVersion? = withContext(Dispatchers.IO) {
 		runCatchingCancellable {
 			val request = Request.Builder()
 				.get()

@@ -41,7 +41,7 @@ class BookmarksViewModel @Inject constructor(
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 
 	val gridScale = settings.observeAsStateFlow(
-		scope = viewModelScope + Dispatchers.Default,
+		scope = viewModelScope + Dispatchers.IO,
 		key = AppSettings.KEY_GRID_SIZE_PAGES,
 		valueProducer = { gridSizePages / 100f },
 	)
@@ -51,21 +51,21 @@ class BookmarksViewModel @Inject constructor(
 			.map { mapList(m, it) }
 	}.withErrorHandling()
 		.filterNotNull()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, listOf(LoadingState))
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, listOf(LoadingState))
 
 	override suspend fun emit(value: MangaDetails?) {
 		manga.value = value?.toManga()
 	}
 
 	fun removeBookmarks(ids: Set<Long>) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val handle = bookmarksRepository.removeBookmarks(ids)
 			onActionDone.call(ReversibleAction(R.string.bookmarks_removed, handle))
 		}
 	}
 
 	fun savePages(pageSaveHelper: PageSaveHelper, ids: Set<Long>) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val m = manga.requireValue()
 			val tasks = content.value.mapNotNull {
 				if (it !is Bookmark || it.pageId !in ids) return@mapNotNull null

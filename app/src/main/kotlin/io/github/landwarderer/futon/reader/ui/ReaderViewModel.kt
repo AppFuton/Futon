@@ -127,40 +127,40 @@ class ReaderViewModel @Inject constructor(
     val content = MutableStateFlow(ReaderContent(emptyList(), null))
 
     val pageAnimation = settings.observeAsStateFlow(
-        scope = viewModelScope + Dispatchers.Default,
+        scope = viewModelScope + Dispatchers.IO,
         key = AppSettings.KEY_READER_ANIMATION,
         valueProducer = { readerAnimation },
     )
 
     val isInfoBarEnabled = settings.observeAsStateFlow(
-        scope = viewModelScope + Dispatchers.Default,
+        scope = viewModelScope + Dispatchers.IO,
         key = AppSettings.KEY_READER_BAR,
         valueProducer = { isReaderBarEnabled },
     )
 
     val isInfoBarTransparent = settings.observeAsStateFlow(
-        scope = viewModelScope + Dispatchers.Default,
+        scope = viewModelScope + Dispatchers.IO,
         key = AppSettings.KEY_READER_BAR_TRANSPARENT,
         valueProducer = { isReaderBarTransparent },
     )
 
     val isKeepScreenOnEnabled = settings.observeAsStateFlow(
-        scope = viewModelScope + Dispatchers.Default,
+        scope = viewModelScope + Dispatchers.IO,
         key = AppSettings.KEY_READER_SCREEN_ON,
         valueProducer = { isReaderKeepScreenOn },
     )
 
     val isWebtoonZooEnabled = observeIsWebtoonZoomEnabled()
-        .stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
+        .stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, false)
 
     val isWebtoonGapsEnabled = settings.observeAsStateFlow(
-        scope = viewModelScope + Dispatchers.Default,
+        scope = viewModelScope + Dispatchers.IO,
         key = AppSettings.KEY_WEBTOON_GAPS,
         valueProducer = { isWebtoonGapsEnabled },
     )
 
     val isWebtoonPullGestureEnabled = settings.observeAsStateFlow(
-        scope = viewModelScope + Dispatchers.Default,
+        scope = viewModelScope + Dispatchers.IO,
         key = AppSettings.KEY_WEBTOON_PULL_GESTURE,
         valueProducer = { isWebtoonPullGestureEnabled },
     )
@@ -171,7 +171,7 @@ class ReaderViewModel @Inject constructor(
         } else {
             flowOf(0f)
         }
-    }.flowOn(Dispatchers.Default)
+    }.flowOn(Dispatchers.IO)
 
     val isZoomControlsEnabled = getObserveIsZoomControlEnabled().flatMapLatest { zoom ->
         if (zoom) {
@@ -179,7 +179,7 @@ class ReaderViewModel @Inject constructor(
         } else {
             flowOf(false)
         }
-    }.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
+    }.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, false)
 
     val readerSettingsProducer = readerSettingsProducerFactory.create(
         manga.mapNotNull { it?.id },
@@ -197,12 +197,12 @@ class ReaderViewModel @Inject constructor(
                     it != null && it.chapterId == state.chapterId && it.page == state.page
                 }
         }
-    }.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, false)
+    }.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, false)
 
     init {
         initIncognitoMode()
         loadImpl()
-        launchJob(Dispatchers.Default) {
+        launchJob(Dispatchers.IO) {
             val mangaId = manga.filterNotNull().first().id
             if (!isIncognitoMode.firstNotNull()) {
                 appShortcutManager.notifyMangaOpened(mangaId)
@@ -270,7 +270,7 @@ class ReaderViewModel @Inject constructor(
         pageSaveHelper: PageSaveHelper
     ) {
         val prevJob = pageSaveJob
-        pageSaveJob = launchLoadingJob(Dispatchers.Default) {
+        pageSaveJob = launchLoadingJob(Dispatchers.IO) {
             prevJob?.cancelAndJoin()
             val state = checkNotNull(getCurrentState())
             val currentManga = manga.requireValue()
@@ -294,7 +294,7 @@ class ReaderViewModel @Inject constructor(
 
     fun switchChapter(id: Long, page: Int) {
         val prevJob = loadingJob
-        loadingJob = launchLoadingJob(Dispatchers.Default) {
+        loadingJob = launchLoadingJob(Dispatchers.IO) {
             prevJob?.cancelAndJoin()
             content.value = ReaderContent(emptyList(), null)
             chaptersLoader.loadSingleChapter(id)
@@ -306,7 +306,7 @@ class ReaderViewModel @Inject constructor(
 
     fun switchChapterBy(delta: Int) {
         val prevJob = loadingJob
-        loadingJob = launchLoadingJob(Dispatchers.Default) {
+        loadingJob = launchLoadingJob(Dispatchers.IO) {
             prevJob?.cancelAndJoin()
             val prevState = readingState.requireValue()
             val newChapterId = if (delta != 0) {
@@ -336,7 +336,7 @@ class ReaderViewModel @Inject constructor(
     fun onCurrentPageChanged(lowerPos: Int, upperPos: Int) {
         val prevJob = stateChangeJob
         val pages = content.value.pages // capture immediately
-        stateChangeJob = launchJob(Dispatchers.Default) {
+        stateChangeJob = launchJob(Dispatchers.IO) {
             prevJob?.cancelAndJoin()
             loadingJob?.join()
             if (pages.size != content.value.pages.size) {
@@ -372,7 +372,7 @@ class ReaderViewModel @Inject constructor(
         if (bookmarkJob?.isActive == true) {
             return
         }
-        bookmarkJob = launchJob(Dispatchers.Default) {
+        bookmarkJob = launchJob(Dispatchers.IO) {
             loadingJob?.join()
             val state = checkNotNull(getCurrentState())
             if (isBookmarkAdded.value) {
@@ -405,7 +405,7 @@ class ReaderViewModel @Inject constructor(
     }
 
     private fun loadImpl() {
-        loadingJob = launchLoadingJob(Dispatchers.Default + EventExceptionHandler(onLoadingError)) {
+        loadingJob = launchLoadingJob(Dispatchers.IO + EventExceptionHandler(onLoadingError)) {
             var exception: Exception? = null
             var loadedDetails: MangaDetails? = null
             try {
@@ -488,7 +488,7 @@ class ReaderViewModel @Inject constructor(
     @AnyThread
     private fun loadPrevNextChapter(currentId: Long, isNext: Boolean) {
         val prevJob = loadingJob
-        loadingJob = launchLoadingJob(Dispatchers.Default) {
+        loadingJob = launchLoadingJob(Dispatchers.IO) {
             prevJob?.join()
             chaptersLoader.loadPrevNextChapter(mangaDetails.requireValue(), currentId, isNext)
             content.value = ReaderContent(chaptersLoader.snapshot(), null)
@@ -561,7 +561,7 @@ class ReaderViewModel @Inject constructor(
         if (isIncognitoMode.value != null) {
             return
         }
-        launchJob(Dispatchers.Default) {
+        launchJob(Dispatchers.IO) {
             interactor.observeIncognitoMode(manga)
                 .collect {
                     when (it) {

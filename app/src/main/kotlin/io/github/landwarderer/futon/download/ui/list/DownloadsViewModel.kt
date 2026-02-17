@@ -68,34 +68,34 @@ class DownloadsViewModel @Inject constructor(
 	) { list, exp ->
 		list.toDownloadsList(exp)
 	}.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, null)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
 
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 
 	val items = works.map {
 		it?.toUiList() ?: listOf(LoadingState)
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
 	val hasPausedWorks = works.map {
 		it?.any { x -> x.canResume } == true
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), false)
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.WhileSubscribed(5000), false)
 
 	val hasActiveWorks = works.map {
 		it?.any { x -> x.canPause } == true
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), false)
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.WhileSubscribed(5000), false)
 
 	val hasCancellableWorks = works.map {
 		it?.any { x -> !x.workState.isFinished } == true
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), false)
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.WhileSubscribed(5000), false)
 
 	fun cancel(id: UUID) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			workScheduler.cancel(id)
 		}
 	}
 
 	fun cancel(ids: Set<Long>) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val snapshot = works.value ?: return@launchJob
 			for (work in snapshot) {
 				if (work.id.mostSignificantBits in ids) {
@@ -107,7 +107,7 @@ class DownloadsViewModel @Inject constructor(
 	}
 
 	fun cancelAll() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			workScheduler.cancelAll()
 			onActionDone.call(ReversibleAction(R.string.downloads_cancelled, null))
 		}
@@ -162,7 +162,7 @@ class DownloadsViewModel @Inject constructor(
 	}
 
 	fun remove(ids: Set<Long>) {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			val snapshot = works.value ?: return@launchJob
 			val uuids = HashSet<UUID>(ids.size)
 			for (work in snapshot) {
@@ -176,7 +176,7 @@ class DownloadsViewModel @Inject constructor(
 	}
 
 	fun removeCompleted() {
-		launchJob(Dispatchers.Default) {
+		launchJob(Dispatchers.IO) {
 			workScheduler.removeCompleted()
 			onActionDone.call(ReversibleAction(R.string.downloads_removed, null))
 		}
@@ -327,7 +327,7 @@ class DownloadsViewModel @Inject constructor(
 				emit(mapChapters())
 			}
 		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, null)
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
 
 	private suspend fun tryLoad(manga: Manga) = runCatchingCancellable {
 		mangaRepositoryFactory.create(manga.source).getDetails(manga)

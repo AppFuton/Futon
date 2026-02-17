@@ -49,23 +49,23 @@ class ScrobblerConfigViewModel @Inject constructor(
 		.onFirst { loadingCounter.decrement() }
 		.withErrorHandling()
 		.map { buildContentList(it) }
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, emptyList())
 
 	init {
 		scrobbler.user
 			.onEach { user.value = it }
-			.launchIn(viewModelScope + Dispatchers.Default)
+			.launchIn(viewModelScope + Dispatchers.IO)
 	}
 
 	fun onAuthCodeReceived(authCode: String) {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			val newUser = scrobbler.authorize(authCode)
 			user.value = newUser
 		}
 	}
 
 	fun logout() {
-		launchLoadingJob(Dispatchers.Default) {
+		launchLoadingJob(Dispatchers.IO) {
 			scrobbler.logout()
 			user.value = null
 			onLoggedOut.call(Unit)
