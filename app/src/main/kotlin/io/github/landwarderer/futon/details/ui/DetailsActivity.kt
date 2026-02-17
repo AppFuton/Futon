@@ -242,7 +242,9 @@ class DetailsActivity :
 
 			R.id.button_description_more -> {
 				val tv = viewBinding.textViewDescription
-				if (tv.context.isAnimationsEnabled) {
+                val defaultMaxLines = resources.getInteger(R.integer.details_description_lines)
+
+                if (tv.context.isAnimationsEnabled) {
 					tv.parentView?.let {
 						TransitionManager.beginDelayedTransition(it)
 					}
@@ -250,8 +252,15 @@ class DetailsActivity :
 				if (tv.maxLines in 1 until Integer.MAX_VALUE) {
 					tv.maxLines = Integer.MAX_VALUE
 				} else {
-					tv.maxLines = resources.getInteger(R.integer.details_description_lines)
+					tv.maxLines = defaultMaxLines
 				}
+
+                val btn = viewBinding.buttonDescriptionMore
+                if (tv.maxLines == defaultMaxLines) {
+                    btn.setText(R.string.more)
+                } else {
+                    btn.setText(R.string.collapse)
+                }
 			}
 
 			R.id.button_scrobbling_more -> {
