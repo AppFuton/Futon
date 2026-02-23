@@ -60,7 +60,6 @@ class ChaptersLoader @Inject constructor(
 		return true
 	}
 
-	@CheckResult
 	suspend fun loadSingleChapter(chapterId: Long): Boolean {
 		val pages = loadChapter(chapterId)
 		return mutex.withLock {
