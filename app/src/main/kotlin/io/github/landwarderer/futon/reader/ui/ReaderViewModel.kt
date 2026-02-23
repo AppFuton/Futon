@@ -47,6 +47,7 @@ import io.github.landwarderer.futon.core.util.ext.requireValue
 import io.github.landwarderer.futon.details.data.MangaDetails
 import io.github.landwarderer.futon.details.domain.DetailsInteractor
 import io.github.landwarderer.futon.details.domain.DetailsLoadUseCase
+import io.github.landwarderer.futon.details.domain.ProgressUpdateUseCase
 import io.github.landwarderer.futon.details.ui.pager.ChaptersPagesViewModel
 import io.github.landwarderer.futon.details.ui.pager.EmptyMangaReason
 import io.github.landwarderer.futon.download.ui.worker.DownloadWorker
@@ -69,6 +70,9 @@ import io.github.landwarderer.futon.reader.ui.config.ReaderSettings
 import io.github.landwarderer.futon.reader.ui.pager.ReaderUiState
 import io.github.landwarderer.futon.scrobbling.discord.ui.DiscordRpc
 import io.github.landwarderer.futon.stats.domain.StatsCollector
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import javax.inject.Inject
 
@@ -88,6 +92,7 @@ class ReaderViewModel @Inject constructor(
     private val detailsLoadUseCase: DetailsLoadUseCase,
     private val historyUpdateUseCase: HistoryUpdateUseCase,
     private val detectReaderModeUseCase: DetectReaderModeUseCase,
+    private val progressUpdateUseCase: ProgressUpdateUseCase,
     private val statsCollector: StatsCollector,
     private val discordRpc: DiscordRpc,
     @LocalStorageChanges localStorageChanges: SharedFlow<LocalManga?>,
@@ -401,6 +406,20 @@ class ReaderViewModel @Inject constructor(
         isIncognitoMode.value = value
         if (dontAskAgain) {
             settings.incognitoModeForNsfw = if (value) TriStateOption.ENABLED else TriStateOption.DISABLED
+        }
+    }
+
+    fun updateReadingProgress() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                manga.collectLatest {
+                    if (it != null) {
+                        progressUpdateUseCase(it)
+                    }
+                }
+
+                pageLoader.updateCache(getCurrentPage()!!)
+            }
         }
     }
 

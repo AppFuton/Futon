@@ -202,6 +202,11 @@ class ReaderActivity :
         applyDoubleModeAuto()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.updateReadingProgress()
+    }
+
     override fun getParentActivityIntent(): Intent? {
         val manga = viewModel.getMangaOrNull() ?: return null
         return AppRouter.detailsIntent(this, manga)

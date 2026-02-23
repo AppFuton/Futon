@@ -181,6 +181,11 @@ class PageLoader @Inject constructor(
 		return task
 	}
 
+    suspend fun updateCache(page: MangaPage) {
+        val progress = MutableStateFlow(PROGRESS_UNDEFINED)
+        loadPageImpl(page, progress, isPrefetch = false, skipCache = true)
+    }
+
 	suspend fun loadPage(page: MangaPage, force: Boolean): Uri {
 		return loadPageAsync(page, force).await()
 	}
@@ -283,7 +288,7 @@ class PageLoader @Inject constructor(
 		val pageUrl = getPageUrl(page)
 		check(pageUrl.isNotBlank()) { "Cannot obtain full image url for $page" }
 		if (!skipCache) {
-			cache.get(pageUrl)?.let { return it.toUri() }
+			cache[pageUrl]?.let { return it.toUri() }
 		}
 		val uri = pageUrl.toUri()
 		return when {
