@@ -23,6 +23,7 @@ class HistoryListQuickFilter @Inject constructor(
 			add(ListFilterOption.Macro.NEW_CHAPTERS)
 		}
 		add(ListFilterOption.Macro.COMPLETED)
+        add(ListFilterOption.Macro.READING)
 		add(ListFilterOption.Macro.FAVORITE)
 		add(ListFilterOption.NOT_FAVORITE)
 		if (!settings.isNsfwContentDisabled) {

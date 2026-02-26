@@ -193,6 +193,7 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 	override fun getCondition(option: ListFilterOption): String? = when (option) {
 		is ListFilterOption.Favorite -> "EXISTS(SELECT * FROM favourites WHERE history.manga_id = favourites.manga_id AND category_id = ${option.category.id})"
 		ListFilterOption.Macro.COMPLETED -> "percent >= $PROGRESS_COMPLETED"
+        ListFilterOption.Macro.READING -> "percent > 0 AND percent < $PROGRESS_COMPLETED"
 		ListFilterOption.Macro.NEW_CHAPTERS -> "(SELECT chapters_new FROM tracks WHERE tracks.manga_id = history.manga_id) > 0"
 		ListFilterOption.Macro.FAVORITE -> "EXISTS(SELECT * FROM favourites WHERE history.manga_id = favourites.manga_id)"
 		ListFilterOption.Macro.NSFW -> "manga.nsfw = 1"
