@@ -10,6 +10,24 @@ The format is based on "Keep a Changelog" and follows semantic versioning where 
 
 ---
 
+## v9.6.11
+Date: (see tag)
+
+### Highlights
+- Added 'Reading' quick filter (#30).
+- Disabled empty sources in search results by default.
+
+### Fixes
+- Resolved chapter progress display issue (#28).
+- Refactored coroutine jobs to use IO dispatchers instead of Default.
+- Various internal bug fixes and performance tweaks.
+
+### Maintenance
+- Parser upgrades and dependency/maintenance updates.
+- Documentation updates / refactoring.
+
+---
+
 ## v9.6.10
 Date: (see tag)
 
