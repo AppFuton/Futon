@@ -44,6 +44,7 @@
 				<item
 					android:id="@+id/action_filter_hide_empty"
 					android:checkable="true"
+                    android:checked="true"
 					android:title="@string/hide_empty_sources" />
 
 			</group>
