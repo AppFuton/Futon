@@ -79,6 +79,7 @@ import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionViewMod
 import io.github.landwarderer.futon.search.ui.suggestion.adapter.SearchSuggestionAdapter
 import javax.inject.Inject
 import com.google.android.material.R as materialR
+import io.sentry.Sentry
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNavOwner,

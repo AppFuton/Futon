@@ -10,6 +10,8 @@ plugins {
 	id 'org.jetbrains.kotlin.plugin.serialization'
 	// enable if needed
 	// id 'dev.reformator.stacktracedecoroutinator'
+
+    id 'io.sentry.android.gradle' version '6.1.0'
 }
 
 android {
@@ -225,4 +227,14 @@ dependencies {
 
 	androidTestImplementation libs.hilt.android.testing
 	kspAndroidTest libs.hilt.android.compiler
+}
+
+
+sentry {
+    org = "appfuton"
+    projectName = "android"
+
+    // this will upload your source code to Sentry to show it as part of the stack traces
+    // disable if you don't want to expose your sources
+    includeSourceContext = true
 }

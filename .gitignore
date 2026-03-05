@@ -30,3 +30,6 @@
 /.idea/AndroidProjectSystem.xml
 /.vscode/
 /.sisyphus/
+# Sentry Config File
+sentry.properties
+/opencode.json
