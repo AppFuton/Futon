@@ -110,14 +110,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		
-		// Test Sentry crash reporting
-		try {
-			throw Exception("This is a test crash for Sentry.")
-		} catch (e: Exception) {
-			Sentry.captureException(e)
-		}
-		
 		setContentView(ActivityMainBinding.inflate(layoutInflater))
 		setSupportActionBar(viewBinding.searchBar)
 
