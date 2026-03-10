@@ -862,4 +862,25 @@
     <string name="pull_bottom_no_next">No existe capítulo siguiente</string>
     <string name="enable_pull_gesture_title">Habilitar gesto de arrastrar</string>
     <string name="enable_pull_gesture_summary">Usa el gesto de arrastrar para cambiar de capítulo en webtoon</string>
+    <string name="saved_filters">Guardar filtros</string>
+    <string name="github_download_warning">La descarga desde GitHub evitará los controles de seguridad realizados por IzzyOnDroid.</string>
+    <string name="enter_name">Ingrese el nombre</string>
+    <string name="pinned_sources_only">Solo fuentes fijadas</string>
+    <string name="hide_empty_sources">Ocultar fuentes vacías</string>
+    <string name="frequency_every_6_hours">Cada 6 horas</string>
+    <string name="auto_double_foldable">Plegable automático de dos páginas</string>
+    <string name="two_page_scroll_sensitivity">Sensibilidad de desplazamiento de dos páginas</string>
+    <string name="reader_chapter_toast">Mostrar ventana emergente de cambio de capítulo</string>
+    <string name="reader_chapter_toast_summary">Mostrar un mensaje emergente con el título del capítulo cuando se cambia</string>
+    <string name="private_app_directory_warning">Este directorio con todos los datos se eliminará si desinstala la aplicación</string>
+    <string name="available_pattern">%1$s disponibles</string>
+    <string name="rename">Renombrar</string>
+    <string name="save_filter">Guardar filtro</string>
+    <string name="overwrite">Sobrescribir</string>
+    <string name="filter_overwrite_confirm">Ya existe un filtro llamado \"%s\". ¿Desea sobrescribirlo?</string>
+    <string name="storage_and_network">Almacenamiento y red</string>
+    <string name="create_or_restore_backup">Crear o restaurar una copia de seguridad</string>
+    <string name="data_removal">Eliminación de datos</string>
+    <string name="privacy">Privacidad</string>
+    <string name="download_default_directory">Directorio predeterminado para descargar manga</string>
 </resources>
