@@ -906,4 +906,8 @@
     <string name="download_default_directory">Default directory for downloading manga</string>
     <string name="private_app_directory_warning">This directory with all data will be deleted if you uninstall the application</string>
     <string name="available_pattern">%1$s available</string>
+    <string name="crash_analytics_consent_title">Help Improve Futon</string>
+    <string name="crash_analytics_consent_message">Would you agree to send anonymous crash logs to the developers? This helps us improve the app and fix issues faster. We promise no personal data is collected.</string>
+    <string name="agree">Agree</string>
+    <string name="cancel">Cancel</string>
 </resources>

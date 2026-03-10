@@ -59,17 +59,20 @@ android {
 	buildTypes {
 		debug {
 			applicationIdSuffix = '.debug'
+			buildConfigField "String", "SENTRY_DSN", '""'
 		}
 		release {
 			minifyEnabled true
 			shrinkResources true
 			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 			signingConfig signingConfigs.release
+			buildConfigField "String", "SENTRY_DSN", "\"${System.getenv('SENTRY_DSN') ?: ''}\""
 		}
 		nightly {
 			initWith release
 			applicationIdSuffix = '.nightly'
 			signingConfig signingConfigs.release
+			buildConfigField "String", "SENTRY_DSN", "\"${System.getenv('SENTRY_DSN') ?: ''}\""
 		}
 	}
 	buildFeatures {

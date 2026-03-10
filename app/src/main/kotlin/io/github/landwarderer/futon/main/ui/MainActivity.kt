@@ -22,6 +22,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -158,7 +159,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				viewModel.isResumeEnabled.observe(this@MainActivity, this@MainActivity::onResumeEnabledChanged)
 				viewModel.feedCounter.observe(this@MainActivity, ::onFeedCounterChanged)
 				viewModel.appUpdate.observe(this@MainActivity, MenuInvalidator(this@MainActivity))
-				viewModel.onFirstStart.observeEvent(this@MainActivity) { router.showWelcomeSheet() }
+				viewModel.onFirstStart.observeEvent(this@MainActivity) {
+					router.showWelcomeSheet()
+					// Show consent dialog after welcome sheet is shown
+					supportFragmentManager.addOnBackStackChangedListener(object : FragmentManager.OnBackStackChangedListener {
+						override fun onBackStackChanged() {
+							// Check if WelcomeSheet is dismissed (not in back stack)
+							val welcomeSheetVisible = supportFragmentManager.fragments.any { 
+								it is io.github.landwarderer.futon.main.ui.welcome.WelcomeSheet 
+							}
+							if (!welcomeSheetVisible) {
+								// Remove this listener and show consent dialog
+								supportFragmentManager.removeOnBackStackChangedListener(this)
+								router.showCrashAnalyticsConsentSheet()
+							}
+						}
+					})
+				}
 				viewModel.isBottomNavPinned.observe(this@MainActivity, ::setNavbarPinned)
 				searchSuggestionViewModel.isIncognitoModeEnabled.observe(this@MainActivity, this@MainActivity::onIncognitoModeChanged)
 				initSearch()
