@@ -76,7 +76,6 @@ import io.github.landwarderer.futon.list.ui.config.ListConfigSection
 import io.github.landwarderer.futon.local.ui.ImportDialogFragment
 import io.github.landwarderer.futon.local.ui.info.LocalInfoDialog
 import io.github.landwarderer.futon.main.ui.MainActivity
-import io.github.landwarderer.futon.main.ui.consent.CrashAnalyticsConsentSheet
 import io.github.landwarderer.futon.main.ui.welcome.WelcomeSheet
 import io.github.landwarderer.futon.parsers.model.Manga
 import io.github.landwarderer.futon.parsers.model.MangaListFilter
@@ -509,10 +508,6 @@ class AppRouter private constructor(
 
     fun showWelcomeSheet() {
         WelcomeSheet().showDistinct()
-    }
-
-    fun showCrashAnalyticsConsentSheet() {
-        CrashAnalyticsConsentSheet().showDistinct()
     }
 
     fun showChapterPagesSheet() {

@@ -1,7 +1,6 @@
 package io.github.landwarderer.futon.main.ui.welcome
 
 import android.accounts.AccountManager
-import android.content.DialogInterface
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -17,6 +16,8 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.landwarderer.futon.R
+import io.github.landwarderer.futon.core.prefs.AppSettings
+import javax.inject.Inject
 import io.github.landwarderer.futon.core.model.titleResId
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.ui.sheet.BaseAdaptiveSheet
@@ -33,6 +34,9 @@ import java.util.Locale
 @AndroidEntryPoint
 class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipClickListener, View.OnClickListener,
 	ActivityResultCallback<Uri?> {
+
+	@Inject
+	lateinit var settings: AppSettings
 
 	private val viewModel by viewModels<WelcomeViewModel>()
 
@@ -53,6 +57,10 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipC
 		binding.chipBackup.setOnClickListener(this)
 		binding.chipSync.setOnClickListener(this)
 		binding.chipDirectories.setOnClickListener(this)
+		binding.switchCrashReporting.isChecked = settings.isCrashAnalyticsEnabled
+		binding.switchCrashReporting.setOnCheckedChangeListener { _, isChecked ->
+			settings.isCrashAnalyticsEnabled = isChecked
+		}
 
 		viewModel.locales.observe(viewLifecycleOwner, ::onLocalesChanged)
 		viewModel.types.observe(viewLifecycleOwner, ::onTypesChanged)
@@ -112,11 +120,6 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipC
 				)
 			},
 		)
-	}
-
-	override fun onDismiss(dialog: DialogInterface) {
-		super.onDismiss(dialog)
-		router.showCrashAnalyticsConsentSheet()
 	}
 
 	private fun onTypesChanged(value: FilterProperty<ContentType>) {

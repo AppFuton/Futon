@@ -581,7 +581,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_STATS_ENABLED, false)
 
 	var isCrashAnalyticsEnabled: Boolean
-		get() = prefs.getBoolean(KEY_CRASH_ANALYTICS_ENABLED, false)
+		get() = prefs.getBoolean(KEY_CRASH_ANALYTICS_ENABLED, true)
 		set(value) = prefs.edit { putBoolean(KEY_CRASH_ANALYTICS_ENABLED, value) }
 
 	val isAutoLocalChaptersCleanupEnabled: Boolean
