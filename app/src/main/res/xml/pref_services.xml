@@ -78,7 +78,7 @@
 		app:icon="@drawable/ic_discord" />
 
 	<SwitchPreferenceCompat
-		android:defaultValue="false"
+		android:defaultValue="true"
 		android:key="crash_analytics_enabled"
 		android:summary="@string/crash_reporting_summary"
 		android:title="@string/crash_reporting"
