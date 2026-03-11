@@ -71,6 +71,7 @@ import io.github.landwarderer.futon.local.ui.LocalIndexUpdateService
 import io.github.landwarderer.futon.local.ui.LocalStorageCleanupWorker
 import io.github.landwarderer.futon.main.ui.owners.AppBarOwner
 import io.github.landwarderer.futon.main.ui.owners.BottomNavOwner
+import io.github.landwarderer.futon.main.ui.welcome.WelcomeSheet
 import io.github.landwarderer.futon.parsers.model.Manga
 import io.github.landwarderer.futon.remotelist.ui.MangaSearchMenuProvider
 import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionItemCallback
@@ -160,21 +161,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				viewModel.feedCounter.observe(this@MainActivity, ::onFeedCounterChanged)
 				viewModel.appUpdate.observe(this@MainActivity, MenuInvalidator(this@MainActivity))
 				viewModel.onFirstStart.observeEvent(this@MainActivity) {
+					supportFragmentManager.setFragmentResultListener(
+						WelcomeSheet.REQUEST_KEY,
+						this@MainActivity,
+					) { _, _ ->
+						router.showCrashAnalyticsConsentSheet()
+					}
 					router.showWelcomeSheet()
-					// Show consent dialog after welcome sheet is shown
-					supportFragmentManager.addOnBackStackChangedListener(object : FragmentManager.OnBackStackChangedListener {
-						override fun onBackStackChanged() {
-							// Check if WelcomeSheet is dismissed (not in back stack)
-							val welcomeSheetVisible = supportFragmentManager.fragments.any { 
-								it is io.github.landwarderer.futon.main.ui.welcome.WelcomeSheet 
-							}
-							if (!welcomeSheetVisible) {
-								// Remove this listener and show consent dialog
-								supportFragmentManager.removeOnBackStackChangedListener(this)
-								router.showCrashAnalyticsConsentSheet()
-							}
-						}
-					})
 				}
 				viewModel.isBottomNavPinned.observe(this@MainActivity, ::setNavbarPinned)
 				searchSuggestionViewModel.isIncognitoModeEnabled.observe(this@MainActivity, this@MainActivity::onIncognitoModeChanged)
