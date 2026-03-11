@@ -33,3 +33,6 @@
 # Sentry Config File
 sentry.properties
 /opencode.json
+# JVM crash and replay logs
+hs_err_pid*.log
+replay_pid*.log

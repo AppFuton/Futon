@@ -10,6 +10,17 @@ The format is based on "Keep a Changelog" and follows semantic versioning where 
 
 ---
 
+## v9.6.12
+Date: (see tag)
+
+### Highlights
+- Added opt-in crash analytics (Sentry) — disabled by default, can be enabled in Settings.
+
+### Maintenance
+- Parser upgrades and dependency/maintenance updates.
+
+---
+
 ## v9.6.11
 Date: (see tag)
 

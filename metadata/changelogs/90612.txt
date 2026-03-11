@@ -1,0 +1,7 @@
+ cAdded opt-in crash analytics and other improvements.
+
+Highlights:
+- Added opt-in crash analytics (Sentry) — disabled by default, can be enabled in Settings.
+
+Maintenance:
+- Parser upgrades and dependency/maintenance updates.
