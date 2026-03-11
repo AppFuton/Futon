@@ -35,6 +35,12 @@ class AppUpdateRepository @Inject constructor(
 		append("/releases/latest")
 	}
 
+	private val changelogUrl = buildString {
+		append("https://raw.githubusercontent.com/")
+		append(context.getString(R.string.github_updates_repo))
+		append("/refs/heads/devel/CHANGELOG.md")
+	}
+
 	val isUpdateAvailable: Boolean
 		get() = availableUpdate.value != null
 
@@ -69,6 +75,18 @@ class AppUpdateRepository @Inject constructor(
 			it.printStackTraceDebug()
 		}.onSuccess {
 			availableUpdate.value = it
+		}.getOrNull()
+	}
+
+	suspend fun fetchChangelog(): String? = withContext(Dispatchers.IO) {
+		runCatchingCancellable {
+			val request = Request.Builder()
+				.get()
+				.url(changelogUrl)
+				.build()
+			okHttp.newCall(request).await().body?.string()
+		}.onFailure {
+			it.printStackTraceDebug()
 		}.getOrNull()
 	}
 
