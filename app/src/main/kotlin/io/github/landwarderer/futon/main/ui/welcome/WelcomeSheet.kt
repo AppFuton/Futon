@@ -9,8 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.os.bundleOf
-import androidx.fragment.app.setFragmentResult
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isGone
 import androidx.core.view.updatePadding
@@ -118,8 +116,8 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipC
 
 	override fun onDismiss(dialog: DialogInterface) {
 		super.onDismiss(dialog)
-		setFragmentResult(REQUEST_KEY, bundleOf())
-	}maybe 
+		router.showCrashAnalyticsConsentSheet()
+	}
 
 	private fun onTypesChanged(value: FilterProperty<ContentType>) {
 		val chips = viewBinding?.chipsType ?: return
@@ -134,7 +132,4 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipC
 		)
 	}
 
-	companion object {
-		const val REQUEST_KEY = "welcome_sheet_dismissed"
-	}
 }

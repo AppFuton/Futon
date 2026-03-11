@@ -22,7 +22,6 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -71,7 +70,6 @@ import io.github.landwarderer.futon.local.ui.LocalIndexUpdateService
 import io.github.landwarderer.futon.local.ui.LocalStorageCleanupWorker
 import io.github.landwarderer.futon.main.ui.owners.AppBarOwner
 import io.github.landwarderer.futon.main.ui.owners.BottomNavOwner
-import io.github.landwarderer.futon.main.ui.welcome.WelcomeSheet
 import io.github.landwarderer.futon.parsers.model.Manga
 import io.github.landwarderer.futon.remotelist.ui.MangaSearchMenuProvider
 import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionItemCallback
@@ -159,15 +157,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				viewModel.isResumeEnabled.observe(this@MainActivity, this@MainActivity::onResumeEnabledChanged)
 				viewModel.feedCounter.observe(this@MainActivity, ::onFeedCounterChanged)
 				viewModel.appUpdate.observe(this@MainActivity, MenuInvalidator(this@MainActivity))
-				viewModel.onFirstStart.observeEvent(this@MainActivity) {
-					supportFragmentManager.setFragmentResultListener(
-						WelcomeSheet.REQUEST_KEY,
-						this@MainActivity,
-					) { _, _ ->
-						router.showCrashAnalyticsConsentSheet()
-					}
-					router.showWelcomeSheet()
-				}
+				viewModel.onFirstStart.observeEvent(this@MainActivity) { router.showWelcomeSheet() }
 				viewModel.isBottomNavPinned.observe(this@MainActivity, ::setNavbarPinned)
 				searchSuggestionViewModel.isIncognitoModeEnabled.observe(this@MainActivity, this@MainActivity::onIncognitoModeChanged)
 				initSearch()
