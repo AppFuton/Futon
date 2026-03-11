@@ -908,6 +908,7 @@
     <string name="available_pattern">%1$s available</string>
     <string name="crash_reporting">Crash Reporting</string>
     <string name="crash_reporting_summary">Send anonymous crash logs to help improve the app. Takes effect after restart.</string>
+    <string name="learn_more">Learn more</string>
     <string name="crash_analytics_consent_title">Help Improve Futon</string>
     <string name="crash_analytics_consent_message">Would you agree to send anonymous crash logs to the developers? This helps us improve the app and fix issues faster. We promise no personal data is collected.</string>
     <string name="agree">Agree</string>

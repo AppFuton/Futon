@@ -1,5 +1,7 @@
 package io.github.landwarderer.futon.main.ui.consent
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -31,6 +33,7 @@ class CrashAnalyticsConsentSheet : BaseAdaptiveSheet<SheetCrashAnalyticsConsentB
 		super.onViewBindingCreated(binding, savedInstanceState)
 		binding.buttonAgree.setOnClickListener(this)
 		binding.buttonCancel.setOnClickListener(this)
+		binding.textViewLearnMore.setOnClickListener(this)
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
@@ -51,6 +54,10 @@ class CrashAnalyticsConsentSheet : BaseAdaptiveSheet<SheetCrashAnalyticsConsentB
 			R.id.button_cancel -> {
 				settings.isCrashAnalyticsEnabled = false
 				dismissAllowingStateLoss()
+			}
+
+			R.id.textView_learn_more -> {
+				startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://futonapp.pages.dev/privacy/data-collected/")))
 			}
 		}
 	}
