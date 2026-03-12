@@ -1689,7 +1689,7 @@
 		</activity-alias>
 
 	
-    <meta-data android:name="io.sentry.dsn" android:value="https://81af4c86ec2520fb31d575917d431fe6@o4510583318183936.ingest.de.sentry.io/4510583326507088"/>
+    <meta-data android:name="io.sentry.auto-init" android:value="false" />
     <meta-data android:name="io.sentry.send-default-pii" android:value="false" />
     <meta-data android:name="io.sentry.attach-view-hierarchy" android:value="true" />
     <meta-data android:name="io.sentry.traces.sample-rate" android:value="0.2" />

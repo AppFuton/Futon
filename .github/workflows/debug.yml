@@ -29,6 +29,8 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Build debug APK
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: ./gradlew assembleDebug
 
       - name: Upload debug APK

@@ -580,6 +580,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isStatsEnabled: Boolean
 		get() = prefs.getBoolean(KEY_STATS_ENABLED, false)
 
+	var isCrashAnalyticsEnabled: Boolean
+		get() = prefs.getBoolean(KEY_CRASH_ANALYTICS_ENABLED, true)
+		set(value) = prefs.edit { putBoolean(KEY_CRASH_ANALYTICS_ENABLED, value) }
+
 	val isAutoLocalChaptersCleanupEnabled: Boolean
 		get() = prefs.getBoolean(KEY_CHAPTERS_CLEAR_AUTO, false)
 
@@ -817,6 +821,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_DISCORD_RPC = "discord_rpc"
 		const val KEY_DISCORD_RPC_SKIP_NSFW = "discord_rpc_skip_nsfw"
 		const val KEY_DISCORD_TOKEN = "discord_token"
+		const val KEY_CRASH_ANALYTICS_ENABLED = "crash_analytics_enabled"
 
 		// keys for non-persistent preferences
 		const val KEY_APP_VERSION = "app_version"

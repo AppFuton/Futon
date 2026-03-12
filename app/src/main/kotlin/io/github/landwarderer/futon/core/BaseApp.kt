@@ -71,6 +71,10 @@ open class BaseApp : Application(), Configuration.Provider {
 		super.onCreate()
 		PlatformRegistry.applicationContext = this // TODO replace with OkHttp.initialize
 		AppCompatDelegate.setDefaultNightMode(settings.theme)
+		// Initialize Sentry only if user has opted in
+		if (settings.isCrashAnalyticsEnabled) {
+			initializeSentry()
+		}
 		// TLS 1.3 support for Android < 10
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 			Security.insertProviderAt(Conscrypt.newProvider(), 1)
@@ -99,6 +103,23 @@ open class BaseApp : Application(), Configuration.Provider {
 	private fun setupActivityLifecycleCallbacks() {
 		activityLifecycleCallbacks.forEach {
 			registerActivityLifecycleCallbacks(it)
+		}
+	}
+
+	private fun initializeSentry() {
+		try {
+			io.sentry.android.core.SentryAndroid.init(this) { options ->
+				// DSN is read from BuildConfig which gets it from SENTRY_DSN environment variable
+				// Only set if DSN is provided (non-empty)
+				if (BuildConfig.SENTRY_DSN.isNotEmpty()) {
+					options.dsn = BuildConfig.SENTRY_DSN
+					options.isEnableAutoSessionTracking = true
+					options.environment = if (BuildConfig.DEBUG) "debug" else "production"
+				}
+			}
+		} catch (e: Exception) {
+			// Log error but don't crash if Sentry initialization fails
+			e.printStackTrace()
 		}
 	}
 }

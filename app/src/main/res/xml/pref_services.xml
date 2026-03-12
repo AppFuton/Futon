@@ -77,4 +77,11 @@
 		app:allowDividerAbove="true"
 		app:icon="@drawable/ic_discord" />
 
+	<SwitchPreferenceCompat
+		android:defaultValue="true"
+		android:key="crash_analytics_enabled"
+		android:summary="@string/crash_reporting_summary"
+		android:title="@string/crash_reporting"
+		app:allowDividerAbove="true" />
+
 </PreferenceScreen>

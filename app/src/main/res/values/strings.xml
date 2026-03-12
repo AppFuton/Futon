@@ -906,4 +906,6 @@
     <string name="download_default_directory">Default directory for downloading manga</string>
     <string name="private_app_directory_warning">This directory with all data will be deleted if you uninstall the application</string>
     <string name="available_pattern">%1$s available</string>
+    <string name="crash_reporting">Crash Reporting</string>
+    <string name="crash_reporting_summary">Send anonymous crash logs to help improve the app. Takes effect after restart.</string>
 </resources>
