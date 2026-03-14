@@ -240,4 +240,10 @@ sentry {
     // this will upload your source code to Sentry to show it as part of the stack traces
     // disable if you don't want to expose your sources
     includeSourceContext = true
+
+    // Skip all Sentry Gradle plugin tasks (source upload, mapping upload, etc.)
+    // if SENTRY_AUTH_TOKEN is not provided — avoids build errors in local/dev environments
+    def sentryAuthToken = System.getenv('SENTRY_AUTH_TOKEN')
+    autoUploadProguardMapping = sentryAuthToken != null && !sentryAuthToken.isEmpty()
+    autoUploadSourceContext = sentryAuthToken != null && !sentryAuthToken.isEmpty()
 }
