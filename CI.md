@@ -60,7 +60,7 @@ A new keystore was generated with:
 Key Alias: futon-key
 Keystore Password: [from setup]
 Key Password: [from setup]
-SHA-256 Fingerprint: BB:1C:14:0D:E0:07:78:59:1F:93:D2:FB:43:AC:B3:5A:BA:86:71:3A:20:8F:6F:1A:D4:2D:29:EC:7D:3A:CD:C5
+SHA-256 Fingerprint: EF:48:B2:2E:F2:C5:40:45:53:1F:6E:76:00:C2:7E:C3:D0:3B:71:22:1E:0B:05:FF:B6:8E:33:57:CF:8E:4D:40
 ```
 
 ## Local Development Setup
@@ -131,7 +131,7 @@ The workflow checks for commits since the last nightly release. If no commits ex
 
 Current release keystore SHA-256 fingerprint:
 ```
-BB:1C:14:0D:E0:07:78:59:1F:93:D2:FB:43:AC:B3:5A:BA:86:71:3A:20:8F:6F:1A:D4:2D:29:EC:7D:3A:CD:C5
+EF:48:B2:2E:F2:C5:40:45:53:1F:6E:76:00:C2:7E:C3:D0:3B:71:22:1E:0B:05:FF:B6:8E:33:57:CF:8E:4D:40
 ```
 
 This matches the built-in app validator check in `AppValidator.kt`. All release builds must use a keystore with this fingerprint for proper app signature validation.

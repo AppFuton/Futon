@@ -139,7 +139,7 @@ Join our Discord for support, discussion, and announcements: https://discord.gg/
 ### Certificate fingerprints
 
 ```plaintext
-BB:1C:14:0D:E0:07:78:59:1F:93:D2:FB:43:AC:B3:5A:BA:86:71:3A:20:8F:6F:1A:D4:2D:29:EC:7D:3A:CD:C5
+EF:48:B2:2E:F2:C5:40:45:53:1F:6E:76:00:C2:7E:C3:D0:3B:71:22:1E:0B:05:FF:B6:8E:33:57:CF:8E:4D:40
 ```
 
 ### License

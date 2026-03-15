@@ -36,3 +36,6 @@ sentry.properties
 # JVM crash and replay logs
 hs_err_pid*.log
 replay_pid*.log
+# Keystore files — never commit signing keys
+*.jks
+*.keystore

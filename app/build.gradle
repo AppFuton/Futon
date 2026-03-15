@@ -244,6 +244,7 @@ sentry {
     // Skip all Sentry Gradle plugin tasks (source upload, mapping upload, etc.)
     // if SENTRY_AUTH_TOKEN is not provided — avoids build errors in local/dev environments
     def sentryAuthToken = System.getenv('SENTRY_AUTH_TOKEN')
+    includeSourceContext = sentryAuthToken != null && !sentryAuthToken.isEmpty()
     autoUploadProguardMapping = sentryAuthToken != null && !sentryAuthToken.isEmpty()
     autoUploadSourceContext = sentryAuthToken != null && !sentryAuthToken.isEmpty()
 }
