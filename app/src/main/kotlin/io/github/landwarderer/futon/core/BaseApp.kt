@@ -116,10 +116,25 @@ open class BaseApp : Application(), Configuration.Provider {
 					options.isEnableAutoSessionTracking = true
 					options.environment = if (BuildConfig.DEBUG) "debug" else "production"
 				}
+				options.beforeSend = io.sentry.SentryOptions.BeforeSendCallback { event, _ ->
+					val exceptions = event.exceptions
+					if (exceptions != null && exceptions.any { it.isHttpError() }) null else event
+				}
 			}
 		} catch (e: Exception) {
 			// Log error but don't crash if Sentry initialization fails
 			e.printStackTrace()
 		}
+	}
+
+	private fun io.sentry.protocol.SentryException.isHttpError(): Boolean {
+		val name = type ?: return false
+		return name == "HttpException" ||
+			name.endsWith(".HttpException") ||
+			name == "SentryHttpClientException" ||
+			name == "SocketTimeoutException" ||
+			name == "UnknownHostException" ||
+			name == "ConnectException" ||
+			name == "SSLException"
 	}
 }
