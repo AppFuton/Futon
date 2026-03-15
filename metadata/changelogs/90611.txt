@@ -1,4 +1,4 @@
- cAdded 'Reading' quick filter and other improvements.
+Added 'Reading' quick filter and other improvements.
 
 Highlights:
 - Added 'Reading' quick filter (#30).

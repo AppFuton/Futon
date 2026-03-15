@@ -1,0 +1,1 @@
+Made crash analytics opt-in only and fixed build fail due to missing Sentry auth token.

@@ -5,13 +5,29 @@ All notable changes to this project are documented in this file.
 The format is based on "Keep a Changelog" and follows semantic versioning where possible.
 
 ## [Unreleased]
+## 9.7
+Date: Late March 2026
+
+### Highlights
+- UI reworks and new features.
 
 - (Work in progress)
+
+
+---
+## v9.6.13
+Date: 2026-03-15
+
+### Highlights
+- Made Crash Analytics opt-in only, disabled by default.
+
+### Fixes
+- Fixed Build Fail due to missing Sentry auth token.
 
 ---
 
 ## v9.6.12
-Date: (see tag)
+Date: 2026-03-12
 
 ### Highlights
 - Added opt-in crash analytics (Sentry) — disabled by default, can be enabled in Settings.
@@ -22,7 +38,7 @@ Date: (see tag)
 ---
 
 ## v9.6.11
-Date: (see tag)
+Date: 2026-02-27
 
 ### Highlights
 - Added 'Reading' quick filter (#30).
@@ -40,7 +56,7 @@ Date: (see tag)
 ---
 
 ## v9.6.10
-Date: (see tag)
+Date: 2026-01-02
 
 ### Highlights
 - Resource cleanup and translation fixes.
@@ -55,7 +71,7 @@ Date: (see tag)
 ---
 
 ## v9.6.9
-Date: (see tag)
+Date: 2025-12-31
 
 ### Highlights
 - Parser upgrade and stability improvements.
@@ -67,7 +83,7 @@ Date: (see tag)
 ---
 
 ## v9.6.8
-Date: (see tag)
+Date: 2025-12-30
 
 ### Highlights
 - Packaging and version alignment.
@@ -79,7 +95,7 @@ Date: (see tag)
 ---
 
 ## v9.6.7
-Date: (see tag)
+Date: 2025-12-29
 
 ### Highlights
 - Stability fixes and minor packaging updates.
@@ -90,7 +106,7 @@ Date: (see tag)
 ---
 
 ## v9.6.6
-Date: (see tag)
+Date: 2025-12-27
 
 ### Highlights
 - Build and tooling maintenance.
@@ -101,7 +117,7 @@ Date: (see tag)
 ---
 
 ## v9.6.5
-Date: (see tag)
+Date: 2025-12-27
 
 ### Highlights
 - Build file updates and minor fixes.
@@ -112,7 +128,7 @@ Date: (see tag)
 ---
 
 ## v9.6.4
-Date: (see tag)
+Date: 2025-12-24
 
 ### Highlights
 - Hotfix: build/syntax correction.
@@ -123,7 +139,7 @@ Date: (see tag)
 ---
 
 ## v9.6.3
-Date: (see tag)
+Date: 2025-12-23
 
 ### Highlights
 - Downloads UX and wording updates.
@@ -135,7 +151,7 @@ Date: (see tag)
 ---
 
 ## v9.6.2
-Date: (see tag)
+Date: 2025-12-22
 
 ### Highlights
 - EventFlow reliability improvements.
@@ -172,7 +188,7 @@ Date: 2025-12-21
 ---
 
 ## v9.5
-Date: (see tag)
+Date: 2025-12-11
 
 ### Highlights
 - Added Downloads viewer and UX improvements.
