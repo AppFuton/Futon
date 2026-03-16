@@ -184,6 +184,7 @@ dependencies {
 	implementation libs.androidx.room.ktx
 	ksp libs.androidx.room.compiler
 
+    implementation platform(libs.okhttp.bom)
 	implementation libs.okhttp
 	implementation libs.okhttp.tls
 	implementation libs.okhttp.dnsoverhttps
