@@ -1,8 +1,8 @@
 package io.github.landwarderer.futon.core.util
 
-import kotlinx.coroutines.CoroutineExceptionHandler
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.report
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
@@ -10,7 +10,7 @@ class AcraCoroutineErrorHandler : AbstractCoroutineContextElement(CoroutineExcep
 	CoroutineExceptionHandler {
 
 	override fun handleException(context: CoroutineContext, exception: Throwable) {
-		exception.printStackTraceDebug()
+		exception.printStackTraceDebug("AcraCoroutineErrorHandler::handleException")
 		exception.report()
 	}
 }

@@ -5,6 +5,10 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.landwarderer.futon.core.util.ext.observeChanges
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
+import io.github.landwarderer.futon.parsers.model.MangaListFilter
+import io.github.landwarderer.futon.parsers.model.MangaSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -14,10 +18,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import io.github.landwarderer.futon.core.util.ext.observeChanges
-import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.model.MangaSource
 import java.io.File
 import javax.inject.Inject
 
@@ -41,7 +41,7 @@ class SavedFiltersRepository @Inject constructor(
             try {
                 Json.decodeFromString(value)
             } catch (e: SerializationException) {
-                e.printStackTraceDebug()
+                e.printStackTraceDebug("SavedFiltersRepository::getAll")
                 null
             }
         }
@@ -99,7 +99,7 @@ class SavedFiltersRepository @Inject constructor(
         return try {
             Json.decodeFromString<PersistableFilter>(json)
         } catch (e: SerializationException) {
-            e.printStackTraceDebug()
+            e.printStackTraceDebug("SavedFiltersRepository::load")
             null
         }
     }

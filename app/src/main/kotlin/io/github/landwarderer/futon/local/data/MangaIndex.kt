@@ -1,13 +1,6 @@
 package io.github.landwarderer.futon.local.data
 
 import androidx.annotation.WorkerThread
-import okio.FileSystem
-import okio.Path
-import okio.Path.Companion.toOkioPath
-import okio.buffer
-import org.jetbrains.annotations.Blocking
-import org.json.JSONArray
-import org.json.JSONObject
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.core.model.MangaSource
 import io.github.landwarderer.futon.core.model.isLocal
@@ -29,6 +22,13 @@ import io.github.landwarderer.futon.parsers.util.json.mapJSONToSet
 import io.github.landwarderer.futon.parsers.util.json.toStringSet
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.parsers.util.toTitleCase
+import okio.FileSystem
+import okio.Path
+import okio.Path.Companion.toOkioPath
+import okio.buffer
+import org.jetbrains.annotations.Blocking
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 
 class MangaIndex(source: String?) {
@@ -248,7 +248,7 @@ class MangaIndex(source: String?) {
 				null
 			}
 		}.onFailure { e ->
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("MangaIndex::read")
 		}.getOrNull()
 
 		@Blocking

@@ -22,7 +22,7 @@ class DeleteLocalMangaUseCase @Inject constructor(
 		runCatchingCancellable {
 			historyRepository.deleteOrSwap(victim, original)
 		}.onFailure {
-			it.printStackTraceDebug()
+			it.printStackTraceDebug("DeleteLocalMangaUseCase::invoke")
 		}
 	}
 

@@ -2,18 +2,6 @@ package io.github.landwarderer.futon.search.ui.suggestion
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.plus
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.SearchSuggestionType
 import io.github.landwarderer.futon.core.prefs.observeAsFlow
@@ -28,6 +16,18 @@ import io.github.landwarderer.futon.parsers.util.mapToSet
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.search.domain.MangaSearchRepository
 import io.github.landwarderer.futon.search.ui.suggestion.model.SearchSuggestionItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.plus
 import javax.inject.Inject
 
 private const val DEBOUNCE_TIMEOUT = 300L
@@ -150,7 +150,7 @@ class SearchSuggestionViewModel @Inject constructor(
 		repository.getAuthorsSuggestion(searchQuery, MAX_AUTHORS_ITEMS)
 			.map { SearchSuggestionItem.Author(it) }
 	}.getOrElse { e ->
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("SearchSuggestionViewModel::getAuthors")
 		listOf(SearchSuggestionItem.Text(0, e))
 	}
 
@@ -158,7 +158,7 @@ class SearchSuggestionViewModel @Inject constructor(
 		repository.getQueryHintSuggestion(searchQuery, MAX_HINTS_ITEMS)
 			.map { SearchSuggestionItem.Hint(it) }
 	}.getOrElse { e ->
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("SearchSuggestionViewModel::getQueryHints")
 		listOf(SearchSuggestionItem.Text(0, e))
 	}
 
@@ -166,7 +166,7 @@ class SearchSuggestionViewModel @Inject constructor(
 		repository.getQuerySuggestion(searchQuery, MAX_QUERY_ITEMS)
 			.map { SearchSuggestionItem.RecentQuery(it) }
 	}.getOrElse { e ->
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("SearchSuggestionViewModel::getRecentQueries")
 		listOf(SearchSuggestionItem.Text(0, e))
 	}
 
@@ -178,7 +178,7 @@ class SearchSuggestionViewModel @Inject constructor(
 			listOf(SearchSuggestionItem.Tags(mapTags(tags)))
 		}
 	}.getOrElse { e ->
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("SearchSuggestionViewModel::getTags")
 		listOf(SearchSuggestionItem.Text(0, e))
 	}
 
@@ -190,7 +190,7 @@ class SearchSuggestionViewModel @Inject constructor(
 			listOf(SearchSuggestionItem.MangaList(manga))
 		}
 	}.getOrElse { e ->
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("SearchSuggestionViewModel::getManga")
 		listOf(SearchSuggestionItem.Text(0, e))
 	}
 
@@ -199,7 +199,7 @@ class SearchSuggestionViewModel @Inject constructor(
 			repository.getSourcesSuggestion(searchQuery, MAX_SOURCES_ITEMS)
 				.map { SearchSuggestionItem.Source(it, it.name in enabledSources) }
 		}.getOrElse { e ->
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("SearchSuggestionViewModel::getSources")
 			listOf(SearchSuggestionItem.Text(0, e))
 		}
 
@@ -208,7 +208,7 @@ class SearchSuggestionViewModel @Inject constructor(
 			repository.getSourcesSuggestion(MAX_SOURCES_TIPS_ITEMS)
 				.map { SearchSuggestionItem.SourceTip(it) }
 		}.getOrElse { e ->
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("SearchSuggestionViewModel::getRecentSources")
 			listOf(SearchSuggestionItem.Text(0, e))
 		}
 	} else {

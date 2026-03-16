@@ -2,13 +2,6 @@ package io.github.landwarderer.futon.core.github
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONObject
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.network.BaseHttpClient
@@ -16,6 +9,13 @@ import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.parsers.util.await
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -72,7 +72,7 @@ class AppUpdateRepository @Inject constructor(
 				description = json.getString("body"),
 			)
 		}.onFailure {
-			it.printStackTraceDebug()
+			it.printStackTraceDebug("AppUpdateRepository::fetchUpdate")
 		}.onSuccess {
 			availableUpdate.value = it
 		}.getOrNull()
@@ -86,7 +86,7 @@ class AppUpdateRepository @Inject constructor(
 				.build()
 			okHttp.newCall(request).await().body?.string()
 		}.onFailure {
-			it.printStackTraceDebug()
+			it.printStackTraceDebug("AppUpdateRepository::fetchChangelog")
 		}.getOrNull()
 	}
 

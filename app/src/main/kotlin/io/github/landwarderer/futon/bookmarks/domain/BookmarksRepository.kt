@@ -3,8 +3,6 @@ package io.github.landwarderer.futon.bookmarks.domain
 import android.database.SQLException
 import androidx.room.withTransaction
 import dagger.Reusable
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import io.github.landwarderer.futon.bookmarks.data.BookmarkEntity
 import io.github.landwarderer.futon.bookmarks.data.toBookmark
 import io.github.landwarderer.futon.bookmarks.data.toBookmarks
@@ -17,6 +15,8 @@ import io.github.landwarderer.futon.core.ui.util.ReversibleHandle
 import io.github.landwarderer.futon.core.util.ext.mapItems
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.parsers.model.Manga
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 @Reusable
@@ -94,7 +94,7 @@ class BookmarksRepository @Inject constructor(
 					try {
 						db.getBookmarksDao().insert(e)
 					} catch (e: SQLException) {
-						e.printStackTraceDebug()
+						e.printStackTraceDebug("BookmarksRepository::reverse")
 					}
 				}
 			}

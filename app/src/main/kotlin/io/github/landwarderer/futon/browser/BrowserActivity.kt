@@ -9,7 +9,6 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.exceptions.InteractiveActionRequiredException
 import io.github.landwarderer.futon.core.nav.AppRouter
@@ -18,6 +17,7 @@ import io.github.landwarderer.futon.core.parser.ParserMangaRepository
 import io.github.landwarderer.futon.core.util.ext.getDisplayMessage
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.parsers.model.MangaSource
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class BrowserActivity : BaseBrowserActivity() {
@@ -29,7 +29,7 @@ class BrowserActivity : BaseBrowserActivity() {
 			try {
 				proxyProvider.applyWebViewConfig()
 			} catch (e: Exception) {
-				e.printStackTraceDebug()
+				e.printStackTraceDebug("BrowserActivity::onCreate2")
 				Snackbar.make(viewBinding.webView, e.getDisplayMessage(resources), Snackbar.LENGTH_LONG).show()
 			}
 			if (savedInstanceState == null) {

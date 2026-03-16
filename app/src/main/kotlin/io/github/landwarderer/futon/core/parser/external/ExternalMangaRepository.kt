@@ -1,8 +1,6 @@
 package io.github.landwarderer.futon.core.parser.external
 
 import android.content.ContentResolver
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runInterruptible
 import io.github.landwarderer.futon.core.cache.MemoryContentCache
 import io.github.landwarderer.futon.core.parser.CachingMangaRepository
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
@@ -14,6 +12,8 @@ import io.github.landwarderer.futon.parsers.model.MangaListFilterOptions
 import io.github.landwarderer.futon.parsers.model.MangaPage
 import io.github.landwarderer.futon.parsers.model.SortOrder
 import io.github.landwarderer.futon.parsers.util.suspendlazy.suspendLazy
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runInterruptible
 import java.util.EnumSet
 
 class ExternalMangaRepository(
@@ -28,7 +28,7 @@ class ExternalMangaRepository(
 		runCatching {
 			contentSource.getCapabilities()
 		}.onFailure {
-			it.printStackTraceDebug()
+			it.printStackTraceDebug("ExternalMangaRepository::capabilities")
 		}.getOrNull()
 	}
 

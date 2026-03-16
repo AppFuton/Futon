@@ -87,7 +87,7 @@ class ChaptersSelectionCallback(
 								Snackbar.LENGTH_LONG,
 							).show()
 						} catch (e: IllegalArgumentException) {
-							e.printStackTraceDebug()
+							e.printStackTraceDebug("ChaptersSelectionCallback::onActionItemClicked")
 							Toast.makeText(
 								recyclerView.context,
 								R.string.chapters_will_removed_background,

@@ -19,22 +19,6 @@ import coil3.toBitmap
 import com.davemorrissey.labs.subscaleview.ImageSource
 import dagger.hilt.android.ActivityRetainedLifecycle
 import dagger.hilt.android.scopes.ActivityRetainedScoped
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
-import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.sync.withPermit
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okio.use
-import org.jetbrains.annotations.Blocking
 import io.github.landwarderer.futon.core.LocalizedAppContext
 import io.github.landwarderer.futon.core.image.BitmapDecoderCompat
 import io.github.landwarderer.futon.core.network.CommonHeaders
@@ -72,6 +56,22 @@ import io.github.landwarderer.futon.parsers.model.MangaSource
 import io.github.landwarderer.futon.parsers.util.requireBody
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.ui.pager.ReaderPage
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okio.use
+import org.jetbrains.annotations.Blocking
 import java.io.File
 import java.util.LinkedList
 import java.util.concurrent.atomic.AtomicInteger
@@ -219,7 +219,7 @@ class PageLoader @Inject constructor(
 	suspend fun getTrimmedBounds(uri: Uri): Rect? = runCatchingCancellable {
 		edgeDetector.getBounds(ImageSource.uri(uri))
 	}.onFailure { error ->
-		error.printStackTraceDebug()
+		error.printStackTraceDebug("PageLoader::getTrimmedBounds")
 	}.getOrNull()
 
 	suspend fun getPageUrl(page: MangaPage): String {
@@ -333,7 +333,7 @@ class PageLoader @Inject constructor(
 		CoroutineExceptionHandler {
 
 		override fun handleException(context: CoroutineContext, exception: Throwable) {
-			exception.printStackTraceDebug()
+			exception.printStackTraceDebug("PageLoader::handleException")
 		}
 	}
 

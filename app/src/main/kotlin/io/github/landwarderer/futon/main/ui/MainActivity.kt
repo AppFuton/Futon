@@ -1,8 +1,6 @@
 package io.github.landwarderer.futon.main.ui
 
 import android.Manifest
-import android.app.BackgroundServiceStartNotAllowedException
-import android.app.ServiceStartNotAllowedException
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
@@ -34,16 +32,6 @@ import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP
 import com.google.android.material.search.SearchView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.trySendBlocking
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.backups.ui.periodical.PeriodicalBackupService
 import io.github.landwarderer.futon.browser.AdListUpdateService
@@ -77,6 +65,16 @@ import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionListene
 import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionMenuProvider
 import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionViewModel
 import io.github.landwarderer.futon.search.ui.suggestion.adapter.SearchSuggestionAdapter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import com.google.android.material.R as materialR
 
@@ -313,7 +311,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			}
 		}
 	} catch (e: IllegalStateException) {
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("MainActivity::onFirstStart")
 	}
 
 	private fun adjustAppbar(topFragment: Fragment) {

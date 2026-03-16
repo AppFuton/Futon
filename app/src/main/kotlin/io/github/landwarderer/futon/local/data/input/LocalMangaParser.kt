@@ -3,18 +3,6 @@ package io.github.landwarderer.futon.local.data.input
 import android.net.Uri
 import androidx.core.net.toFile
 import androidx.core.net.toUri
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runInterruptible
-import okio.FileSystem
-import okio.Path
-import okio.Path.Companion.toOkioPath
-import okio.Path.Companion.toPath
-import okio.openZip
-import org.jetbrains.annotations.Blocking
 import io.github.landwarderer.futon.core.model.LocalMangaSource
 import io.github.landwarderer.futon.core.util.AlphanumComparator
 import io.github.landwarderer.futon.core.util.MimeTypes
@@ -38,6 +26,18 @@ import io.github.landwarderer.futon.parsers.model.MangaPage
 import io.github.landwarderer.futon.parsers.util.longHashCode
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.parsers.util.toTitleCase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
+import okio.FileSystem
+import okio.Path
+import okio.Path.Companion.toOkioPath
+import okio.Path.Companion.toPath
+import okio.openZip
+import org.jetbrains.annotations.Blocking
 import java.io.File
 
 /**
@@ -220,7 +220,7 @@ class LocalMangaParser(private val uri: Uri) {
 			findFirstImageUri(rootPath, recursive = true)
 		}
 	}.onFailure { e ->
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("LocalMangaParser::FileSystem")
 	}.getOrNull()
 
 	private fun Path.userFriendlyName(): String = name.substringBeforeLast('.')

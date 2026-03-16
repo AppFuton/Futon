@@ -63,7 +63,7 @@ class SearchV2Helper @AssistedInject constructor(
 			val tags = this@SearchV2Helper.dataRepository.findTags(this.source) + runCatchingCancellable {
 				this@getFilter.getFilterOptions().availableTags
 			}.onFailure { e ->
-				e.printStackTraceDebug()
+				e.printStackTraceDebug("SearchV2Helper::MangaRepository")
 			}.getOrDefault(emptySet())
 			val tag = tags.find { x -> x.title.equals(query, ignoreCase = true) }
 			if (tag != null) {

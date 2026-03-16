@@ -8,12 +8,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.createBitmap
 import com.davemorrissey.labs.subscaleview.decoder.ImageDecodeException
-import okio.IOException
-import okio.buffer
-import okio.source
-import org.aomedia.avif.android.AvifDecoder
-import org.aomedia.avif.android.AvifDecoder.Info
-import org.jetbrains.annotations.Blocking
 import io.github.landwarderer.futon.core.util.MimeTypes
 import io.github.landwarderer.futon.core.util.ext.MimeType
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
@@ -21,6 +15,12 @@ import io.github.landwarderer.futon.core.util.ext.readByteBuffer
 import io.github.landwarderer.futon.core.util.ext.toByteBuffer
 import io.github.landwarderer.futon.core.util.ext.toMimeTypeOrNull
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import okio.IOException
+import okio.buffer
+import okio.source
+import org.aomedia.avif.android.AvifDecoder
+import org.aomedia.avif.android.AvifDecoder.Info
+import org.jetbrains.annotations.Blocking
 import java.io.File
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -67,7 +67,7 @@ object BitmapDecoderCompat {
 			BitmapRegionDecoder.newInstance(inoutStream, false)
 		}
 	} catch (e: IOException) {
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("DecoderConfigListener::createRegionDecoder")
 		null
 	}
 

@@ -4,8 +4,6 @@ import androidx.collection.LongSparseArray
 import androidx.collection.set
 import dagger.hilt.android.ViewModelLifecycle
 import dagger.hilt.android.scopes.ViewModelScoped
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.RetainedLifecycleCoroutineScope
@@ -13,6 +11,8 @@ import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.ui.ReaderState
 import io.github.landwarderer.futon.stats.data.StatsEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @ViewModelScoped
@@ -67,7 +67,7 @@ class StatsCollector @Inject constructor(
 			runCatchingCancellable {
 				db.getStatsDao().upsert(entity)
 			}.onFailure { e ->
-				e.printStackTraceDebug()
+				e.printStackTraceDebug("StatsCollector::commit")
 			}
 		}
 	}

@@ -24,25 +24,6 @@ import dagger.Reusable
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.internal.closeQuietly
-import okio.IOException
-import okio.buffer
-import okio.sink
-import okio.use
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.image.BitmapDecoderCompat
 import io.github.landwarderer.futon.core.model.ids
@@ -93,6 +74,25 @@ import io.github.landwarderer.futon.parsers.util.mapToSet
 import io.github.landwarderer.futon.parsers.util.requireBody
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.domain.PageLoader
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.internal.closeQuietly
+import okio.IOException
+import okio.buffer
+import okio.sink
+import okio.use
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -151,7 +151,7 @@ class DownloadWorker @AssistedInject constructor(
 				currentState.copy(eta = -1L, isStuck = false).toWorkData(),
 			)
 		} catch (e: Exception) {
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("DownloadWorker::doWork")
 			Result.failure(
 				currentState.copy(
 					error = e,

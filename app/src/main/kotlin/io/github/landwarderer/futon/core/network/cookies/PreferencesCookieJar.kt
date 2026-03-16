@@ -5,11 +5,11 @@ import androidx.annotation.WorkerThread
 import androidx.collection.ArrayMap
 import androidx.core.content.edit
 import androidx.core.util.Predicate
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Cookie
 import okhttp3.HttpUrl
-import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 
 private const val PREFS_NAME = "cookies"
 
@@ -91,7 +91,7 @@ class PreferencesCookieJar(
 				val cookie = try {
 					CookieWrapper(v as String)
 				} catch (e: Exception) {
-					e.printStackTraceDebug()
+					e.printStackTraceDebug("PreferencesCookieJar::loadPersistent")
 					continue
 				}
 				cache[k] = cookie

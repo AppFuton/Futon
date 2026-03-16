@@ -12,11 +12,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.backups.data.BackupRepository
 import io.github.landwarderer.futon.backups.ui.BaseBackupRestoreService
@@ -28,6 +23,11 @@ import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.toUriOrNull
 import io.github.landwarderer.futon.core.util.ext.withPartialWakeLock
 import io.github.landwarderer.futon.core.util.progress.Progress
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.FileNotFoundException
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
@@ -124,7 +124,7 @@ class BackupService : BaseBackupRestoreService() {
 			ContextCompat.startForegroundService(context, intent)
 			true
 		} catch (e: Exception) {
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("BackupService::start")
 			false
 		}
 	}

@@ -12,13 +12,6 @@ import com.my.kizzyrpc.entities.presence.Timestamps
 import dagger.hilt.android.ViewModelLifecycle
 import dagger.hilt.android.lifecycle.RetainedLifecycle
 import dagger.hilt.android.scopes.ViewModelScoped
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
-import okio.utf8Size
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.LocalizedAppContext
 import io.github.landwarderer.futon.core.model.appUrl
@@ -31,6 +24,13 @@ import io.github.landwarderer.futon.parsers.model.Manga
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.ui.pager.ReaderUiState
 import io.github.landwarderer.futon.scrobbling.discord.data.DiscordRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
+import okio.utf8Size
 import java.util.Collections
 import javax.inject.Inject
 
@@ -156,7 +156,7 @@ class DiscordRpc @Inject constructor(
 		}.onSuccess { url ->
 			mpCache[this] = url
 		}.onFailure {
-			it.printStackTraceDebug()
+			it.printStackTraceDebug("DiscordRpc::toMediaProxyUrl")
 		}.getOrNull()
 	}
 

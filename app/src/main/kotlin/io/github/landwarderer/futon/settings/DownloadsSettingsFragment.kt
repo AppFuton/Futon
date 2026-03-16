@@ -10,9 +10,6 @@ import androidx.preference.ListPreference
 import androidx.preference.Preference
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.os.OpenDocumentTreeHelper
@@ -30,6 +27,9 @@ import io.github.landwarderer.futon.download.ui.worker.DownloadWorker
 import io.github.landwarderer.futon.local.data.LocalStorageManager
 import io.github.landwarderer.futon.parsers.util.names
 import io.github.landwarderer.futon.settings.utils.DozeHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -174,7 +174,7 @@ class DownloadsSettingsFragment :
 					downloadsScheduler.updateConstraints(option)
 				}
 			} catch (e: Exception) {
-				e.printStackTraceDebug()
+				e.printStackTraceDebug("DownloadsSettingsFragment::updateDownloadsConstraints")
 			} finally {
 				preference?.isEnabled = true
 			}

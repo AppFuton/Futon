@@ -43,6 +43,10 @@ import androidx.lifecycle.coroutineScope
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import androidx.work.CoroutineWorker
+import io.github.landwarderer.futon.BuildConfig
+import io.github.landwarderer.futon.R
+import io.github.landwarderer.futon.main.ui.MainActivity
+import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -51,10 +55,6 @@ import okio.IOException
 import okio.use
 import org.json.JSONException
 import org.jsoup.internal.StringUtil.StringJoiner
-import io.github.landwarderer.futon.BuildConfig
-import io.github.landwarderer.futon.R
-import io.github.landwarderer.futon.main.ui.MainActivity
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import java.io.File
@@ -89,7 +89,7 @@ fun <I> ActivityResultLauncher<I>.tryLaunch(
 ): Boolean = runCatching {
 	launch(input, options)
 }.onFailure { e ->
-	e.printStackTraceDebug()
+	e.printStackTraceDebug("AndroidKt::CoroutineWorker")
 }.isSuccess
 
 fun Lifecycle.postDelayed(delay: Long, runnable: Runnable) {
@@ -108,7 +108,7 @@ fun SyncResult.onError(error: Throwable) {
 		is JSONException -> stats.numParseExceptions++
 		else -> if (BuildConfig.DEBUG) throw error
 	}
-	error.printStackTraceDebug()
+	error.printStackTraceDebug("AndroidKt::SyncResult")
 }
 
 val Context.animatorDurationScale: Float
@@ -158,9 +158,9 @@ fun Context.getLocalesConfig(): LocaleListCompat {
 			xpp.next()
 		}
 	} catch (e: XmlPullParserException) {
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("AndroidKt::Context")
 	} catch (e: IOException) {
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("AndroidKt::Context")
 	}
 	return LocaleListCompat.forLanguageTags(tagsList.complete())
 }

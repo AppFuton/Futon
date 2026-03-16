@@ -46,7 +46,7 @@ fun ContentResolver.getFileDisplayName(uri: Uri): String? = runCatching {
 		}
 	}
 }.onFailure { e ->
-	e.printStackTraceDebug()
+	e.printStackTraceDebug("ContentResolver::getFileDisplayName")
 }.getOrNull()
 
 private fun getVolumePath(volumeId: String, context: Context): String? {
@@ -78,7 +78,7 @@ private fun getVolumePathBeforeAndroid11(volumeId: String, context: Context): St
 		}
 	}
 }.onFailure {
-	it.printStackTraceDebug()
+	it.printStackTraceDebug("ContentResolver::getVolumePathBeforeAndroid11")
 }.getOrNull()
 
 @RequiresApi(Build.VERSION_CODES.R)
@@ -93,7 +93,7 @@ private fun getVolumePathForAndroid11AndAbove(volumeId: String, context: Context
 		}
 	}
 }.onFailure {
-	it.printStackTraceDebug()
+	it.printStackTraceDebug("ContentResolver::getVolumePathForAndroid11AndAbove")
 }.getOrNull()
 
 private fun getVolumeIdFromTreeUri(treeUri: Uri): String? {

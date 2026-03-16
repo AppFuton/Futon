@@ -88,6 +88,6 @@ class ExploreRepository @Inject constructor(
 		list.shuffle()
 		list
 	}.onFailure {
-		it.printStackTraceDebug()
+		it.printStackTraceDebug("ExploreRepository::getList")
 	}.getOrDefault(emptyList())
 }

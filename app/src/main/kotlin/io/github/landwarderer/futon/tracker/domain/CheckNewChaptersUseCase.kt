@@ -68,7 +68,7 @@ class CheckNewChaptersUseCase @Inject constructor(
 			)
 			repository.mergeWith(tracking)
 		}.onFailure { e ->
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("CheckNewChaptersUseCase::invoke")
 		}.isSuccess
 	}
 

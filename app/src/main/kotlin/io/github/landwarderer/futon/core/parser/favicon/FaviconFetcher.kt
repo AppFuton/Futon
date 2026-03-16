@@ -19,12 +19,6 @@ import coil3.request.Options
 import coil3.size.pxOrElse
 import coil3.toAndroidUri
 import coil3.toBitmap
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.runInterruptible
-import okio.FileSystem
-import okio.IOException
-import okio.Path.Companion.toOkioPath
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.exceptions.CloudFlareProtectedException
 import io.github.landwarderer.futon.core.model.MangaSource
@@ -40,6 +34,12 @@ import io.github.landwarderer.futon.local.data.FaviconCache
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.LocalStorageCache
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.runInterruptible
+import okio.FileSystem
+import okio.IOException
+import okio.Path.Companion.toOkioPath
 import java.io.File
 import javax.inject.Inject
 import coil3.Uri as CoilUri
@@ -146,7 +146,7 @@ class FaviconFetcher(
 			}
 		}
 	}.onFailure {
-		it.printStackTraceDebug()
+		it.printStackTraceDebug("FaviconFetcher::writeToCache")
 	}.getOrDefault(result)
 
 	private fun File.asFetchResult() = SourceFetchResult(

@@ -628,7 +628,7 @@ class AppRouter private constructor(
     private fun getFragmentManager(): FragmentManager? = runCatching {
         fragment?.childFragmentManager ?: activity?.supportFragmentManager
     }.onFailure { exception ->
-        exception.printStackTraceDebug()
+        exception.printStackTraceDebug("AppRouter::getFragmentManager")
     }.getOrNull()
 
     private fun shareLink(link: String, title: String) {

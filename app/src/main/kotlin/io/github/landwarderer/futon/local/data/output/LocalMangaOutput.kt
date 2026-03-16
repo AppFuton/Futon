@@ -1,10 +1,5 @@
 package io.github.landwarderer.futon.local.data.output
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
-import okio.Closeable
 import io.github.landwarderer.futon.core.prefs.DownloadFormat
 import io.github.landwarderer.futon.core.util.ext.MimeType
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
@@ -13,6 +8,11 @@ import io.github.landwarderer.futon.local.data.input.LocalMangaParser
 import io.github.landwarderer.futon.parsers.model.Manga
 import io.github.landwarderer.futon.parsers.model.MangaChapter
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import okio.Closeable
 import java.io.File
 
 sealed class LocalMangaOutput(
@@ -103,7 +103,7 @@ sealed class LocalMangaOutput(
 			val info = runCatchingCancellable {
 				LocalMangaParser(file).getMangaInfo()
 			}.onFailure {
-				it.printStackTraceDebug()
+				it.printStackTraceDebug("LocalMangaOutput::canWriteTo")
 			}.getOrNull() ?: return false
 			return info.id == manga.id
 		}

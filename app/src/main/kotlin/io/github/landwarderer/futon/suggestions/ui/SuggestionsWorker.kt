@@ -36,14 +36,6 @@ import coil3.request.ImageRequest
 import dagger.Reusable
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.exceptions.CloudFlareException
 import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaHandler
@@ -82,6 +74,14 @@ import io.github.landwarderer.futon.settings.work.PeriodicWorkScheduler
 import io.github.landwarderer.futon.suggestions.domain.MangaSuggestion
 import io.github.landwarderer.futon.suggestions.domain.SuggestionRepository
 import io.github.landwarderer.futon.suggestions.domain.TagsBlacklist
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.pow
@@ -239,7 +239,7 @@ class SuggestionsWorker @AssistedInject constructor(
 				} catch (e: CancellationException) {
 					throw e
 				} catch (e: Exception) {
-					e.printStackTraceDebug()
+					e.printStackTraceDebug("SuggestionsWorker::doWorkImpl")
 				}
 			}
 		}
@@ -287,7 +287,7 @@ class SuggestionsWorker @AssistedInject constructor(
 		if (e is CloudFlareException) {
 			captchaHandler.handle(e)
 		}
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("SuggestionsWorker::getList")
 	}.getOrDefault(emptyList())
 
 	@RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)

@@ -32,7 +32,7 @@ class ActivityListPreference : ListPreference {
 		try {
 			context.startActivity(intent)
 		} catch (e: ActivityNotFoundException) {
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("ActivityListPreference::onClick")
 			super.onClick()
 		}
 	}

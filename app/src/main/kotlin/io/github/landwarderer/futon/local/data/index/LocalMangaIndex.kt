@@ -4,9 +4,6 @@ import android.content.Context
 import androidx.core.content.edit
 import androidx.room.withTransaction
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
@@ -14,6 +11,9 @@ import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.input.LocalMangaParser
 import io.github.landwarderer.futon.local.domain.model.LocalManga
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Provider
@@ -69,7 +69,7 @@ class LocalMangaIndex @Inject constructor(
 		return runCatchingCancellable {
 			LocalMangaParser(File(path)).getManga(withDetails)
 		}.onFailure {
-			it.printStackTraceDebug()
+			it.printStackTraceDebug("LocalMangaIndex::get")
 		}.getOrNull()
 	}
 

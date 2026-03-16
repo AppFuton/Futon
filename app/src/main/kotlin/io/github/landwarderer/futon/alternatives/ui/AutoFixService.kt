@@ -14,7 +14,6 @@ import androidx.core.content.ContextCompat
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.runBlocking
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.alternatives.domain.AutoFixUseCase
 import io.github.landwarderer.futon.alternatives.domain.AutoFixUseCase.NoAlternativesException
@@ -32,6 +31,7 @@ import io.github.landwarderer.futon.core.util.ext.toBitmapOrNull
 import io.github.landwarderer.futon.core.util.ext.withPartialWakeLock
 import io.github.landwarderer.futon.parsers.model.Manga
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import androidx.appcompat.R as appcompatR
 
@@ -196,7 +196,7 @@ class AutoFixService : CoroutineIntentService() {
 			ContextCompat.startForegroundService(context, intent)
 			true
 		} catch (e: Exception) {
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("AutoFixService::start")
 			false
 		}
 	}

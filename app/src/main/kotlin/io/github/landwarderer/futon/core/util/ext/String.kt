@@ -10,7 +10,7 @@ import java.util.UUID
 fun String.toUUIDOrNull(): UUID? = try {
 	UUID.fromString(this)
 } catch (e: IllegalArgumentException) {
-	e.printStackTraceDebug()
+	e.printStackTraceDebug("String::toUUIDOrNull")
 	null
 }
 

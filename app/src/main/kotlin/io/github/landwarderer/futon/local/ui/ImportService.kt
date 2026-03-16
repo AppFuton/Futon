@@ -15,7 +15,6 @@ import androidx.core.content.ContextCompat
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.runBlocking
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.ErrorReporterReceiver
 import io.github.landwarderer.futon.core.model.isNsfw
@@ -32,6 +31,7 @@ import io.github.landwarderer.futon.core.util.ext.withPartialWakeLock
 import io.github.landwarderer.futon.local.data.importer.SingleMangaImporter
 import io.github.landwarderer.futon.parsers.model.Manga
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -167,7 +167,7 @@ class ImportService : CoroutineIntentService() {
 			}
 			true
 		} catch (e: Exception) {
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("ImportService::start")
 			false
 		}
 	}

@@ -20,7 +20,7 @@ enum class ScoreFormat {
 		fun of(rawValue: String?): ScoreFormat {
 			rawValue ?: return POINT_10_DECIMAL
 			return runCatching { valueOf(rawValue) }
-				.onFailure { it.printStackTraceDebug() }
+				.onFailure { it.printStackTraceDebug("ScoreFormat::of") }
 				.getOrDefault(POINT_10_DECIMAL)
 		}
 	}

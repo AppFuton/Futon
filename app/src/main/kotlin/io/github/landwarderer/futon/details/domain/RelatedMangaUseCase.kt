@@ -13,6 +13,6 @@ class RelatedMangaUseCase @Inject constructor(
 	suspend operator fun invoke(seed: Manga) = runCatchingCancellable {
 		mangaRepositoryFactory.create(seed.source).getRelated(seed)
 	}.onFailure {
-		it.printStackTraceDebug()
+		it.printStackTraceDebug("RelatedMangaUseCase::invoke")
 	}.getOrNull()
 }

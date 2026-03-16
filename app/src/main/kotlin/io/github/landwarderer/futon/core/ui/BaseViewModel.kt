@@ -2,6 +2,10 @@ package io.github.landwarderer.futon.core.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.landwarderer.futon.core.util.ext.EventFlow
+import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
+import io.github.landwarderer.futon.core.util.ext.call
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -18,10 +22,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import io.github.landwarderer.futon.core.util.ext.EventFlow
-import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
-import io.github.landwarderer.futon.core.util.ext.call
-import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -66,7 +66,7 @@ abstract class BaseViewModel : ViewModel() {
 	}
 
 	protected fun <T> Flow<T>.withErrorHandling() = catch { error ->
-		error.printStackTraceDebug()
+		error.printStackTraceDebug("BaseViewModel::launchLoadingJob")
 		errorEvent.call(error)
 	}
 
@@ -99,7 +99,7 @@ abstract class BaseViewModel : ViewModel() {
 		CoroutineExceptionHandler {
 
 		override fun handleException(context: CoroutineContext, exception: Throwable) {
-			exception.printStackTraceDebug()
+			exception.printStackTraceDebug("BaseViewModel::handleException")
 			if (context[SkipErrors.key] == null && exception !is CancellationException) {
 				event.call(exception)
 			}

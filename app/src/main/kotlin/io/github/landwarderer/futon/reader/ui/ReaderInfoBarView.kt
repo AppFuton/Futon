@@ -342,6 +342,6 @@ class ReaderInfoBarView @JvmOverloads constructor(
 		val resId = resources.getIdentifier(name, "dimen", "com.android.systemui")
 		resources.getDimensionPixelOffset(resId)
 	}.onFailure {
-		it.printStackTraceDebug()
+		it.printStackTraceDebug("ReaderInfoBarView::getSystemUiDimensionOffset")
 	}.getOrDefault(fallback)
 }

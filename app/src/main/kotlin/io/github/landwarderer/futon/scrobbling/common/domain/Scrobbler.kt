@@ -4,12 +4,6 @@ import androidx.annotation.FloatRange
 import androidx.collection.LongSparseArray
 import androidx.collection.getOrElse
 import androidx.core.text.parseAsHtml
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.util.ext.findKeyByValue
@@ -26,6 +20,12 @@ import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblerServ
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblerUser
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingInfo
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingStatus
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import java.util.EnumMap
 
 abstract class Scrobbler(
@@ -47,7 +47,7 @@ abstract class Scrobbler(
 		}.onSuccess {
 			emit(it)
 		}.onFailure {
-			it.printStackTraceDebug()
+			it.printStackTraceDebug("Scrobbler::user")
 		}
 	}
 
@@ -133,7 +133,7 @@ abstract class Scrobbler(
 			runCatchingCancellable {
 				getMangaInfo(targetId)
 			}.onFailure {
-				it.printStackTraceDebug()
+				it.printStackTraceDebug("Scrobbler::toScrobblingInfo")
 			}.onSuccess {
 				infoCache.put(targetId, it)
 			}.getOrNull() ?: return null
@@ -158,6 +158,6 @@ suspend fun Scrobbler.tryScrobble(manga: Manga, chapterId: Long): Boolean {
 	return runCatchingCancellable {
 		scrobble(manga, chapterId)
 	}.onFailure {
-		it.printStackTraceDebug()
+		it.printStackTraceDebug("Scrobbler::tryScrobble")
 	}.isSuccess
 }

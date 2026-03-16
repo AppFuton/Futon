@@ -10,12 +10,6 @@ import androidx.core.view.isInvisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.yield
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.browser.BaseBrowserActivity
 import io.github.landwarderer.futon.core.exceptions.CloudFlareProtectedException
@@ -30,6 +24,12 @@ import io.github.landwarderer.futon.parsers.model.MangaSource
 import io.github.landwarderer.futon.parsers.network.CloudFlareHelper
 import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.yield
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -110,7 +110,7 @@ class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 				runCatchingCancellable {
 					captchaHandler.discard(MangaSource(source))
 				}.onFailure {
-					it.printStackTraceDebug()
+					it.printStackTraceDebug("CloudFlareActivity::onCheckPassed")
 				}
 			}
 			finishAfterTransition()

@@ -4,17 +4,17 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.runInterruptible
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromStream
 import io.github.landwarderer.futon.backups.data.model.BackupIndex
 import io.github.landwarderer.futon.backups.domain.BackupSection
 import io.github.landwarderer.futon.core.nav.AppRouter
 import io.github.landwarderer.futon.core.ui.BaseViewModel
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.toUriOrNull
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.runInterruptible
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
 import java.io.FileNotFoundException
 import java.io.InputStream
 import java.util.Date
@@ -107,6 +107,6 @@ class RestoreViewModel @Inject constructor(
 		val index = Json.decodeFromStream<List<BackupIndex>>(this)
 		Date(index.single().createdAt)
 	}.onFailure { e ->
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("RestoreViewModel::InputStream")
 	}.getOrNull()
 }

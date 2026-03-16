@@ -5,11 +5,6 @@ import android.util.Log
 import androidx.annotation.WorkerThread
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okio.sink
 import io.github.landwarderer.futon.core.network.BaseHttpClient
 import io.github.landwarderer.futon.core.network.CommonHeaders
 import io.github.landwarderer.futon.core.prefs.AppSettings
@@ -18,6 +13,11 @@ import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.parsers.util.await
 import io.github.landwarderer.futon.parsers.util.requireBody
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okio.sink
 import java.io.File
 import java.net.HttpURLConnection
 import java.text.SimpleDateFormat
@@ -66,7 +66,7 @@ class AdBlock @Inject constructor(
 			rules
 		}
 	}.onFailure { e ->
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("AdBlock::parseRules")
 	}.getOrNull()
 
 	class Updater @Inject constructor(

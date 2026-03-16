@@ -19,8 +19,6 @@ import coil3.size.Scale
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.ErrorReporterReceiver
 import io.github.landwarderer.futon.core.LocalizedAppContext
@@ -37,6 +35,8 @@ import io.github.landwarderer.futon.download.ui.list.DownloadsActivity
 import io.github.landwarderer.futon.parsers.model.Manga
 import io.github.landwarderer.futon.parsers.util.format
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 import androidx.appcompat.R as appcompatR
 
@@ -284,7 +284,7 @@ class DownloadNotificationFactory @AssistedInject constructor(
 		}.onSuccess {
 			covers[manga] = it
 		}.onFailure {
-			it.printStackTraceDebug()
+			it.printStackTraceDebug("DownloadNotificationFactory::getCover")
 		}.getOrNull()
 	}
 

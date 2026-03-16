@@ -16,14 +16,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import okio.IOException
-import org.jetbrains.annotations.Blocking
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.db.TABLE_FAVOURITES
@@ -47,6 +39,14 @@ import io.github.landwarderer.futon.sync.data.model.HistorySyncDto
 import io.github.landwarderer.futon.sync.data.model.MangaSyncDto
 import io.github.landwarderer.futon.sync.data.model.MangaTagSyncDto
 import io.github.landwarderer.futon.sync.data.model.SyncDto
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import okio.IOException
+import org.jetbrains.annotations.Blocking
 import java.net.HttpURLConnection
 import java.util.concurrent.TimeUnit
 
@@ -126,7 +126,7 @@ class SyncHelper @AssistedInject constructor(
 	}
 
 	fun onError(e: Throwable) {
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("SyncHelper::onError")
 	}
 
 	fun onSyncComplete(result: SyncResult) {

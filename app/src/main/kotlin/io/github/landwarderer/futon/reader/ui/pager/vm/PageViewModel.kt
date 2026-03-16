@@ -5,6 +5,13 @@ import android.net.Uri
 import androidx.annotation.WorkerThread
 import com.davemorrissey.labs.subscaleview.DefaultOnImageEventListener
 import com.davemorrissey.labs.subscaleview.ImageSource
+import io.github.landwarderer.futon.core.exceptions.resolve.ExceptionResolver
+import io.github.landwarderer.futon.core.os.NetworkState
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
+import io.github.landwarderer.futon.core.util.ext.throttle
+import io.github.landwarderer.futon.parsers.model.MangaPage
+import io.github.landwarderer.futon.reader.domain.PageLoader
+import io.github.landwarderer.futon.reader.ui.config.ReaderSettings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,13 +27,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import okio.IOException
-import io.github.landwarderer.futon.core.exceptions.resolve.ExceptionResolver
-import io.github.landwarderer.futon.core.os.NetworkState
-import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.core.util.ext.throttle
-import io.github.landwarderer.futon.parsers.model.MangaPage
-import io.github.landwarderer.futon.reader.domain.PageLoader
-import io.github.landwarderer.futon.reader.ui.config.ReaderSettings
 
 class PageViewModel(
 	private val loader: PageLoader,
@@ -90,7 +90,7 @@ class PageViewModel(
 	}
 
 	override fun onImageLoadError(e: Throwable) {
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("PageViewModel::onImageLoadError")
 
 		state.update { currentState ->
 			if (currentState is PageState.Loaded) {
@@ -154,7 +154,7 @@ class PageViewModel(
 		} catch (e: CancellationException) {
 			throw e
 		} catch (e: Throwable) {
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("PageViewModel::doLoad")
 			state.value = PageState.Error(e)
 			if (e is IOException && !networkState.value) {
 				networkState.awaitForConnection()

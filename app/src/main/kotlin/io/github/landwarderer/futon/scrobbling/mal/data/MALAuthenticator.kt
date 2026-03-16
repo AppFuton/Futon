@@ -1,15 +1,15 @@
 package io.github.landwarderer.futon.scrobbling.mal.data
 
-import kotlinx.coroutines.runBlocking
-import okhttp3.Authenticator
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.Route
 import io.github.landwarderer.futon.core.network.CommonHeaders
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.scrobbling.common.data.ScrobblerStorage
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblerService
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblerType
+import kotlinx.coroutines.runBlocking
+import okhttp3.Authenticator
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.Route
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -49,7 +49,7 @@ class MALAuthenticator @Inject constructor(
 		runBlocking { repository.authorize(null) }
 		return storage.accessToken
 	}.onFailure {
-		it.printStackTraceDebug()
+		it.printStackTraceDebug("MALAuthenticator::refreshAccessToken")
 	}.getOrNull()
 
 }

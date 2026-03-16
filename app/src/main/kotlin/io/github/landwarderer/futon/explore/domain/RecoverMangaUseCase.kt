@@ -27,7 +27,7 @@ class RecoverMangaUseCase @Inject constructor(
 		mangaDataRepository.storeManga(merged, replaceExisting = true)
 		merged
 	}.onFailure {
-		it.printStackTraceDebug()
+		it.printStackTraceDebug("RecoverMangaUseCase::invoke")
 	}.getOrNull()
 
 	private fun merge(

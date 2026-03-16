@@ -1,12 +1,12 @@
 package io.github.landwarderer.futon.core.network
 
+import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import okhttp3.Cache
 import okhttp3.Dns
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
-import io.github.landwarderer.futon.core.prefs.AppSettings
-import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import java.net.InetAddress
 import java.net.UnknownHostException
 
@@ -93,7 +93,7 @@ class DoHManager(
 	private fun tryGetByIp(ip: String): InetAddress? = try {
 		InetAddress.getByName(ip)
 	} catch (e: UnknownHostException) {
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("DoHManager::tryGetByIp")
 		null
 	}
 }

@@ -3,15 +3,6 @@ package io.github.landwarderer.futon.details.ui.related
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.plus
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.parcelable.ParcelableManga
 import io.github.landwarderer.futon.core.nav.AppRouter
@@ -29,6 +20,15 @@ import io.github.landwarderer.futon.list.ui.model.toErrorState
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
 import io.github.landwarderer.futon.local.domain.model.LocalManga
 import io.github.landwarderer.futon.parsers.model.Manga
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.plus
 import javax.inject.Inject
 
 @HiltViewModel
@@ -83,7 +83,7 @@ class RelatedListViewModel @Inject constructor(
 			} catch (e: CancellationException) {
 				throw e
 			} catch (e: Throwable) {
-				e.printStackTraceDebug()
+				e.printStackTraceDebug("RelatedListViewModel::loadList")
 				listError.value = e
 				if (!mangaList.value.isNullOrEmpty()) {
 					errorEvent.call(e)

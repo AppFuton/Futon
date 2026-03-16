@@ -1,12 +1,6 @@
 package io.github.landwarderer.futon.core.network
 
 import dagger.Lazy
-import okhttp3.Headers
-import okhttp3.Interceptor
-import okhttp3.Interceptor.Chain
-import okhttp3.Request
-import okhttp3.Response
-import okio.IOException
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.core.model.MangaSource
 import io.github.landwarderer.futon.core.parser.MangaLoaderContextImpl
@@ -17,6 +11,12 @@ import io.github.landwarderer.futon.parsers.model.MangaParserSource
 import io.github.landwarderer.futon.parsers.model.MangaSource
 import io.github.landwarderer.futon.parsers.util.mergeWith
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import okhttp3.Headers
+import okhttp3.Interceptor
+import okhttp3.Interceptor.Chain
+import okhttp3.Request
+import okhttp3.Response
+import okio.IOException
 import java.net.IDN
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -59,7 +59,7 @@ class CommonHeadersInterceptor @Inject constructor(
 	private fun Headers.Builder.trySet(name: String, value: String) = try {
 		set(name, value)
 	} catch (e: IllegalArgumentException) {
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("CommonHeadersInterceptor::trySet")
 	}
 
 	private fun Interceptor.interceptSafe(chain: Chain): Response = runCatchingCancellable {

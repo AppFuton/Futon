@@ -57,7 +57,7 @@ class CoverRestoreInterceptor @Inject constructor(
 		val restored = runCatchingCancellable {
 			restoreMangaImpl(manga)
 		}.onFailure { e ->
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("CoverRestoreInterceptor::restoreManga")
 		}.getOrDefault(false)
 		if (restored) {
 			blacklist.remove(key)
@@ -87,7 +87,7 @@ class CoverRestoreInterceptor @Inject constructor(
 		val restored = runCatchingCancellable {
 			restoreBookmarkImpl(bookmark)
 		}.onFailure { e ->
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("CoverRestoreInterceptor::restoreBookmark")
 		}.getOrDefault(false)
 		if (restored) {
 			blacklist.remove(key)

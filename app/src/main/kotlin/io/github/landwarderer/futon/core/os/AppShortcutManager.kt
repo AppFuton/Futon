@@ -15,10 +15,6 @@ import coil3.request.ImageRequest
 import coil3.request.transformations
 import coil3.size.Scale
 import coil3.size.Size
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.LocalizedAppContext
 import io.github.landwarderer.futon.core.db.TABLE_HISTORY
@@ -39,6 +35,10 @@ import io.github.landwarderer.futon.parsers.model.MangaSource
 import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
 import io.github.landwarderer.futon.parsers.util.mapNotNullToSet
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -84,14 +84,14 @@ class AppShortcutManager @Inject constructor(
 	suspend fun requestPinShortcut(manga: Manga): Boolean = try {
 		ShortcutManagerCompat.requestPinShortcut(context, buildShortcutInfo(manga), null)
 	} catch (e: IllegalStateException) {
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("AppShortcutManager::requestPinShortcut")
 		false
 	}
 
 	suspend fun requestPinShortcut(source: MangaSource): Boolean = try {
 		ShortcutManagerCompat.requestPinShortcut(context, buildShortcutInfo(source), null)
 	} catch (e: IllegalStateException) {
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("AppShortcutManager::requestPinShortcut")
 		false
 	}
 
@@ -124,7 +124,7 @@ class AppShortcutManager @Inject constructor(
 			.map { buildShortcutInfo(it) }
 		ShortcutManagerCompat.setDynamicShortcuts(context, shortcuts)
 	}.onFailure {
-		it.printStackTraceDebug()
+		it.printStackTraceDebug("AppShortcutManager::updateShortcutsImpl")
 	}
 
 	private fun clearShortcuts() {

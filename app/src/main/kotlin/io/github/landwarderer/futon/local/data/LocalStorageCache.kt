@@ -5,13 +5,6 @@ import android.graphics.Bitmap
 import android.os.StatFs
 import android.webkit.MimeTypeMap
 import com.tomclaw.cache.DiskLruCache
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.withContext
-import okio.Source
-import okio.buffer
-import okio.sink
-import okio.use
 import io.github.landwarderer.futon.core.exceptions.NoDataReceivedException
 import io.github.landwarderer.futon.core.util.MimeTypes
 import io.github.landwarderer.futon.core.util.ext.MimeType
@@ -24,6 +17,13 @@ import io.github.landwarderer.futon.core.util.ext.writeAllCancellable
 import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.parsers.util.suspendlazy.suspendLazy
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withContext
+import okio.Source
+import okio.buffer
+import okio.sink
+import okio.use
 import java.io.File
 import java.util.UUID
 
@@ -47,7 +47,7 @@ class LocalStorageCache(
 		runCatchingCancellable {
 			DiskLruCache.create(dir, size)
 		}.recoverCatching { error ->
-			error.printStackTraceDebug()
+			error.printStackTraceDebug("LocalStorageCache::lruCache")
 			dir.deleteRecursively()
 			dir.mkdir()
 			DiskLruCache.create(dir, size)
@@ -106,7 +106,7 @@ class LocalStorageCache(
 			statFs.availableBytes
 		}
 	}.onFailure {
-		it.printStackTraceDebug()
+		it.printStackTraceDebug("LocalStorageCache::getAvailableSize")
 	}.getOrDefault(defaultSize)
 
 	private suspend fun createBufferFile(url: String, mimeType: MimeType?): File {

@@ -1,13 +1,13 @@
 package io.github.landwarderer.futon.core.ui.util
 
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
+import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
+import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 
 fun interface ReversibleHandle {
 
@@ -20,6 +20,6 @@ fun ReversibleHandle.reverseAsync() = processLifecycleScope.launch(Dispatchers.I
 			reverse()
 		}
 	}.onFailure {
-		it.printStackTraceDebug()
+		it.printStackTraceDebug("ReversibleHandle::reverseAsync")
 	}
 }

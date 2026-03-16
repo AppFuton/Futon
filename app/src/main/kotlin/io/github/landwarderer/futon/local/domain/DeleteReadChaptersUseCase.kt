@@ -1,11 +1,5 @@
 package io.github.landwarderer.futon.local.domain
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.fold
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import io.github.landwarderer.futon.core.model.ids
 import io.github.landwarderer.futon.core.model.isLocal
 import io.github.landwarderer.futon.core.parser.MangaRepository
@@ -18,6 +12,12 @@ import io.github.landwarderer.futon.parsers.model.MangaChapter
 import io.github.landwarderer.futon.parsers.util.findById
 import io.github.landwarderer.futon.parsers.util.recoverCatchingCancellable
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.fold
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class DeleteReadChaptersUseCase @Inject constructor(
@@ -48,7 +48,7 @@ class DeleteReadChaptersUseCase @Inject constructor(
 					val task = runCatchingCancellable {
 						getDeletionTask(LocalManga(manga))
 					}.onFailure {
-						it.printStackTraceDebug()
+						it.printStackTraceDebug("DeleteReadChaptersUseCase::invoke")
 					}.getOrNull()
 					if (task != null) {
 						send(task)
@@ -60,7 +60,7 @@ class DeleteReadChaptersUseCase @Inject constructor(
 				localMangaRepository.deleteChapters(it.manga.manga, it.chaptersIds)
 				it.chaptersIds.size
 			}.onFailure {
-				it.printStackTraceDebug()
+				it.printStackTraceDebug("DeleteReadChaptersUseCase::invoke")
 			}.getOrDefault(0)
 		}.fold(0) { acc, x -> acc + x }
 	}

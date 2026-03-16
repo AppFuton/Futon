@@ -127,7 +127,7 @@ class MangaPrefetchService : CoroutineIntentService() {
 				context.startService(intent)
 			} catch (e: IllegalStateException) {
 				// probably app is in background
-				e.printStackTraceDebug()
+				e.printStackTraceDebug("MangaPrefetchService::tryStart")
 			}
 		}
 	}

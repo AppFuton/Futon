@@ -7,9 +7,6 @@ import android.view.View
 import androidx.preference.Preference
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.prefs.AppSettings
@@ -22,6 +19,9 @@ import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblerServ
 import io.github.landwarderer.futon.scrobbling.common.ui.ScrobblerAuthHelper
 import io.github.landwarderer.futon.settings.utils.SplitSwitchPreference
 import io.github.landwarderer.futon.sync.domain.SyncController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -133,7 +133,7 @@ class ServicesSettingsFragment : BasePreferenceFragment(R.string.services),
 						val user = scrobblerAuthHelper.getUser(scrobblerService)
 						getString(R.string.logged_in_as, user.nickname)
 					}.getOrElse {
-						it.printStackTraceDebug()
+						it.printStackTraceDebug("ServicesSettingsFragment::bindScrobblerSummary")
 						it.getDisplayMessage(resources)
 					}
 				}

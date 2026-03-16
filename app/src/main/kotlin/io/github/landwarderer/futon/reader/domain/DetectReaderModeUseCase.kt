@@ -4,9 +4,6 @@ import android.graphics.BitmapFactory
 import android.util.Size
 import androidx.core.net.toFile
 import androidx.core.net.toUri
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runInterruptible
-import okhttp3.OkHttpClient
 import io.github.landwarderer.futon.core.network.MangaHttpClient
 import io.github.landwarderer.futon.core.network.imageproxy.ImageProxyInterceptor
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
@@ -20,6 +17,9 @@ import io.github.landwarderer.futon.parsers.model.Manga
 import io.github.landwarderer.futon.parsers.model.MangaPage
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.ui.ReaderState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runInterruptible
+import okhttp3.OkHttpClient
 import java.io.InputStream
 import java.util.zip.ZipFile
 import javax.inject.Inject
@@ -50,7 +50,7 @@ class DetectReaderModeUseCase @Inject constructor(
 		}.onSuccess {
 			dataRepository.saveReaderMode(manga, it)
 		}.onFailure {
-			it.printStackTraceDebug()
+			it.printStackTraceDebug("DetectReaderModeUseCase::invoke")
 		}.getOrDefault(defaultMode)
 	}
 

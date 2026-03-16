@@ -29,7 +29,7 @@ object BackupUtils {
 	fun parseBackupDateTime(fileName: String): Date? = try {
 		dateTimeFormat.parse(fileName.substringAfterLast('_').substringBefore('.'))
 	} catch (e: ParseException) {
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("BackupUtils::parseBackupDateTime")
 		null
 	}
 

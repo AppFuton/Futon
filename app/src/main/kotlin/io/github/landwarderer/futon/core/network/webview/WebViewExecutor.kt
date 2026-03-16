@@ -7,12 +7,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.MainThread
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import io.github.landwarderer.futon.core.exceptions.CloudFlareException
 import io.github.landwarderer.futon.core.network.CommonHeaders
 import io.github.landwarderer.futon.core.network.cookies.MutableCookieJar
@@ -23,6 +17,12 @@ import io.github.landwarderer.futon.core.util.ext.configureForParser
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.parsers.model.MangaSource
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Provider
@@ -45,7 +45,7 @@ class WebViewExecutor @Inject constructor(
 		try {
 			WebSettings.getDefaultUserAgent(context)
 		} catch (e: AndroidRuntimeException) {
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("WebViewExecutor::defaultUserAgent")
 			// Probably WebView is not available
 			null
 		}
@@ -96,7 +96,7 @@ class WebViewExecutor @Inject constructor(
 			}
 		}.onFailure { e ->
 			exception.addSuppressed(e)
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("WebViewExecutor::tryResolveCaptcha")
 		}.isSuccess
 	}
 

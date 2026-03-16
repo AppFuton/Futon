@@ -5,15 +5,15 @@ import android.net.Uri
 import androidx.annotation.CheckResult
 import androidx.documentfile.provider.DocumentFile
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
+import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import okio.buffer
 import okio.sink
 import okio.source
 import org.jetbrains.annotations.Blocking
-import io.github.landwarderer.futon.core.prefs.AppSettings
-import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import java.io.File
 import javax.inject.Inject
 
@@ -40,7 +40,7 @@ class ExternalBackupStorage @Inject constructor(
 	suspend fun listOrNull() = runCatchingCancellable {
 		list()
 	}.onFailure { e ->
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("ExternalBackupStorage::listOrNull")
 	}.getOrNull()
 
 	suspend fun put(file: File): Uri = runInterruptible(Dispatchers.IO) {

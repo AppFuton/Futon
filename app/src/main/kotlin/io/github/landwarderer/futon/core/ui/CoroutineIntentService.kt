@@ -14,6 +14,7 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 
 abstract class CoroutineIntentService : BaseService() {
 
@@ -46,7 +46,7 @@ abstract class CoroutineIntentService : BaseService() {
 			} catch (e: CancellationException) {
 				throw e
 			} catch (e: Throwable) {
-				e.printStackTraceDebug()
+				e.printStackTraceDebug("CoroutineIntentService::launchCoroutine")
 				intentJobContext.onError(e)
 			} finally {
 				intentJobContext.stop()
@@ -100,7 +100,7 @@ abstract class CoroutineIntentService : BaseService() {
 					try {
 						unregisterReceiver(it)
 					} catch (e: IllegalArgumentException) {
-						e.printStackTraceDebug()
+						e.printStackTraceDebug("CoroutineIntentService::stop")
 					}
 				}
 				isStopped = true

@@ -74,7 +74,7 @@ class ErrorReporterReceiver : BroadcastReceiver() {
 			PendingIntentCompat.getBroadcast(context, 0, intent, 0, false)
 		}.onFailure { e ->
 			// probably cannot write exception as serializable
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("ErrorReporterReceiver::getPendingIntentInternal")
 		}.getOrNull()
 	}
 }

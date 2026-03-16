@@ -2,10 +2,10 @@ package io.github.landwarderer.futon.core.zip
 
 import androidx.annotation.WorkerThread
 import androidx.collection.ArraySet
-import okio.Closeable
-import org.jetbrains.annotations.Blocking
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.withChildren
+import okio.Closeable
+import org.jetbrains.annotations.Blocking
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -139,7 +139,7 @@ class ZipOutput(
 				append = true // after 1st success write
 			}
 		} catch (e: NullPointerException) { // probably NullPointerException: Deflater has been closed
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("ZipOutput::withOutput")
 			newOutput(append).withOutputImpl(block)
 		}
 	}
@@ -161,7 +161,7 @@ class ZipOutput(
 			close()
 		} catch (e: NullPointerException) {
 			// Don't throw the "Deflater has been closed" exception
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("ZipOutput::closeSafe")
 		}
 	}
 }

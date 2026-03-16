@@ -26,14 +26,6 @@ import coil3.request.allowHardware
 import coil3.request.lifecycle
 import coil3.size.Scale
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.LocalizedAppContext
 import io.github.landwarderer.futon.core.db.MangaDatabase
@@ -58,6 +50,14 @@ import io.github.landwarderer.futon.parsers.model.MangaSource
 import io.github.landwarderer.futon.parsers.network.CloudFlareHelper
 import io.github.landwarderer.futon.parsers.util.mapToArray
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
@@ -256,7 +256,7 @@ class CaptchaHandler @Inject constructor(
 				.build(),
 		).toBitmapOrNull()
 	}.onFailure {
-		it.printStackTraceDebug()
+		it.printStackTraceDebug("CaptchaHandler::getFavicon")
 	}.getOrNull()
 
 	@AndroidEntryPoint

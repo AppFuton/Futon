@@ -2,14 +2,6 @@ package io.github.landwarderer.futon.local.data
 
 import androidx.core.net.toFile
 import androidx.core.net.toUri
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.toCollection
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runInterruptible
 import io.github.landwarderer.futon.core.model.LocalMangaSource
 import io.github.landwarderer.futon.core.model.isLocal
 import io.github.landwarderer.futon.core.model.isNsfw
@@ -38,6 +30,14 @@ import io.github.landwarderer.futon.parsers.model.SortOrder
 import io.github.landwarderer.futon.parsers.util.levenshteinDistance
 import io.github.landwarderer.futon.parsers.util.mapToSet
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.toCollection
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import java.io.File
 import java.util.EnumSet
 import javax.inject.Inject
@@ -162,7 +162,7 @@ class LocalMangaRepository @Inject constructor(
 		return runCatchingCancellable {
 			LocalMangaParser(localManga.url.toUri()).getMangaInfo()?.takeUnless { it.isLocal }
 		}.onFailure {
-			it.printStackTraceDebug()
+			it.printStackTraceDebug("LocalMangaRepository::getRemoteManga")
 		}.getOrNull()
 	}
 
@@ -187,7 +187,7 @@ class LocalMangaRepository @Inject constructor(
 							send(mangaInput)
 						}
 					}.onFailure {
-						it.printStackTraceDebug()
+						it.printStackTraceDebug("LocalMangaRepository::findSavedManga")
 					}
 				}
 			}
@@ -197,7 +197,7 @@ class LocalMangaRepository @Inject constructor(
 			localMangaIndex.put(x)
 		}
 	}.onFailure {
-		it.printStackTraceDebug()
+		it.printStackTraceDebug("LocalMangaRepository::findSavedManga")
 	}.getOrNull()
 
 	override suspend fun getPageUrl(page: MangaPage) = page.url
@@ -243,7 +243,7 @@ class LocalMangaRepository @Inject constructor(
 				runCatchingCancellable {
 					LocalMangaParser.getOrNull(file)?.getManga(withDetails = false)
 				}.onFailure { e ->
-					e.printStackTraceDebug()
+					e.printStackTraceDebug("LocalMangaRepository::getRawListAsFlow")
 				}.onSuccess { m ->
 					if (m != null) send(m)
 				}

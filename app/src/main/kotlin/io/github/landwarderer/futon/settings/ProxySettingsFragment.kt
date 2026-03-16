@@ -9,12 +9,6 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.network.BaseHttpClient
 import io.github.landwarderer.futon.core.prefs.AppSettings
@@ -27,6 +21,12 @@ import io.github.landwarderer.futon.settings.utils.EditTextBindListener
 import io.github.landwarderer.futon.settings.utils.PasswordSummaryProvider
 import io.github.landwarderer.futon.settings.utils.validation.DomainValidator
 import io.github.landwarderer.futon.settings.utils.validation.PortNumberValidator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.net.Proxy
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
@@ -130,7 +130,7 @@ class ProxySettingsFragment : BasePreferenceFragment(R.string.proxy),
 			} catch (e: CancellationException) {
 				throw e
 			} catch (e: Throwable) {
-				e.printStackTraceDebug()
+				e.printStackTraceDebug("ProxySettingsFragment::testConnection")
 				showTestResult(e)
 			} finally {
 				pref?.run {

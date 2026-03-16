@@ -5,11 +5,6 @@ import androidx.collection.ArraySet
 import androidx.collection.MutableLongLongMap
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.getPreferredBranch
 import io.github.landwarderer.futon.core.model.parcelable.ParcelableManga
@@ -33,6 +28,11 @@ import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.parsers.util.sizeOrZero
 import io.github.landwarderer.futon.parsers.util.suspendlazy.suspendLazy
 import io.github.landwarderer.futon.settings.storage.DirectoryModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -231,7 +231,7 @@ class DownloadDialogViewModel @Inject constructor(
 	private suspend fun Manga.getDetails(): Manga = runCatchingCancellable {
 		mangaRepositoryFactory.create(source).getDetails(this)
 	}.onFailure { e ->
-		e.printStackTraceDebug()
+		e.printStackTraceDebug("DownloadDialogViewModel::Manga")
 	}.getOrDefault(this)
 
 	private fun <T> MutableMap<T, Int>.increment(key: T) {

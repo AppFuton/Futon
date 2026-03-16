@@ -1,16 +1,16 @@
 package io.github.landwarderer.futon.history.domain
 
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
 import io.github.landwarderer.futon.history.data.HistoryRepository
 import io.github.landwarderer.futon.parsers.model.Manga
 import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.ui.ReaderState
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class HistoryUpdateUseCase @Inject constructor(
@@ -38,7 +38,7 @@ class HistoryUpdateUseCase @Inject constructor(
 				invoke(manga, readerState, percent)
 			}
 		}.onFailure {
-			it.printStackTraceDebug()
+			it.printStackTraceDebug("HistoryUpdateUseCase::invokeAsync")
 		}
 	}
 }
