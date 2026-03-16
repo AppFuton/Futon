@@ -206,7 +206,7 @@ class SearchViewModel @Inject constructor(
 			}
 		},
 		onFailure = { error ->
-			error.printStackTraceDebug("SearchViewModel::searchSource")
+			error.printStackTraceDebug("SearchViewModel::searchSource", source.toString())
 			if (source is MangaParserSource && source.isBroken) {
 				null
 			} else {
