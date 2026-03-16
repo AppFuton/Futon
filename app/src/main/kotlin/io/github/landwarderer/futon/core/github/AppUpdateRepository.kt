@@ -27,7 +27,7 @@ class AppUpdateRepository @Inject constructor(
 	@BaseHttpClient private val okHttp: OkHttpClient,
 	@ApplicationContext context: Context,
 ) {
-TODO("Fix update checking.")
+// TODO("Fix update checking.")
 	private val availableUpdate = MutableStateFlow<AppVersion?>(null)
 	private val latestReleaseUrl = buildString {
 		append("https://api.github.com/repos/")
