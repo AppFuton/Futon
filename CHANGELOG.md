@@ -16,7 +16,7 @@ Date: Late March 2026
 
 ---
 ## v9.6.13
-Date: 2026-03-15
+Date: 2026-03-17
 
 ### Highlights
 - Made Crash Analytics opt-in only, disabled by default.
