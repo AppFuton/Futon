@@ -210,6 +210,7 @@ dependencies {
 	implementation libs.kizzyrpc
 
 	implementation libs.conscrypt.android
+	implementation libs.sentry.android
 
 	debugImplementation libs.leakcanary.android
 	nightlyImplementation libs.leakcanary.android
@@ -233,20 +234,21 @@ dependencies {
 	kspAndroidTest libs.hilt.android.compiler
 }
 
-
 sentry {
-    org = "appfuton"
-    projectName = "android"
+	org = "appfuton"
+	projectName = "android"
+	authToken = System.getenv('SENTRY_AUTH_TOKEN') ?: ''
 
-    // this will upload your source code to Sentry to show it as part of the stack traces
-    // disable if you don't want to expose your sources
-    includeSourceContext = false
-
-    // Skip all Sentry Gradle plugin tasks (source upload, mapping upload, etc.)
-    // if SENTRY_AUTH_TOKEN is not provided — avoids build errors in local/dev environments
-    def sentryAuthToken = System.getenv('SENTRY_AUTH_TOKEN')
-    includeSourceContext = false
-    autoUploadProguardMapping = false
-    autoUploadSourceContext = false
-    tracingInstrumentation { enabled = false }
+	// Disable all uploads 
+	includeSourceContext = false
+	autoUploadProguardMapping = false
+	autoUploadSourceContext = false
+	
+	// Disable instrumentation that causes manifest/UUID changes
+	tracingInstrumentation { enabled = false }
+	autoInstallation { enabled = false }
+	
+	// Disable telemetry and dependency reporting that cause non-deterministic builds
+	includeDependenciesReport = false
+	telemetry = false
 }

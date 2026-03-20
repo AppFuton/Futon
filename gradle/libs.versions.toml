@@ -39,6 +39,7 @@ preference = "1.2.1"
 recyclerview = "1.4.0"
 room = "2.7.2"
 serialization = "1.9.0"
+sentry = "8.36.0"
 ssiv = "v4.1"
 swiperefreshlayout = "1.1.0"
 testRules = "1.7.0"
@@ -112,6 +113,7 @@ okhttp = { module = "com.squareup.okhttp3:okhttp" }
 okhttp-dnsoverhttps = { module = "com.squareup.okhttp3:okhttp-dnsoverhttps" }
 okhttp-tls = { module = "com.squareup.okhttp3:okhttp-tls" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry" }
 ssiv = { module = "com.github.AppFuton:subsampling-scale-image-view", version.ref = "ssiv" }
 workinspector = { module = "com.github.Koitharu:WorkInspector", version.ref = "workinspector" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
