@@ -5,7 +5,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.serialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 object MangaSourceSerializer : KSerializer<MangaSource> {
 

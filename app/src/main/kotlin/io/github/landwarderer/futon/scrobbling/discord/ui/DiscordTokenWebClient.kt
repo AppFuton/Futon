@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.webkit.WebView
 import io.github.landwarderer.futon.browser.BrowserCallback
 import io.github.landwarderer.futon.browser.BrowserClient
-import io.github.landwarderer.futon.parsers.util.removeSurrounding
+import org.koitharu.kotatsu.parsers.util.removeSurrounding
 
 class DiscordTokenWebClient(private val callback: Callback) : BrowserClient(callback, null) {
 

@@ -46,7 +46,7 @@ import androidx.work.CoroutineWorker
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.main.ui.MainActivity
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

@@ -1,9 +1,9 @@
 package io.github.landwarderer.futon.tracker.domain.model
 
-import io.github.landwarderer.futon.parsers.exception.TooManyRequestExceptions
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaChapter
-import io.github.landwarderer.futon.parsers.util.ifZero
+import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.util.ifZero
 
 sealed interface MangaUpdates {
 

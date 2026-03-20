@@ -24,7 +24,7 @@ import io.github.landwarderer.futon.core.prefs.TrackerDownloadStrategy
 import io.github.landwarderer.futon.core.ui.BasePreferenceFragment
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.setDefaultValueCompat
-import io.github.landwarderer.futon.parsers.util.names
+import org.koitharu.kotatsu.parsers.util.names
 import io.github.landwarderer.futon.settings.utils.DozeHelper
 import io.github.landwarderer.futon.settings.utils.MultiSummaryProvider
 import io.github.landwarderer.futon.tracker.ui.debug.TrackerDebugActivity

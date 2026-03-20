@@ -13,8 +13,8 @@ import io.github.landwarderer.futon.core.ui.util.ReversibleAction
 import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.core.util.ext.call
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.util.move
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.move
 import io.github.landwarderer.futon.settings.sources.model.SourceConfigItem
 import javax.inject.Inject
 

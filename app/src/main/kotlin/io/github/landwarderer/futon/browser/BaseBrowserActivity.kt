@@ -17,8 +17,8 @@ import io.github.landwarderer.futon.core.ui.BaseActivity
 import io.github.landwarderer.futon.core.util.ext.configureForParser
 import io.github.landwarderer.futon.core.util.ext.consumeAll
 import io.github.landwarderer.futon.databinding.ActivityBrowserBinding
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.util.nullIfEmpty
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import javax.inject.Inject
 
 @AndroidEntryPoint

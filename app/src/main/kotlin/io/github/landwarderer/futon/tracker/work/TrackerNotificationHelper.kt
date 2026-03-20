@@ -24,8 +24,8 @@ import io.github.landwarderer.futon.core.util.ext.checkNotificationPermission
 import io.github.landwarderer.futon.core.util.ext.getQuantityStringSafe
 import io.github.landwarderer.futon.core.util.ext.mangaSourceExtra
 import io.github.landwarderer.futon.core.util.ext.toBitmapOrNull
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 import javax.inject.Inject
 
 class TrackerNotificationHelper @Inject constructor(

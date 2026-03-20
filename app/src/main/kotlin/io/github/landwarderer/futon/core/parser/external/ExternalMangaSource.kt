@@ -1,7 +1,7 @@
 package io.github.landwarderer.futon.core.parser.external
 
 import android.content.Context
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 data class ExternalMangaSource(
 	val packageName: String,

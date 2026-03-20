@@ -3,8 +3,8 @@ package io.github.landwarderer.futon.bookmarks.domain
 import io.github.landwarderer.futon.core.util.MimeTypes
 import io.github.landwarderer.futon.core.util.ext.isImage
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaPage
 import java.time.Instant
 
 data class Bookmark(

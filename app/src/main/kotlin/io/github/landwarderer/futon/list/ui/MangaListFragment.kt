@@ -54,8 +54,8 @@ import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.MangaListModel
 import io.github.landwarderer.futon.list.ui.size.DynamicItemSizeResolver
 import io.github.landwarderer.futon.main.ui.owners.AppBarOwner
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaTag
 import io.github.landwarderer.futon.search.ui.MangaListActivity
 import javax.inject.Inject
 

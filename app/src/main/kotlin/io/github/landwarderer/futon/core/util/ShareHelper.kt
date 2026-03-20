@@ -8,7 +8,7 @@ import androidx.core.content.FileProvider
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.appUrl
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import java.io.File
 
 private const val TYPE_TEXT = "text/plain"

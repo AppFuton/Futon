@@ -22,11 +22,11 @@ import io.github.landwarderer.futon.download.ui.worker.DownloadWorker
 import io.github.landwarderer.futon.history.data.HistoryRepository
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.LocalStorageManager
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.mapToSet
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
-import io.github.landwarderer.futon.parsers.util.sizeOrZero
-import io.github.landwarderer.futon.parsers.util.suspendlazy.suspendLazy
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.sizeOrZero
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import io.github.landwarderer.futon.settings.storage.DirectoryModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

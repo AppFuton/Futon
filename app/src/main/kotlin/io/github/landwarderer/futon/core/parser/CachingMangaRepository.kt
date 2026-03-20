@@ -14,10 +14,10 @@ import io.github.landwarderer.futon.core.cache.MemoryContentCache
 import io.github.landwarderer.futon.core.cache.SafeDeferred
 import io.github.landwarderer.futon.core.util.MultiMutex
 import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaChapter
-import io.github.landwarderer.futon.parsers.model.MangaPage
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 
 abstract class CachingMangaRepository(
 	private val cache: MemoryContentCache,

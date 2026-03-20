@@ -22,7 +22,7 @@ import io.github.landwarderer.futon.download.ui.list.chapters.downloadChapterAD
 import io.github.landwarderer.futon.list.ui.ListModelDiffCallback
 import io.github.landwarderer.futon.list.ui.adapter.ListItemType
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.util.format
+import org.koitharu.kotatsu.parsers.util.format
 
 fun downloadItemAD(
 	lifecycleOwner: LifecycleOwner,

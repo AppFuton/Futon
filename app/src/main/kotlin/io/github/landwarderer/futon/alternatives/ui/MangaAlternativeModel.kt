@@ -3,7 +3,7 @@ package io.github.landwarderer.futon.alternatives.ui
 import io.github.landwarderer.futon.core.model.chaptersCount
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.MangaGridModel
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 
 data class MangaAlternativeModel(
 	val mangaModel: MangaGridModel,

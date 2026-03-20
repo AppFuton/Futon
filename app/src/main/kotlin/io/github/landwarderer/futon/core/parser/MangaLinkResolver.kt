@@ -7,15 +7,15 @@ import io.github.landwarderer.futon.core.model.MangaSource
 import io.github.landwarderer.futon.core.model.UnknownMangaSource
 import io.github.landwarderer.futon.core.model.isNsfw
 import io.github.landwarderer.futon.core.util.ext.isHttpUrl
-import io.github.landwarderer.futon.parsers.MangaLoaderContext
-import io.github.landwarderer.futon.parsers.exception.NotFoundException
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.util.almostEquals
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
-import io.github.landwarderer.futon.parsers.util.levenshteinDistance
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.exception.NotFoundException
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.almostEquals
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.levenshteinDistance
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 
 @Reusable

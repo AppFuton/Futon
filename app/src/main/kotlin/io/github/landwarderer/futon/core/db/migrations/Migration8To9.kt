@@ -2,7 +2,7 @@ package io.github.landwarderer.futon.core.db.migrations
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import io.github.landwarderer.futon.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.SortOrder
 
 class Migration8To9 : Migration(8, 9) {
 

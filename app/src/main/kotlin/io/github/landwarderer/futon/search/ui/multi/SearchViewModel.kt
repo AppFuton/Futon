@@ -23,10 +23,10 @@ import io.github.landwarderer.futon.list.ui.model.EmptyState
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingFooter
 import io.github.landwarderer.futon.list.ui.model.LoadingState
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.search.domain.SearchKind
 import io.github.landwarderer.futon.search.domain.SearchV2Helper
 import kotlinx.coroutines.Dispatchers

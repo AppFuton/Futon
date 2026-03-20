@@ -18,8 +18,8 @@ import coil3.toBitmap
 import okio.buffer
 import io.github.landwarderer.futon.bookmarks.domain.Bookmark
 import io.github.landwarderer.futon.core.image.RegionBitmapDecoder
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 fun ImageRequest.Builder.enqueueWith(loader: ImageLoader) = loader.enqueue(build())
 

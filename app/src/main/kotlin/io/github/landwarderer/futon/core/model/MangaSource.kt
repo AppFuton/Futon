@@ -14,10 +14,10 @@ import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
 import io.github.landwarderer.futon.core.util.ext.getDisplayName
 import io.github.landwarderer.futon.core.util.ext.toLocale
 import io.github.landwarderer.futon.core.util.ext.toLocaleOrNull
-import io.github.landwarderer.futon.parsers.model.ContentType
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.util.splitTwoParts
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.splitTwoParts
 import java.util.Locale
 
 data object LocalMangaSource : MangaSource {

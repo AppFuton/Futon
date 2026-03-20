@@ -22,7 +22,7 @@ import io.github.landwarderer.futon.core.util.ext.withPartialWakeLock
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import javax.inject.Inject
 
 @AndroidEntryPoint

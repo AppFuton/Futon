@@ -20,7 +20,7 @@ import io.github.landwarderer.futon.core.ui.util.ActivityRecreationHandle
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.main.ui.MainActivity
 import io.github.landwarderer.futon.main.ui.MainNavigationDelegate
-import io.github.landwarderer.futon.parsers.util.move
+import org.koitharu.kotatsu.parsers.util.move
 import io.github.landwarderer.futon.settings.nav.model.NavItemAddModel
 import io.github.landwarderer.futon.settings.nav.model.NavItemConfigModel
 import javax.inject.Inject

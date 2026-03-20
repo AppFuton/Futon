@@ -41,9 +41,9 @@ import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.mapToSet
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.util.LinkedList
 import java.util.UUID
 import javax.inject.Inject

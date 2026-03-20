@@ -7,9 +7,9 @@ import androidx.core.net.toUri
 import com.google.android.material.search.SearchView
 import io.github.landwarderer.futon.core.nav.AppRouter
 import io.github.landwarderer.futon.core.parser.MangaLinkResolver
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
 import io.github.landwarderer.futon.search.domain.SearchKind
 
 class SearchSuggestionListenerImpl(

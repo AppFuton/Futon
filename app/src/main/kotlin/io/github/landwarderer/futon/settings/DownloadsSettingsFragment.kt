@@ -25,7 +25,7 @@ import io.github.landwarderer.futon.core.util.ext.tryLaunch
 import io.github.landwarderer.futon.core.util.ext.viewLifecycleScope
 import io.github.landwarderer.futon.download.ui.worker.DownloadWorker
 import io.github.landwarderer.futon.local.data.LocalStorageManager
-import io.github.landwarderer.futon.parsers.util.names
+import org.koitharu.kotatsu.parsers.util.names
 import io.github.landwarderer.futon.settings.utils.DozeHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

@@ -19,8 +19,8 @@ import io.github.landwarderer.futon.list.domain.ReadingProgress
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingFooter
 import io.github.landwarderer.futon.list.ui.model.LoadingState
-import io.github.landwarderer.futon.parsers.util.ifZero
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.ifZero
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.scrobbling.common.domain.Scrobbler
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblerManga
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingStatus

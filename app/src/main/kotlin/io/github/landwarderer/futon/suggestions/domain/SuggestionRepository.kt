@@ -10,9 +10,9 @@ import io.github.landwarderer.futon.core.db.entity.toMangaTagsList
 import io.github.landwarderer.futon.core.model.toMangaSources
 import io.github.landwarderer.futon.core.util.ext.mapItems
 import io.github.landwarderer.futon.list.domain.ListFilterOption
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
 import io.github.landwarderer.futon.suggestions.data.SuggestionEntity
 import io.github.landwarderer.futon.suggestions.data.SuggestionWithManga
 import javax.inject.Inject

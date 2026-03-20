@@ -1,7 +1,7 @@
 package io.github.landwarderer.futon.filter.ui.model
 
 import io.github.landwarderer.futon.core.ui.widgets.ChipsView
-import io.github.landwarderer.futon.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.SortOrder
 
 data class FilterHeaderModel(
 	val chips: Collection<ChipsView.ChipModel>,

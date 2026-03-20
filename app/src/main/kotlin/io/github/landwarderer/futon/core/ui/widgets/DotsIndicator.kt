@@ -15,7 +15,7 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.util.ext.getThemeColorStateList
 import io.github.landwarderer.futon.core.util.ext.measureDimension
 import io.github.landwarderer.futon.core.util.ext.resolveDp
-import io.github.landwarderer.futon.parsers.util.toIntUp
+import org.koitharu.kotatsu.parsers.util.toIntUp
 import com.google.android.material.R as materialR
 
 class DotsIndicator @JvmOverloads constructor(

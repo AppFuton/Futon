@@ -6,9 +6,9 @@ import io.github.landwarderer.futon.core.model.getTitle
 import io.github.landwarderer.futon.list.ui.ListModelDiffCallback
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.MangaListModel
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.SortOrder
 
 data class SearchResultsListModel(
 	@StringRes val titleResId: Int,

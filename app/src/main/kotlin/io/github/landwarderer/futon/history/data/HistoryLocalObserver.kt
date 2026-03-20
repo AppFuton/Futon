@@ -9,7 +9,7 @@ import io.github.landwarderer.futon.list.domain.ListFilterOption
 import io.github.landwarderer.futon.list.domain.ListSortOrder
 import io.github.landwarderer.futon.local.data.index.LocalMangaIndex
 import io.github.landwarderer.futon.local.domain.LocalObserveMapper
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import javax.inject.Inject
 
 @Reusable

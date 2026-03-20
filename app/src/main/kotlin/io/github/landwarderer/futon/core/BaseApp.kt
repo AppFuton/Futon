@@ -25,7 +25,7 @@ import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
 import io.github.landwarderer.futon.local.data.index.LocalMangaIndex
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import io.github.landwarderer.futon.parsers.util.suspendlazy.getOrNull
+import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
 import io.github.landwarderer.futon.settings.work.WorkScheduleManager
 import java.security.Security
 import javax.inject.Inject

@@ -7,9 +7,9 @@ import io.github.landwarderer.futon.core.model.getTitle
 import io.github.landwarderer.futon.core.model.withOverride
 import io.github.landwarderer.futon.core.ui.model.MangaOverride
 import io.github.landwarderer.futon.list.ui.ListModelDiffCallback.Companion.PAYLOAD_ANYTHING_CHANGED
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 
 sealed class MangaListModel : ListModel {
 

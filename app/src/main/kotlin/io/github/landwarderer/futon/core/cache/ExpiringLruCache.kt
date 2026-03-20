@@ -1,7 +1,7 @@
 package io.github.landwarderer.futon.core.cache
 
 import io.github.landwarderer.futon.core.util.SynchronizedSieveCache
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.util.concurrent.TimeUnit
 import io.github.landwarderer.futon.core.cache.MemoryContentCache.Key as CacheKey
 

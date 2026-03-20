@@ -6,7 +6,7 @@ import io.github.landwarderer.futon.core.os.NetworkState
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.list.domain.ReadingProgress.Companion.PROGRESS_NONE
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import javax.inject.Inject
 
 class ProgressUpdateUseCase @Inject constructor(

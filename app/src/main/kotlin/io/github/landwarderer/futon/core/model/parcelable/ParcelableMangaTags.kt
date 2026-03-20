@@ -6,7 +6,7 @@ import kotlinx.parcelize.Parceler
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.TypeParceler
 import io.github.landwarderer.futon.core.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.MangaTag
 
 object MangaTagParceler : Parceler<MangaTag> {
 	override fun create(parcel: Parcel) = MangaTag(

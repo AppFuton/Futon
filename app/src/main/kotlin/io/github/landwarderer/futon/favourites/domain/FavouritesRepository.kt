@@ -25,9 +25,9 @@ import io.github.landwarderer.futon.favourites.data.toMangaList
 import io.github.landwarderer.futon.favourites.domain.model.Cover
 import io.github.landwarderer.futon.list.domain.ListFilterOption
 import io.github.landwarderer.futon.list.domain.ListSortOrder
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.util.levenshteinDistance
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.levenshteinDistance
 import io.github.landwarderer.futon.search.domain.SearchKind
 import javax.inject.Inject
 

@@ -4,7 +4,7 @@ import io.github.landwarderer.futon.core.model.MangaHistory
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.details.data.MangaDetails
 import io.github.landwarderer.futon.details.data.ReadingTime
-import io.github.landwarderer.futon.parsers.util.findById
+import org.koitharu.kotatsu.parsers.util.findById
 import io.github.landwarderer.futon.stats.data.StatsRepository
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject

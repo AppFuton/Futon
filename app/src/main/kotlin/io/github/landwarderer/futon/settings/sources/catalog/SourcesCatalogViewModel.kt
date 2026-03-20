@@ -24,8 +24,8 @@ import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
 import io.github.landwarderer.futon.explore.data.SourcesSortOrder
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingState
-import io.github.landwarderer.futon.parsers.model.ContentType
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.util.EnumSet
 import java.util.Locale
 import javax.inject.Inject

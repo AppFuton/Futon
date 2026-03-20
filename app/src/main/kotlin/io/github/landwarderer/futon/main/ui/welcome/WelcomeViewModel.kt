@@ -15,9 +15,9 @@ import io.github.landwarderer.futon.core.util.ext.toList
 import io.github.landwarderer.futon.core.util.ext.toLocale
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
 import io.github.landwarderer.futon.filter.ui.model.FilterProperty
-import io.github.landwarderer.futon.parsers.model.ContentType
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
-import io.github.landwarderer.futon.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.util.mapToSet
 import java.util.EnumSet
 import java.util.Locale
 import javax.inject.Inject

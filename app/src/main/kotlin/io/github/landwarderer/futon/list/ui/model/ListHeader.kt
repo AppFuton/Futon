@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.annotation.StringRes
 import io.github.landwarderer.futon.core.model.getLocalizedTitle
 import io.github.landwarderer.futon.core.ui.model.DateTimeAgo
-import io.github.landwarderer.futon.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 
 data class ListHeader private constructor(
 	private val textRaw: Any,

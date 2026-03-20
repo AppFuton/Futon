@@ -2,7 +2,7 @@ package io.github.landwarderer.futon.settings.sources.catalog
 
 import io.github.landwarderer.futon.list.ui.ListModelDiffCallback
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.ContentType
 
 data class SourceCatalogPage(
 	val type: ContentType,

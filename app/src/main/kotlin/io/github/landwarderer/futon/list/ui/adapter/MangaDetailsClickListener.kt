@@ -3,8 +3,8 @@ package io.github.landwarderer.futon.list.ui.adapter
 import android.view.View
 import io.github.landwarderer.futon.core.ui.list.OnListItemClickListener
 import io.github.landwarderer.futon.list.ui.model.MangaListModel
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaTag
 
 interface MangaDetailsClickListener : OnListItemClickListener<MangaListModel> {
 

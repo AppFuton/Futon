@@ -10,7 +10,7 @@ import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.input.LocalMangaParser
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

@@ -13,8 +13,8 @@ import io.github.landwarderer.futon.core.util.ext.deleteAwait
 import io.github.landwarderer.futon.core.util.ext.readText
 import io.github.landwarderer.futon.core.zip.ZipOutput
 import io.github.landwarderer.futon.local.data.MangaIndex
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 import java.io.File
 import java.util.zip.ZipFile
 

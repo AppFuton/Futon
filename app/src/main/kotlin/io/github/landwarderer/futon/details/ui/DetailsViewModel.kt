@@ -46,9 +46,9 @@ import io.github.landwarderer.futon.list.ui.model.MangaListModel
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
 import io.github.landwarderer.futon.local.domain.DeleteLocalMangaUseCase
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.findById
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.findById
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.ui.ReaderState
 import io.github.landwarderer.futon.scrobbling.common.domain.Scrobbler
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingInfo

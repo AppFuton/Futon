@@ -24,7 +24,7 @@ import io.github.landwarderer.futon.core.ui.util.ReversibleActionObserver
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.observeEvent
 import io.github.landwarderer.futon.core.util.ext.withArgs
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.io.File
 
 @AndroidEntryPoint

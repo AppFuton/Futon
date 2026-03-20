@@ -1,14 +1,14 @@
 package io.github.landwarderer.futon.core.parser
 
 import io.github.landwarderer.futon.core.exceptions.UnsupportedSourceException
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaChapter
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.model.MangaListFilterCapabilities
-import io.github.landwarderer.futon.parsers.model.MangaListFilterOptions
-import io.github.landwarderer.futon.parsers.model.MangaPage
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
+import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import java.util.EnumSet
 
 open class EmptyMangaRepository(override val source: MangaSource) : MangaRepository {

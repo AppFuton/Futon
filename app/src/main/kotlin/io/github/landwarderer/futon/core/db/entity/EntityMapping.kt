@@ -1,17 +1,17 @@
 package io.github.landwarderer.futon.core.db.entity
 
 import io.github.landwarderer.futon.core.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.ContentRating
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaChapter
-import io.github.landwarderer.futon.parsers.model.MangaState
-import io.github.landwarderer.futon.parsers.model.MangaTag
-import io.github.landwarderer.futon.parsers.model.SortOrder
-import io.github.landwarderer.futon.parsers.util.longHashCode
-import io.github.landwarderer.futon.parsers.util.mapToSet
-import io.github.landwarderer.futon.parsers.util.nullIfEmpty
-import io.github.landwarderer.futon.parsers.util.toArraySet
-import io.github.landwarderer.futon.parsers.util.toTitleCase
+import org.koitharu.kotatsu.parsers.model.ContentRating
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.util.longHashCode
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
+import org.koitharu.kotatsu.parsers.util.toArraySet
+import org.koitharu.kotatsu.parsers.util.toTitleCase
 
 private const val VALUES_DIVIDER = '\n'
 

@@ -1,7 +1,7 @@
 package io.github.landwarderer.futon.core.parser.favicon
 
 import android.net.Uri
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 const val URI_SCHEME_FAVICON = "favicon"
 

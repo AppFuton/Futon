@@ -1,7 +1,6 @@
 package io.github.landwarderer.futon.core.network
 
 import android.content.Context
-import android.util.Log
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -17,6 +16,7 @@ import io.github.landwarderer.futon.core.network.imageproxy.RealImageProxyInterc
 import io.github.landwarderer.futon.core.network.proxy.ProxyProvider
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.assertNotInMainThread
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.local.data.LocalStorageManager
 import okhttp3.Cache
 import okhttp3.CookieJar
@@ -44,7 +44,7 @@ interface NetworkModule {
         ): MutableCookieJar = runCatching {
             AndroidCookieJar()
         }.getOrElse { e ->
-            Log.e("NetworkModule::provideCookieJar", e.stackTraceToString())
+            e.printStackTraceDebug()
             // WebView is not available
             PreferencesCookieJar(context)
         }
@@ -73,9 +73,13 @@ interface NetworkModule {
             proxySelector(proxyProvider.selector)
             proxyAuthenticator(proxyProvider.authenticator)
             dns(DoHManager(cache, settings))
-            installExtraCertificates(contextProvider.get())
-            applyTlsConfiguration()
+            if (settings.isSSLBypassEnabled) {
+                disableCertificateVerification()
+            } else {
+                installExtraCertificates(contextProvider.get())
+            }
             cache(cache)
+            //addInterceptor(GZipInterceptor())
             addInterceptor(CloudFlareInterceptor())
             addInterceptor(RateLimitInterceptor())
             if (BuildConfig.DEBUG) {

@@ -19,8 +19,8 @@ import io.github.landwarderer.futon.core.ui.widgets.StackLayout
 import io.github.landwarderer.futon.core.util.ext.getThemeColor
 import io.github.landwarderer.futon.databinding.ViewCoverStackBinding
 import io.github.landwarderer.futon.favourites.domain.model.Cover
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 class CoverStackView @JvmOverloads constructor(
 	context: Context,

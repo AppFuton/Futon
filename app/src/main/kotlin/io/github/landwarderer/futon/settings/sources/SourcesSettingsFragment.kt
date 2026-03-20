@@ -17,7 +17,7 @@ import io.github.landwarderer.futon.core.util.ext.getQuantityStringSafe
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.setDefaultValueCompat
 import io.github.landwarderer.futon.explore.data.SourcesSortOrder
-import io.github.landwarderer.futon.parsers.util.names
+import org.koitharu.kotatsu.parsers.util.names
 
 @AndroidEntryPoint
 class SourcesSettingsFragment : BasePreferenceFragment(R.string.remote_sources),

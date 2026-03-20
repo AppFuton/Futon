@@ -18,7 +18,7 @@ import io.github.landwarderer.futon.core.util.ext.call
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
 import io.github.landwarderer.futon.history.data.HistoryRepository
 import io.github.landwarderer.futon.main.domain.ReadingResumeEnabledUseCase
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.tracker.domain.TrackingRepository
 import javax.inject.Inject
 

@@ -17,7 +17,7 @@ import io.github.landwarderer.futon.core.util.ext.consume
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.textAndVisible
 import io.github.landwarderer.futon.databinding.SheetStatsMangaBinding
-import io.github.landwarderer.futon.parsers.util.format
+import org.koitharu.kotatsu.parsers.util.format
 import io.github.landwarderer.futon.stats.ui.views.BarChartView
 
 @AndroidEntryPoint

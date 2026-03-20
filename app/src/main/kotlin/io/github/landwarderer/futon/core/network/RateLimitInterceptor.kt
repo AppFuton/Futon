@@ -3,7 +3,7 @@ package io.github.landwarderer.futon.core.network
 import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.internal.closeQuietly
-import io.github.landwarderer.futon.parsers.exception.TooManyRequestExceptions
+import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit

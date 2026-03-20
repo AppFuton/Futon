@@ -18,12 +18,12 @@ import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.databinding.FragmentFilterHeaderBinding
 import io.github.landwarderer.futon.filter.data.PersistableFilter
 import io.github.landwarderer.futon.filter.ui.model.FilterHeaderModel
-import io.github.landwarderer.futon.parsers.model.ContentRating
-import io.github.landwarderer.futon.parsers.model.ContentType
-import io.github.landwarderer.futon.parsers.model.Demographic
-import io.github.landwarderer.futon.parsers.model.MangaState
-import io.github.landwarderer.futon.parsers.model.MangaTag
-import io.github.landwarderer.futon.parsers.model.YEAR_UNKNOWN
+import org.koitharu.kotatsu.parsers.model.ContentRating
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.Demographic
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.YEAR_UNKNOWN
 import java.util.Locale
 import javax.inject.Inject
 

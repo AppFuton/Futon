@@ -51,10 +51,10 @@ import io.github.landwarderer.futon.core.util.progress.ProgressDeferred
 import io.github.landwarderer.futon.download.ui.worker.DownloadSlowdownDispatcher
 import io.github.landwarderer.futon.local.data.LocalStorageCache
 import io.github.landwarderer.futon.local.data.PageCache
-import io.github.landwarderer.futon.parsers.model.MangaPage
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.util.requireBody
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.requireBody
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.ui.pager.ReaderPage
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Deferred

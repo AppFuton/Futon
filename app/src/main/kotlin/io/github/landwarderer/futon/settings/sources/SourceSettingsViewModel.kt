@@ -20,8 +20,8 @@ import io.github.landwarderer.futon.core.ui.util.ReversibleAction
 import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.core.util.ext.call
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
-import io.github.landwarderer.futon.parsers.MangaParserAuthProvider
-import io.github.landwarderer.futon.parsers.exception.AuthRequiredException
+import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import javax.inject.Inject
 
 @HiltViewModel

@@ -5,7 +5,7 @@ import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import com.google.android.material.color.DynamicColors
 import io.github.landwarderer.futon.R
-import io.github.landwarderer.futon.parsers.util.find
+import org.koitharu.kotatsu.parsers.util.find
 
 @Keep
 enum class ColorScheme(

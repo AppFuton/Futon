@@ -1,6 +1,6 @@
 package io.github.landwarderer.futon.core.exceptions
 
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 
 class UnsupportedSourceException(
 	message: String?,

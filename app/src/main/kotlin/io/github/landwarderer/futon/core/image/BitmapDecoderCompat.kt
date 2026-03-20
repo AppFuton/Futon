@@ -14,7 +14,7 @@ import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.readByteBuffer
 import io.github.landwarderer.futon.core.util.ext.toByteBuffer
 import io.github.landwarderer.futon.core.util.ext.toMimeTypeOrNull
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import okio.IOException
 import okio.buffer
 import okio.source

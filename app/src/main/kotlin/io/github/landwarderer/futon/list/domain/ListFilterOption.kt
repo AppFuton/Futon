@@ -9,9 +9,9 @@ import io.github.landwarderer.futon.core.model.LocalMangaSource
 import io.github.landwarderer.futon.core.model.unwrap
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
 import io.github.landwarderer.futon.core.parser.favicon.faviconUri
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
 
 sealed interface ListFilterOption {
 

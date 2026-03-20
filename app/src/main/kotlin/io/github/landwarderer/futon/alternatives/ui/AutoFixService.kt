@@ -29,8 +29,8 @@ import io.github.landwarderer.futon.core.util.ext.powerManager
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.toBitmapOrNull
 import io.github.landwarderer.futon.core.util.ext.withPartialWakeLock
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import androidx.appcompat.R as appcompatR

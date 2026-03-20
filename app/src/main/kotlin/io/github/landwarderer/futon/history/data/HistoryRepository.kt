@@ -24,11 +24,11 @@ import io.github.landwarderer.futon.history.domain.model.MangaWithHistory
 import io.github.landwarderer.futon.list.domain.ListFilterOption
 import io.github.landwarderer.futon.list.domain.ListSortOrder
 import io.github.landwarderer.futon.list.domain.ReadingProgress
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.MangaTag
-import io.github.landwarderer.futon.parsers.util.findById
-import io.github.landwarderer.futon.parsers.util.levenshteinDistance
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.util.findById
+import org.koitharu.kotatsu.parsers.util.levenshteinDistance
 import io.github.landwarderer.futon.scrobbling.common.domain.Scrobbler
 import io.github.landwarderer.futon.scrobbling.common.domain.tryScrobble
 import io.github.landwarderer.futon.search.domain.SearchKind

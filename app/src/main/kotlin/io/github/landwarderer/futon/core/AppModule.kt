@@ -61,7 +61,7 @@ import io.github.landwarderer.futon.local.domain.model.LocalManga
 import io.github.landwarderer.futon.main.domain.CoverRestoreInterceptor
 import io.github.landwarderer.futon.main.ui.protect.AppProtectHelper
 import io.github.landwarderer.futon.main.ui.protect.ScreenshotPolicyHelper
-import io.github.landwarderer.futon.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import io.github.landwarderer.futon.search.ui.MangaSuggestionsProvider
 import io.github.landwarderer.futon.sync.domain.SyncController
 import io.github.landwarderer.futon.widget.WidgetUpdater

@@ -18,8 +18,8 @@ import io.github.landwarderer.futon.core.network.BaseHttpClient
 import io.github.landwarderer.futon.core.network.CommonHeaders
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.ensureSuccess
-import io.github.landwarderer.futon.parsers.util.await
-import io.github.landwarderer.futon.parsers.util.parseRaw
+import org.koitharu.kotatsu.parsers.util.await
+import org.koitharu.kotatsu.parsers.util.parseRaw
 import javax.inject.Inject
 
 private const val SCHEME_MP = "mp:"

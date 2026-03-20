@@ -15,7 +15,7 @@ import io.github.landwarderer.futon.core.ui.BasePreferenceFragment
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.observeEvent
 import io.github.landwarderer.futon.core.util.ext.setDefaultValueCompat
-import io.github.landwarderer.futon.parsers.util.names
+import org.koitharu.kotatsu.parsers.util.names
 import io.github.landwarderer.futon.settings.userdata.storage.StorageUsagePreference
 import java.net.Proxy
 

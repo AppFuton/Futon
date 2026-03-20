@@ -1,7 +1,7 @@
 package io.github.landwarderer.futon.core.exceptions
 
 import okio.IOException
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 class InteractiveActionRequiredException(
 	val source: MangaSource,

@@ -24,7 +24,7 @@ import io.github.landwarderer.futon.core.util.ext.observeEvent
 import io.github.landwarderer.futon.databinding.ActivityPickerBinding
 import io.github.landwarderer.futon.main.ui.owners.AppBarOwner
 import io.github.landwarderer.futon.main.ui.owners.SnackbarOwner
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.picker.ui.manga.MangaPickerFragment
 import io.github.landwarderer.futon.picker.ui.page.PagePickerFragment
 import io.github.landwarderer.futon.reader.ui.PageSaveHelper

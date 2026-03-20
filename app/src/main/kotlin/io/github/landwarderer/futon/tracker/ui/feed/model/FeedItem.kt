@@ -4,8 +4,8 @@ import io.github.landwarderer.futon.core.model.withOverride
 import io.github.landwarderer.futon.core.ui.model.MangaOverride
 import io.github.landwarderer.futon.list.ui.ListModelDiffCallback
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 
 data class FeedItem(
 	val id: Long,

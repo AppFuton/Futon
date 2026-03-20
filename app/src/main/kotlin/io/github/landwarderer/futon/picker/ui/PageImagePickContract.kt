@@ -6,7 +6,7 @@ import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContract
 import io.github.landwarderer.futon.core.model.parcelable.ParcelableManga
 import io.github.landwarderer.futon.core.nav.AppRouter
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 
 class PageImagePickContract : ActivityResultContract<Manga?, Uri?>() {
 

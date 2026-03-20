@@ -2,7 +2,7 @@ package io.github.landwarderer.futon.core.ui.util
 
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable

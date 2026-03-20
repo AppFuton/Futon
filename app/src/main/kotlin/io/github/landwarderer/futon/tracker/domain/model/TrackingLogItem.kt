@@ -1,6 +1,6 @@
 package io.github.landwarderer.futon.tracker.domain.model
 
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import java.time.Instant
 
 data class TrackingLogItem(

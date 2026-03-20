@@ -3,7 +3,7 @@ package io.github.landwarderer.futon.core.model.parcelable
 import android.os.Parcel
 import kotlinx.parcelize.Parceler
 import io.github.landwarderer.futon.core.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 class MangaSourceParceler : Parceler<MangaSource> {
 

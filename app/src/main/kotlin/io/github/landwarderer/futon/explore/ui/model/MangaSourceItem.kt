@@ -2,7 +2,7 @@ package io.github.landwarderer.futon.explore.ui.model
 
 import io.github.landwarderer.futon.core.model.MangaSourceInfo
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.util.longHashCode
+import org.koitharu.kotatsu.parsers.util.longHashCode
 
 data class MangaSourceItem(
 	val source: MangaSourceInfo,

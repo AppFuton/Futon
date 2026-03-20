@@ -1,7 +1,7 @@
 package io.github.landwarderer.futon.reader.ui
 
 import io.github.landwarderer.futon.bookmarks.domain.Bookmark
-import io.github.landwarderer.futon.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 import io.github.landwarderer.futon.reader.ui.pager.ReaderPage
 
 interface ReaderNavigationCallback {

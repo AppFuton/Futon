@@ -3,7 +3,7 @@ package io.github.landwarderer.futon.download.domain
 import androidx.work.Data
 import io.github.landwarderer.futon.list.domain.ReadingProgress.Companion.PROGRESS_NONE
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import java.time.Instant
 
 data class DownloadState(

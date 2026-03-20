@@ -34,8 +34,8 @@ import io.github.landwarderer.futon.core.util.ext.isZipUri
 import io.github.landwarderer.futon.core.util.ext.toFileNameSafe
 import io.github.landwarderer.futon.core.util.ext.toFileOrNull
 import io.github.landwarderer.futon.core.util.ext.writeAllCancellable
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaPage
 import io.github.landwarderer.futon.reader.domain.PageLoader
 import java.io.File
 import java.text.SimpleDateFormat

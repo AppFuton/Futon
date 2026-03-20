@@ -8,21 +8,21 @@ import io.github.landwarderer.futon.core.exceptions.CloudFlareProtectedException
 import io.github.landwarderer.futon.core.exceptions.InteractiveActionRequiredException
 import io.github.landwarderer.futon.core.exceptions.ProxyConfigException
 import io.github.landwarderer.futon.core.prefs.SourceSettings
-import io.github.landwarderer.futon.parsers.MangaParser
-import io.github.landwarderer.futon.parsers.MangaParserAuthProvider
-import io.github.landwarderer.futon.parsers.config.ConfigKey
-import io.github.landwarderer.futon.parsers.exception.AuthRequiredException
-import io.github.landwarderer.futon.parsers.model.Favicons
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaChapter
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.model.MangaListFilterCapabilities
-import io.github.landwarderer.futon.parsers.model.MangaListFilterOptions
-import io.github.landwarderer.futon.parsers.model.MangaPage
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
-import io.github.landwarderer.futon.parsers.model.SortOrder
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
-import io.github.landwarderer.futon.parsers.util.suspendlazy.suspendLazy
+import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
+import org.koitharu.kotatsu.parsers.model.Favicons
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
+import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 
 class ParserMangaRepository(
 	private val parser: MangaParser,

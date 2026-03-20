@@ -4,9 +4,9 @@ import io.github.landwarderer.futon.core.model.isLocal
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 
 class RecoverMangaUseCase @Inject constructor(

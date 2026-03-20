@@ -19,9 +19,9 @@ import io.github.landwarderer.futon.core.model.getTitle
 import io.github.landwarderer.futon.core.nav.AppRouter
 import io.github.landwarderer.futon.core.parser.ParserMangaRepository
 import io.github.landwarderer.futon.core.util.ext.getDisplayMessage
-import io.github.landwarderer.futon.parsers.MangaParserAuthProvider
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 
 @AndroidEntryPoint
 class SourceAuthActivity : BaseBrowserActivity(), BrowserCallback {

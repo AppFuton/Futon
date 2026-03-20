@@ -2,8 +2,8 @@ package io.github.landwarderer.futon.core.exceptions
 
 import okhttp3.Headers
 import io.github.landwarderer.futon.core.model.UnknownMangaSource
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.network.CloudFlareHelper
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
 
 class CloudFlareProtectedException(
 	override val url: String,

@@ -23,8 +23,8 @@ import io.github.landwarderer.futon.core.util.ext.openSource
 import io.github.landwarderer.futon.core.util.ext.require
 import io.github.landwarderer.futon.core.util.ext.toMimeTypeOrNull
 import io.github.landwarderer.futon.core.util.ext.toUriOrNull
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.md5
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.md5
 import java.io.File
 import javax.inject.Inject
 

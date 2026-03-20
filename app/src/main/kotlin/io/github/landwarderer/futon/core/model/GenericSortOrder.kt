@@ -2,7 +2,7 @@ package io.github.landwarderer.futon.core.model
 
 import androidx.annotation.StringRes
 import io.github.landwarderer.futon.R
-import io.github.landwarderer.futon.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.SortOrder
 
 @Deprecated("")
 enum class GenericSortOrder(

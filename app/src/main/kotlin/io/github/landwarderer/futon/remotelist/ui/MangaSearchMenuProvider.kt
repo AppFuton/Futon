@@ -11,7 +11,7 @@ import io.github.landwarderer.futon.core.ui.util.ReversibleAction
 import io.github.landwarderer.futon.core.util.ext.call
 import io.github.landwarderer.futon.filter.ui.FilterCoordinator
 import io.github.landwarderer.futon.list.ui.MangaListViewModel
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
 
 class MangaSearchMenuProvider(
 	private val filter: FilterCoordinator,

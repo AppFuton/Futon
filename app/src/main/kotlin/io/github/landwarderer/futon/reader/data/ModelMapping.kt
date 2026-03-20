@@ -1,7 +1,7 @@
 package io.github.landwarderer.futon.reader.data
 
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 
 fun Manga.filterChapters(branch: String?): Manga {
 	if (chapters.isNullOrEmpty()) return this

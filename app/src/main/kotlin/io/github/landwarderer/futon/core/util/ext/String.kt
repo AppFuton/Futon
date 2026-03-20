@@ -3,8 +3,8 @@ package io.github.landwarderer.futon.core.util.ext
 import android.content.Context
 import androidx.collection.arraySetOf
 import io.github.landwarderer.futon.R
-import io.github.landwarderer.futon.parsers.util.ellipsize
-import io.github.landwarderer.futon.parsers.util.nullIfEmpty
+import org.koitharu.kotatsu.parsers.util.ellipsize
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import java.util.UUID
 
 fun String.toUUIDOrNull(): UUID? = try {

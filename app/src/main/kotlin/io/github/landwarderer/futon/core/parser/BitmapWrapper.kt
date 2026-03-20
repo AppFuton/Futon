@@ -2,8 +2,8 @@ package io.github.landwarderer.futon.core.parser
 
 import android.graphics.Canvas
 import androidx.core.graphics.createBitmap
-import io.github.landwarderer.futon.parsers.bitmap.Bitmap
-import io.github.landwarderer.futon.parsers.bitmap.Rect
+import org.koitharu.kotatsu.parsers.bitmap.Bitmap
+import org.koitharu.kotatsu.parsers.bitmap.Rect
 import java.io.OutputStream
 import android.graphics.Bitmap as AndroidBitmap
 import android.graphics.Rect as AndroidRect

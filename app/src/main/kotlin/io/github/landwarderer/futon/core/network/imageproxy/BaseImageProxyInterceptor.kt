@@ -17,9 +17,9 @@ import org.jsoup.HttpStatusException
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.core.exceptions.CloudFlareBlockedException
 import io.github.landwarderer.futon.core.util.ext.ensureSuccess
-import io.github.landwarderer.futon.parsers.util.await
-import io.github.landwarderer.futon.parsers.util.isHttpOrHttps
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.await
+import org.koitharu.kotatsu.parsers.util.isHttpOrHttps
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.net.HttpURLConnection
 import java.util.Collections
 

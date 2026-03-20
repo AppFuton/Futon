@@ -4,7 +4,7 @@ import android.os.Parcelable
 import androidx.work.Data
 import kotlinx.parcelize.Parcelize
 import io.github.landwarderer.futon.core.prefs.DownloadFormat
-import io.github.landwarderer.futon.parsers.util.find
+import org.koitharu.kotatsu.parsers.util.find
 import java.io.File
 
 @Parcelize

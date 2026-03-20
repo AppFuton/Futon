@@ -9,7 +9,7 @@ import io.github.landwarderer.futon.core.util.ext.readParcelableCompat
 import io.github.landwarderer.futon.core.util.ext.readSerializableCompat
 import io.github.landwarderer.futon.core.util.ext.readStringSet
 import io.github.landwarderer.futon.core.util.ext.writeStringSet
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 
 @Parcelize
 data class ParcelableManga(

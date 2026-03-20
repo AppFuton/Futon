@@ -5,8 +5,8 @@ import androidx.core.net.toFile
 import androidx.core.net.toUri
 import io.github.landwarderer.futon.core.util.ext.contains
 import io.github.landwarderer.futon.core.util.ext.creationTime
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaTag
 import java.io.File
 
 data class LocalManga(

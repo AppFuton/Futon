@@ -30,7 +30,7 @@ android {
 		applicationId 'io.github.landwarderer.futon'
 		minSdk = 23
 		targetSdk = 36
-		versionCode project.hasProperty('versionCode') ? project.property('versionCode').toInteger() : 90613
+		versionCode project.hasProperty('versionCode') ? project.property('versionCode').toInteger() : 90614
         versionName project.hasProperty('versionName') ? project.property('versionName') : '9.6.13'
         generatedDensities = []
 		testInstrumentationRunner 'io.github.landwarderer.futon.HiltTestRunner'
@@ -124,7 +124,7 @@ android {
 		unitTests.includeAndroidResources true
 		unitTests.returnDefaultValues false
 		kotlinOptions {
-			freeCompilerArgs += ['-opt-in=io.github.landwarderer.futon.parsers.InternalParsersApi']
+			freeCompilerArgs += ['-opt-in=org.koitharu.kotatsu.parsers.InternalParsersApi']
 		}
 	}
 	applicationVariants.configureEach { variant ->
@@ -145,7 +145,7 @@ dependencies {
 		parsersVersion = System.getProperty('parsersVersionOverride')
 	}
 	//noinspection UseTomlInstead
-	implementation("com.github.AppFuton:futon-parsers:$parsersVersion") {
+	implementation("com.github.clquwu:kotatsu-parsers-redo:$parsersVersion") {
 		exclude group: 'org.json', module: 'json'
 	}
 

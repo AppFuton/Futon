@@ -6,7 +6,7 @@ import io.github.landwarderer.futon.details.ui.model.ChapterListItem.Companion.F
 import io.github.landwarderer.futon.details.ui.model.ChapterListItem.Companion.FLAG_GRID
 import io.github.landwarderer.futon.details.ui.model.ChapterListItem.Companion.FLAG_NEW
 import io.github.landwarderer.futon.details.ui.model.ChapterListItem.Companion.FLAG_UNREAD
-import io.github.landwarderer.futon.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 import kotlin.experimental.or
 
 fun MangaChapter.toListItem(

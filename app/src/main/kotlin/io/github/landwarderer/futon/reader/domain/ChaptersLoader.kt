@@ -7,8 +7,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.details.data.MangaDetails
-import io.github.landwarderer.futon.parsers.model.MangaChapter
-import io.github.landwarderer.futon.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaPage
 import io.github.landwarderer.futon.reader.ui.pager.ReaderPage
 import javax.inject.Inject
 

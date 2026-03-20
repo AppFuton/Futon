@@ -25,7 +25,7 @@ import io.github.landwarderer.futon.core.util.ext.withArgs
 import io.github.landwarderer.futon.databinding.FragmentListBinding
 import io.github.landwarderer.futon.filter.ui.FilterCoordinator
 import io.github.landwarderer.futon.list.ui.MangaListFragment
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import io.github.landwarderer.futon.search.domain.SearchKind
 
 @AndroidEntryPoint

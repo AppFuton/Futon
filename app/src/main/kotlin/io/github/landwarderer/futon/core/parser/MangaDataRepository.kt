@@ -26,10 +26,10 @@ import io.github.landwarderer.futon.core.os.AppShortcutManager
 import io.github.landwarderer.futon.core.prefs.ReaderMode
 import io.github.landwarderer.futon.core.ui.model.MangaOverride
 import io.github.landwarderer.futon.core.util.ext.toFileOrNull
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.MangaTag
-import io.github.landwarderer.futon.parsers.util.nullIfEmpty
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import io.github.landwarderer.futon.reader.domain.ReaderColorFilter
 import javax.inject.Inject
 import javax.inject.Provider

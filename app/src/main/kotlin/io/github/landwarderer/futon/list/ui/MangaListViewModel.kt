@@ -23,7 +23,7 @@ import io.github.landwarderer.futon.core.ui.util.ReversibleAction
 import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.list.domain.ListFilterOption
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
 import io.github.landwarderer.futon.local.domain.model.LocalManga
 

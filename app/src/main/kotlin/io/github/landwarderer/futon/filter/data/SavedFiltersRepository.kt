@@ -7,8 +7,8 @@ import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.landwarderer.futon.core.util.ext.observeChanges
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged

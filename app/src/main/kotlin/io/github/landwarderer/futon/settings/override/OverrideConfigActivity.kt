@@ -21,8 +21,8 @@ import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.observeEvent
 import io.github.landwarderer.futon.core.util.ext.tryLaunch
 import io.github.landwarderer.futon.databinding.ActivityOverrideEditBinding
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import io.github.landwarderer.futon.picker.ui.PageImagePickContract
 import com.google.android.material.R as materialR
 

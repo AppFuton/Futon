@@ -1,6 +1,6 @@
 package io.github.landwarderer.futon.filter.ui.tags
 
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.MangaTag
 import java.text.Collator
 import java.util.Locale
 

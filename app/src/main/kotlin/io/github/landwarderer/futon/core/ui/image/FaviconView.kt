@@ -15,7 +15,7 @@ import io.github.landwarderer.futon.core.image.CoilImageView
 import io.github.landwarderer.futon.core.parser.favicon.faviconUri
 import io.github.landwarderer.futon.core.util.ext.isAnimationsEnabled
 import io.github.landwarderer.futon.core.util.ext.mangaSourceExtra
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 class FaviconView @JvmOverloads constructor(
 	context: Context,

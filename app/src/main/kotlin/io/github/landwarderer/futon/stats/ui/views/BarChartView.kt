@@ -10,8 +10,8 @@ import android.view.View
 import androidx.annotation.ColorInt
 import io.github.landwarderer.futon.core.util.ext.getThemeColor
 import io.github.landwarderer.futon.core.util.ext.resolveDp
-import io.github.landwarderer.futon.parsers.util.replaceWith
-import io.github.landwarderer.futon.parsers.util.toIntUp
+import org.koitharu.kotatsu.parsers.util.replaceWith
+import org.koitharu.kotatsu.parsers.util.toIntUp
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import androidx.appcompat.R as appcompatR

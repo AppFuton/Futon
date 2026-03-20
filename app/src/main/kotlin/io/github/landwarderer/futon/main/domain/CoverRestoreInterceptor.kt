@@ -12,10 +12,10 @@ import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.util.ext.bookmarkKey
 import io.github.landwarderer.futon.core.util.ext.mangaKey
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.findById
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.findById
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.util.Collections
 import javax.inject.Inject
 

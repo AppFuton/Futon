@@ -32,7 +32,7 @@ import io.github.landwarderer.futon.core.util.ext.parentView
 import io.github.landwarderer.futon.core.util.ext.showOrHide
 import io.github.landwarderer.futon.databinding.DialogDownloadBinding
 import io.github.landwarderer.futon.main.ui.owners.BottomNavOwner
-import io.github.landwarderer.futon.parsers.util.format
+import org.koitharu.kotatsu.parsers.util.format
 import io.github.landwarderer.futon.settings.storage.DirectoryModel
 
 @AndroidEntryPoint

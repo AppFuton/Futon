@@ -8,7 +8,7 @@ import io.github.landwarderer.futon.details.ui.model.ChapterListItem
 import io.github.landwarderer.futon.details.ui.model.toListItem
 import io.github.landwarderer.futon.list.ui.model.ListHeader
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.mapToSet
 
 fun MangaDetails.mapChapters(
 	currentChapterId: Long,

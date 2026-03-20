@@ -16,12 +16,12 @@ import io.github.landwarderer.futon.core.db.entity.toMangaTag
 import io.github.landwarderer.futon.core.db.entity.toMangaTagsList
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
-import io.github.landwarderer.futon.parsers.model.ContentType
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.MangaTag
-import io.github.landwarderer.futon.parsers.util.levenshteinDistance
-import io.github.landwarderer.futon.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.util.levenshteinDistance
+import org.koitharu.kotatsu.parsers.util.mapToSet
 import io.github.landwarderer.futon.search.ui.MangaSuggestionsProvider
 import javax.inject.Inject
 

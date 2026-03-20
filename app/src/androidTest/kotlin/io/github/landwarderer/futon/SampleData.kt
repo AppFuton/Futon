@@ -12,8 +12,8 @@ import okio.buffer
 import okio.source
 import io.github.landwarderer.futon.core.model.FavouriteCategory
 import io.github.landwarderer.futon.core.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.time.Instant
 import java.util.Date
 import kotlin.reflect.KClass

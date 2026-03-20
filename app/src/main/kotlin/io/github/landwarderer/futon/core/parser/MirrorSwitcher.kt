@@ -8,9 +8,9 @@ import okhttp3.Request
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.core.network.MangaHttpClient
 import io.github.landwarderer.futon.core.prefs.AppSettings
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
-import io.github.landwarderer.futon.parsers.util.await
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.util.await
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.util.EnumSet
 import javax.inject.Inject
 

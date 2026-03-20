@@ -26,10 +26,10 @@ import io.github.landwarderer.futon.core.util.ext.isNetworkUri
 import io.github.landwarderer.futon.core.util.ext.toMimeTypeOrNull
 import io.github.landwarderer.futon.local.data.LocalStorageCache
 import io.github.landwarderer.futon.local.data.PageCache
-import io.github.landwarderer.futon.parsers.model.MangaPage
-import io.github.landwarderer.futon.parsers.util.mimeType
-import io.github.landwarderer.futon.parsers.util.requireBody
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.util.mimeType
+import org.koitharu.kotatsu.parsers.util.requireBody
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.domain.PageLoader
 import javax.inject.Inject
 

@@ -6,7 +6,7 @@ import coil3.request.ImageResult
 import io.github.landwarderer.futon.core.model.unwrap
 import io.github.landwarderer.futon.core.network.CommonHeaders
 import io.github.landwarderer.futon.core.util.ext.mangaSourceKey
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 
 class MangaSourceHeaderInterceptor : Interceptor {
 

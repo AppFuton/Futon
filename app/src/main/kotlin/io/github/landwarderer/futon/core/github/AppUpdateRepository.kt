@@ -7,8 +7,8 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.network.BaseHttpClient
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.util.await
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.await
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

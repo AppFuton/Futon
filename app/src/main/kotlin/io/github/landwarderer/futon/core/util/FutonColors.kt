@@ -7,7 +7,7 @@ import androidx.core.graphics.ColorUtils
 import com.google.android.material.R
 import com.google.android.material.color.MaterialColors
 import io.github.landwarderer.futon.core.util.ext.getThemeColor
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import kotlin.math.absoluteValue
 
 object FutonColors {

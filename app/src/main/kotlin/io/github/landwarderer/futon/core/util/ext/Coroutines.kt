@@ -12,8 +12,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import io.github.landwarderer.futon.core.util.AcraCoroutineErrorHandler
 import io.github.landwarderer.futon.core.util.RetainedLifecycleCoroutineScope
-import io.github.landwarderer.futon.parsers.util.cancelAll
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.cancelAll
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.cancellation.CancellationException

@@ -16,7 +16,7 @@ import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.parser.ParserMangaRepository
 import io.github.landwarderer.futon.core.util.ext.getDisplayMessage
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint

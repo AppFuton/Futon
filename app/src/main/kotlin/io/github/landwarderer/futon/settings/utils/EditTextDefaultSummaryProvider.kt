@@ -3,7 +3,7 @@ package io.github.landwarderer.futon.settings.utils
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import io.github.landwarderer.futon.R
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 
 class EditTextDefaultSummaryProvider(
 	private val defaultValue: String,

@@ -3,25 +3,25 @@ package io.github.landwarderer.futon.core.ui.model
 import androidx.annotation.StringRes
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.SortDirection
-import io.github.landwarderer.futon.parsers.model.SortOrder
-import io.github.landwarderer.futon.parsers.model.SortOrder.ADDED
-import io.github.landwarderer.futon.parsers.model.SortOrder.ADDED_ASC
-import io.github.landwarderer.futon.parsers.model.SortOrder.ALPHABETICAL
-import io.github.landwarderer.futon.parsers.model.SortOrder.ALPHABETICAL_DESC
-import io.github.landwarderer.futon.parsers.model.SortOrder.NEWEST
-import io.github.landwarderer.futon.parsers.model.SortOrder.NEWEST_ASC
-import io.github.landwarderer.futon.parsers.model.SortOrder.POPULARITY
-import io.github.landwarderer.futon.parsers.model.SortOrder.POPULARITY_ASC
-import io.github.landwarderer.futon.parsers.model.SortOrder.POPULARITY_HOUR
-import io.github.landwarderer.futon.parsers.model.SortOrder.POPULARITY_MONTH
-import io.github.landwarderer.futon.parsers.model.SortOrder.POPULARITY_TODAY
-import io.github.landwarderer.futon.parsers.model.SortOrder.POPULARITY_WEEK
-import io.github.landwarderer.futon.parsers.model.SortOrder.POPULARITY_YEAR
-import io.github.landwarderer.futon.parsers.model.SortOrder.RATING
-import io.github.landwarderer.futon.parsers.model.SortOrder.RATING_ASC
-import io.github.landwarderer.futon.parsers.model.SortOrder.RELEVANCE
-import io.github.landwarderer.futon.parsers.model.SortOrder.UPDATED
-import io.github.landwarderer.futon.parsers.model.SortOrder.UPDATED_ASC
+import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.SortOrder.ADDED
+import org.koitharu.kotatsu.parsers.model.SortOrder.ADDED_ASC
+import org.koitharu.kotatsu.parsers.model.SortOrder.ALPHABETICAL
+import org.koitharu.kotatsu.parsers.model.SortOrder.ALPHABETICAL_DESC
+import org.koitharu.kotatsu.parsers.model.SortOrder.NEWEST
+import org.koitharu.kotatsu.parsers.model.SortOrder.NEWEST_ASC
+import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY
+import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_ASC
+import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_HOUR
+import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_MONTH
+import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_TODAY
+import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_WEEK
+import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_YEAR
+import org.koitharu.kotatsu.parsers.model.SortOrder.RATING
+import org.koitharu.kotatsu.parsers.model.SortOrder.RATING_ASC
+import org.koitharu.kotatsu.parsers.model.SortOrder.RELEVANCE
+import org.koitharu.kotatsu.parsers.model.SortOrder.UPDATED
+import org.koitharu.kotatsu.parsers.model.SortOrder.UPDATED_ASC
 
 @get:StringRes
 val SortOrder.titleRes: Int

@@ -12,7 +12,7 @@ import io.github.landwarderer.futon.core.util.ext.sortedByOrdinal
 import io.github.landwarderer.futon.favourites.domain.FavouritesRepository
 import io.github.landwarderer.futon.favourites.ui.list.FavouritesListFragment.Companion.NO_ID
 import io.github.landwarderer.futon.list.domain.ListSortOrder
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 
 @HiltViewModel

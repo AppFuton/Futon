@@ -32,9 +32,9 @@ import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingFooter
 import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.list.ui.model.MangaGridModel
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.suspendlazy.getOrDefault
-import io.github.landwarderer.futon.parsers.util.suspendlazy.suspendLazy
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrDefault
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import javax.inject.Inject
 
 @HiltViewModel

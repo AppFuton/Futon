@@ -7,10 +7,10 @@ import org.json.JSONObject
 import io.github.landwarderer.futon.core.exceptions.SyncApiException
 import io.github.landwarderer.futon.core.network.BaseHttpClient
 import io.github.landwarderer.futon.core.util.ext.toRequestBody
-import io.github.landwarderer.futon.parsers.util.await
-import io.github.landwarderer.futon.parsers.util.parseJson
-import io.github.landwarderer.futon.parsers.util.parseRaw
-import io.github.landwarderer.futon.parsers.util.removeSurrounding
+import org.koitharu.kotatsu.parsers.util.await
+import org.koitharu.kotatsu.parsers.util.parseJson
+import org.koitharu.kotatsu.parsers.util.parseRaw
+import org.koitharu.kotatsu.parsers.util.removeSurrounding
 import javax.inject.Inject
 
 @Reusable

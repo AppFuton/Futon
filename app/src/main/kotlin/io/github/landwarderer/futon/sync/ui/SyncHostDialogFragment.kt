@@ -16,7 +16,7 @@ import io.github.landwarderer.futon.core.ui.AlertDialogFragment
 import io.github.landwarderer.futon.core.util.ext.isHttpUrl
 import io.github.landwarderer.futon.core.util.ext.withArgs
 import io.github.landwarderer.futon.databinding.PreferenceDialogAutocompletetextviewBinding
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import io.github.landwarderer.futon.settings.utils.validation.UrlValidator
 import io.github.landwarderer.futon.sync.data.SyncSettings
 import javax.inject.Inject

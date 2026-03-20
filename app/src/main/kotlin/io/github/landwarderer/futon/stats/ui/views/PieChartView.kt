@@ -15,7 +15,7 @@ import androidx.core.view.PointerIconCompat
 import androidx.core.view.ViewCompat
 import io.github.landwarderer.futon.core.util.ext.getThemeColor
 import io.github.landwarderer.futon.core.util.ext.resolveDp
-import io.github.landwarderer.futon.parsers.util.replaceWith
+import org.koitharu.kotatsu.parsers.util.replaceWith
 import kotlin.math.atan2
 import kotlin.math.sqrt
 

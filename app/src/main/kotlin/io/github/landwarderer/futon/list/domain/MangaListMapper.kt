@@ -19,8 +19,8 @@ import io.github.landwarderer.futon.list.ui.model.MangaDetailedListModel
 import io.github.landwarderer.futon.list.ui.model.MangaGridModel
 import io.github.landwarderer.futon.list.ui.model.MangaListModel
 import io.github.landwarderer.futon.local.data.index.LocalMangaIndex
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaTag
 import io.github.landwarderer.futon.tracker.domain.TrackingRepository
 import io.github.landwarderer.futon.tracker.domain.model.TrackingLogItem
 import io.github.landwarderer.futon.tracker.ui.feed.model.FeedItem

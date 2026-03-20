@@ -9,7 +9,7 @@ import android.os.Bundle
 import dagger.hilt.android.EntryPointAccessors
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.util.ext.onError
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.sync.domain.SyncController
 import io.github.landwarderer.futon.sync.ui.SyncAdapterEntryPoint
 

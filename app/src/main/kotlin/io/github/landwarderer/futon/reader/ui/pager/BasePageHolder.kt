@@ -25,7 +25,7 @@ import io.github.landwarderer.futon.core.util.ext.isLowRamDevice
 import io.github.landwarderer.futon.core.util.ext.isSerializable
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.databinding.LayoutPageInfoBinding
-import io.github.landwarderer.futon.parsers.util.ifZero
+import org.koitharu.kotatsu.parsers.util.ifZero
 import io.github.landwarderer.futon.reader.domain.PageLoader
 import io.github.landwarderer.futon.reader.ui.config.ReaderSettings
 import io.github.landwarderer.futon.reader.ui.pager.vm.PageState

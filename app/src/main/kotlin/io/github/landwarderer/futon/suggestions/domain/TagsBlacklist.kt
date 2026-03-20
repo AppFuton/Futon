@@ -1,8 +1,8 @@
 package io.github.landwarderer.futon.suggestions.domain
 
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaTag
-import io.github.landwarderer.futon.parsers.util.almostEquals
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.util.almostEquals
 
 class TagsBlacklist(
 	private val tags: Set<String>,

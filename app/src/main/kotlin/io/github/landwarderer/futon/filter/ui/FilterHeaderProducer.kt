@@ -8,11 +8,11 @@ import io.github.landwarderer.futon.core.ui.widgets.ChipsView
 import io.github.landwarderer.futon.filter.data.PersistableFilter
 import io.github.landwarderer.futon.filter.ui.model.FilterHeaderModel
 import io.github.landwarderer.futon.filter.ui.model.FilterProperty
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.model.MangaListFilterCapabilities
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.MangaTag
-import io.github.landwarderer.futon.parsers.util.toTitleCase
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.util.toTitleCase
 import io.github.landwarderer.futon.search.domain.MangaSearchRepository
 import javax.inject.Inject
 import androidx.appcompat.R as appcompatR

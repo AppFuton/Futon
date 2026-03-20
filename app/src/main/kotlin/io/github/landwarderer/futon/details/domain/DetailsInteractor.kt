@@ -16,8 +16,8 @@ import io.github.landwarderer.futon.favourites.domain.FavouritesRepository
 import io.github.landwarderer.futon.history.data.HistoryRepository
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.scrobbling.common.domain.Scrobbler
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingInfo
 import io.github.landwarderer.futon.tracker.domain.TrackingRepository

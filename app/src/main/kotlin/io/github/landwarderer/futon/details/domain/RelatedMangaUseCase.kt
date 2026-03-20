@@ -2,8 +2,8 @@ package io.github.landwarderer.futon.details.domain
 
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 
 class RelatedMangaUseCase @Inject constructor(

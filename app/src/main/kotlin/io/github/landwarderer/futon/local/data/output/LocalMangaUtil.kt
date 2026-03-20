@@ -3,7 +3,7 @@ package io.github.landwarderer.futon.local.data.output
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import io.github.landwarderer.futon.core.model.isLocal
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 
 class LocalMangaUtil(
 	private val manga: Manga,

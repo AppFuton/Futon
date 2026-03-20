@@ -9,9 +9,9 @@ import io.github.landwarderer.futon.details.domain.ProgressUpdateUseCase
 import io.github.landwarderer.futon.history.data.HistoryEntity
 import io.github.landwarderer.futon.history.data.toMangaHistory
 import io.github.landwarderer.futon.list.domain.ReadingProgress.Companion.PROGRESS_NONE
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaChapter
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.scrobbling.common.domain.Scrobbler
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblingStatus
 import io.github.landwarderer.futon.tracker.data.TrackEntity

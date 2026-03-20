@@ -42,8 +42,8 @@ import io.github.landwarderer.futon.explore.ui.adapter.ExploreListEventListener
 import io.github.landwarderer.futon.explore.ui.model.MangaSourceItem
 import io.github.landwarderer.futon.list.ui.adapter.TypedListSpacingDecoration
 import io.github.landwarderer.futon.list.ui.model.ListHeader
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 
 @AndroidEntryPoint
 class ExploreFragment :

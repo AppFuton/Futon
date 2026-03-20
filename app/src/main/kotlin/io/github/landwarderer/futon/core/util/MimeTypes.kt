@@ -5,9 +5,9 @@ import android.webkit.MimeTypeMap
 import org.jetbrains.annotations.Blocking
 import io.github.landwarderer.futon.core.util.ext.MimeType
 import io.github.landwarderer.futon.core.util.ext.toMimeTypeOrNull
-import io.github.landwarderer.futon.parsers.util.nullIfEmpty
-import io.github.landwarderer.futon.parsers.util.removeSuffix
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
+import org.koitharu.kotatsu.parsers.util.removeSuffix
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.File
 import java.nio.file.Files
 import coil3.util.MimeTypeMap as CoilMimeTypeMap

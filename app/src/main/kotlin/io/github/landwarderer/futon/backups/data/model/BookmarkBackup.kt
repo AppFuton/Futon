@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import io.github.landwarderer.futon.bookmarks.data.BookmarkEntity
 import io.github.landwarderer.futon.core.db.entity.MangaWithTags
-import io.github.landwarderer.futon.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.mapToSet
 
 @Serializable
 class BookmarkBackup(

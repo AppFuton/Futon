@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.history.data.HistoryRepository
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import javax.inject.Inject
 
 @Reusable

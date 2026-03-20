@@ -47,8 +47,8 @@ import io.github.landwarderer.futon.core.util.ext.trySetForeground
 import io.github.landwarderer.futon.download.ui.worker.DownloadTask
 import io.github.landwarderer.futon.download.ui.worker.DownloadWorker
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
-import io.github.landwarderer.futon.parsers.util.toIntUp
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.toIntUp
 import io.github.landwarderer.futon.settings.work.PeriodicWorkScheduler
 import io.github.landwarderer.futon.tracker.domain.CheckNewChaptersUseCase
 import io.github.landwarderer.futon.tracker.domain.GetTracksUseCase

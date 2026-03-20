@@ -21,8 +21,8 @@ import io.github.landwarderer.futon.core.ui.image.TrimTransformation
 import io.github.landwarderer.futon.core.util.ext.getDrawableOrThrow
 import io.github.landwarderer.futon.core.util.ext.mangaExtra
 import io.github.landwarderer.futon.favourites.domain.FavouritesRepository
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.replaceWith
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.replaceWith
 
 class ShelfListFactory(
 	private val context: Context,

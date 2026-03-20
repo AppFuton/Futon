@@ -6,7 +6,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.github.landwarderer.futon.browser.BaseBrowserActivity
 import io.github.landwarderer.futon.core.parser.ParserMangaRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import javax.inject.Inject
 
 @AndroidEntryPoint

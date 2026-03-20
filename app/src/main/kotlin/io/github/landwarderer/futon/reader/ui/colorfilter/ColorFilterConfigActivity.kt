@@ -26,8 +26,8 @@ import io.github.landwarderer.futon.core.util.ext.setValueRounded
 import io.github.landwarderer.futon.core.util.ext.systemBarsInsets
 import io.github.landwarderer.futon.core.util.progress.ImageRequestIndicatorListener
 import io.github.landwarderer.futon.databinding.ActivityColorFilterBinding
-import io.github.landwarderer.futon.parsers.model.MangaPage
-import io.github.landwarderer.futon.parsers.util.format
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.util.format
 import io.github.landwarderer.futon.reader.domain.ReaderColorFilter
 import javax.inject.Inject
 

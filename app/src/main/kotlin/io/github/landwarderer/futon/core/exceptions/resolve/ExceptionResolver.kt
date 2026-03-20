@@ -27,10 +27,10 @@ import io.github.landwarderer.futon.core.ui.dialog.buildAlertDialog
 import io.github.landwarderer.futon.core.util.ext.isHttpUrl
 import io.github.landwarderer.futon.core.util.ext.restartApplication
 import io.github.landwarderer.futon.details.ui.pager.EmptyMangaReason
-import io.github.landwarderer.futon.parsers.exception.AuthRequiredException
-import io.github.landwarderer.futon.parsers.exception.NotFoundException
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
+import org.koitharu.kotatsu.parsers.exception.NotFoundException
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import io.github.landwarderer.futon.scrobbling.common.domain.ScrobblerAuthRequiredException
 import io.github.landwarderer.futon.scrobbling.common.ui.ScrobblerAuthHelper
 import io.github.landwarderer.futon.settings.sources.auth.SourceAuthActivity

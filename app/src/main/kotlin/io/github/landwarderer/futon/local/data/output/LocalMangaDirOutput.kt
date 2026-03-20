@@ -16,9 +16,9 @@ import io.github.landwarderer.futon.core.util.ext.toFileNameSafe
 import io.github.landwarderer.futon.core.zip.ZipOutput
 import io.github.landwarderer.futon.local.data.MangaIndex
 import io.github.landwarderer.futon.local.data.input.LocalMangaParser
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaChapter
-import io.github.landwarderer.futon.parsers.util.nullIfEmpty
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import java.io.File
 
 class LocalMangaDirOutput(

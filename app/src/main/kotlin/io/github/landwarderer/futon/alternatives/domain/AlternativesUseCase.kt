@@ -9,10 +9,10 @@ import kotlinx.coroutines.sync.withPermit
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.util.ext.toLocale
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.search.domain.SearchKind
 import io.github.landwarderer.futon.search.domain.SearchV2Helper
 import java.util.Locale

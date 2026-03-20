@@ -2,7 +2,7 @@ package io.github.landwarderer.futon.filter.ui.model
 
 import io.github.landwarderer.futon.list.ui.ListModelDiffCallback
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.MangaTag
 
 data class TagCatalogItem(
 	val tag: MangaTag,

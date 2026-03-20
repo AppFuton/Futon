@@ -1,6 +1,6 @@
 package io.github.landwarderer.futon.core.github
 
-import io.github.landwarderer.futon.parsers.util.digits
+import org.koitharu.kotatsu.parsers.util.digits
 import java.util.Locale
 
 data class VersionId(

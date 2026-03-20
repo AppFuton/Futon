@@ -14,12 +14,12 @@ import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.serializer
 import io.github.landwarderer.futon.core.model.MangaSource
 import io.github.landwarderer.futon.core.util.ext.toLocaleOrNull
-import io.github.landwarderer.futon.parsers.model.ContentRating
-import io.github.landwarderer.futon.parsers.model.ContentType
-import io.github.landwarderer.futon.parsers.model.Demographic
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.model.MangaState
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.ContentRating
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.Demographic
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.MangaTag
 import java.util.Locale
 
 object MangaListFilterSerializer : KSerializer<MangaListFilter> {

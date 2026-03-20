@@ -5,7 +5,7 @@ import android.text.format.DateUtils
 import org.jsoup.internal.StringUtil.StringJoiner
 import io.github.landwarderer.futon.core.model.getLocalizedTitle
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 import kotlin.experimental.and
 
 data class ChapterListItem(

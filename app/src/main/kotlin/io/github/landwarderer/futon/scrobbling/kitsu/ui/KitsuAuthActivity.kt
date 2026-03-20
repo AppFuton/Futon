@@ -17,7 +17,7 @@ import io.github.landwarderer.futon.core.ui.BaseActivity
 import io.github.landwarderer.futon.core.ui.util.DefaultTextWatcher
 import io.github.landwarderer.futon.core.util.ext.consume
 import io.github.landwarderer.futon.databinding.ActivityKitsuAuthBinding
-import io.github.landwarderer.futon.parsers.util.urlEncoded
+import org.koitharu.kotatsu.parsers.util.urlEncoded
 
 class KitsuAuthActivity : BaseActivity<ActivityKitsuAuthBinding>(),
 	View.OnClickListener,

@@ -27,7 +27,7 @@ import io.github.landwarderer.futon.explore.ui.model.RecommendationsItem
 import io.github.landwarderer.futon.list.ui.adapter.ListItemType
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.MangaCompactListModel
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 
 fun exploreButtonsAD(
 	clickListener: View.OnClickListener,

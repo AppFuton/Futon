@@ -15,10 +15,10 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.nav.AppRouter
 import io.github.landwarderer.futon.core.network.BaseHttpClient
 import io.github.landwarderer.futon.core.prefs.AppSettings
-import io.github.landwarderer.futon.parsers.util.await
-import io.github.landwarderer.futon.parsers.util.json.getBooleanOrDefault
-import io.github.landwarderer.futon.parsers.util.json.getStringOrNull
-import io.github.landwarderer.futon.parsers.util.parseJson
+import org.koitharu.kotatsu.parsers.util.await
+import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
+import org.koitharu.kotatsu.parsers.util.parseJson
 import java.io.File
 import javax.inject.Inject
 

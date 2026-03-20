@@ -19,9 +19,9 @@ import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.getDrawableOrThrow
 import io.github.landwarderer.futon.core.util.ext.mangaExtra
 import io.github.landwarderer.futon.history.data.HistoryRepository
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.replaceWith
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.replaceWith
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 
 class RecentListFactory(
 	private val context: Context,

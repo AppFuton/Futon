@@ -1,7 +1,7 @@
 package io.github.landwarderer.futon.suggestions.domain
 
 import androidx.annotation.FloatRange
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 
 data class MangaSuggestion(
 	val manga: Manga,

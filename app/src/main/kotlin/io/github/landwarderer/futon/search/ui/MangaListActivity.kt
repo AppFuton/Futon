@@ -46,10 +46,10 @@ import io.github.landwarderer.futon.filter.ui.sheet.FilterSheetFragment
 import io.github.landwarderer.futon.list.ui.preview.PreviewFragment
 import io.github.landwarderer.futon.local.ui.LocalListFragment
 import io.github.landwarderer.futon.main.ui.owners.AppBarOwner
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import io.github.landwarderer.futon.remotelist.ui.RemoteListFragment
 import kotlin.math.absoluteValue
 import com.google.android.material.R as materialR

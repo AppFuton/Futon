@@ -8,7 +8,7 @@ import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.ui.BaseViewModel
 import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.core.util.ext.call
-import io.github.landwarderer.futon.parsers.util.md5
+import org.koitharu.kotatsu.parsers.util.md5
 import javax.inject.Inject
 
 private const val PASSWORD_COMPARE_DELAY = 1_000L

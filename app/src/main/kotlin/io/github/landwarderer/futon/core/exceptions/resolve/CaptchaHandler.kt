@@ -46,10 +46,10 @@ import io.github.landwarderer.futon.core.util.ext.mangaSourceExtra
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
 import io.github.landwarderer.futon.core.util.ext.toBitmapOrNull
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.network.CloudFlareHelper
-import io.github.landwarderer.futon.parsers.util.mapToArray
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
+import org.koitharu.kotatsu.parsers.util.mapToArray
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll

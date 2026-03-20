@@ -16,8 +16,8 @@ import io.github.landwarderer.futon.core.model.parcelable.ParcelableManga
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.util.ext.concat
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException

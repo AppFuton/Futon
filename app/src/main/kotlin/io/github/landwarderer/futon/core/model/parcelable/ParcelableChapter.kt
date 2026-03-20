@@ -5,7 +5,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parceler
 import kotlinx.parcelize.Parcelize
 import io.github.landwarderer.futon.core.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 
 @Parcelize
 data class ParcelableChapter(

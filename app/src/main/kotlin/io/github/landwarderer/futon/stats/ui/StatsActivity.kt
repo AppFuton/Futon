@@ -37,7 +37,7 @@ import io.github.landwarderer.futon.core.util.ext.start
 import io.github.landwarderer.futon.databinding.ActivityStatsBinding
 import io.github.landwarderer.futon.databinding.ItemEmptyStateBinding
 import io.github.landwarderer.futon.list.ui.adapter.ListItemType
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.stats.domain.StatsPeriod
 import io.github.landwarderer.futon.stats.domain.StatsRecord
 import io.github.landwarderer.futon.stats.ui.views.PieChartView

@@ -32,7 +32,7 @@ import io.github.landwarderer.futon.local.data.LocalStorageChanges
 import io.github.landwarderer.futon.local.data.LocalStorageManager
 import io.github.landwarderer.futon.local.domain.DeleteLocalMangaUseCase
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.remotelist.ui.RemoteListViewModel
 import javax.inject.Inject
 

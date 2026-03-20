@@ -32,11 +32,11 @@ import io.github.landwarderer.futon.core.util.ext.takeIfReadable
 import io.github.landwarderer.futon.core.util.ext.toUriOrNull
 import io.github.landwarderer.futon.explore.data.SourcesSortOrder
 import io.github.landwarderer.futon.list.domain.ListSortOrder
-import io.github.landwarderer.futon.parsers.model.SortOrder
-import io.github.landwarderer.futon.parsers.util.find
-import io.github.landwarderer.futon.parsers.util.mapNotNullToSet
-import io.github.landwarderer.futon.parsers.util.mapToSet
-import io.github.landwarderer.futon.parsers.util.nullIfEmpty
+import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.util.find
+import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import io.github.landwarderer.futon.reader.domain.ReaderColorFilter
 import java.io.File
 import java.net.Proxy

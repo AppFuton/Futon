@@ -1,6 +1,6 @@
 package io.github.landwarderer.futon.settings.sources.catalog
 
-import io.github.landwarderer.futon.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.ContentType
 
 data class SourcesCatalogFilter(
 	val types: Set<ContentType>,

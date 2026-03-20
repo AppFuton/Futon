@@ -9,7 +9,7 @@ import io.github.landwarderer.futon.core.exceptions.resolve.ExceptionResolver
 import io.github.landwarderer.futon.core.os.NetworkState
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.throttle
-import io.github.landwarderer.futon.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaPage
 import io.github.landwarderer.futon.reader.domain.PageLoader
 import io.github.landwarderer.futon.reader.ui.config.ReaderSettings
 import kotlinx.coroutines.CancellationException

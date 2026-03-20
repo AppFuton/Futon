@@ -28,7 +28,7 @@ import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.tryLaunch
 import io.github.landwarderer.futon.databinding.SheetWelcomeBinding
 import io.github.landwarderer.futon.filter.ui.model.FilterProperty
-import io.github.landwarderer.futon.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.ContentType
 import java.util.Locale
 
 @AndroidEntryPoint

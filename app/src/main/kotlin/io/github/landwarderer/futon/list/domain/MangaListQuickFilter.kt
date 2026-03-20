@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import io.github.landwarderer.futon.core.model.toChipModel
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.list.ui.model.QuickFilter
-import io.github.landwarderer.futon.parsers.util.suspendlazy.getOrNull
-import io.github.landwarderer.futon.parsers.util.suspendlazy.suspendLazy
+import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 
 abstract class MangaListQuickFilter(
 	private val settings: AppSettings,

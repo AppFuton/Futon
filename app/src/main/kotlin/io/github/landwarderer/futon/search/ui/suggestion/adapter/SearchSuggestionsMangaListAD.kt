@@ -11,7 +11,7 @@ import io.github.landwarderer.futon.core.ui.list.decor.SpacingItemDecoration
 import io.github.landwarderer.futon.core.util.RecyclerViewScrollCallback
 import io.github.landwarderer.futon.core.util.ext.setTooltipCompat
 import io.github.landwarderer.futon.databinding.ItemSearchSuggestionMangaGridBinding
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionListener
 import io.github.landwarderer.futon.search.ui.suggestion.model.SearchSuggestionItem
 

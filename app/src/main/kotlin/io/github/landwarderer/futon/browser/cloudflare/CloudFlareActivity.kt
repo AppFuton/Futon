@@ -3,6 +3,7 @@ package io.github.landwarderer.futon.browser.cloudflare
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContract
@@ -10,6 +11,12 @@ import androidx.core.view.isInvisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.yield
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.browser.BaseBrowserActivity
 import io.github.landwarderer.futon.core.exceptions.CloudFlareProtectedException
@@ -20,16 +27,11 @@ import io.github.landwarderer.futon.core.network.cookies.MutableCookieJar
 import io.github.landwarderer.futon.core.parser.ParserMangaRepository
 import io.github.landwarderer.futon.core.util.ext.getDisplayMessage
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.network.CloudFlareHelper
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.yield
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -52,7 +54,19 @@ class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 			finishAfterTransition()
 			return
 		}
-		cfClient = CloudFlareClient(cookieJar, this, adBlock, url)
+
+		// Check if source needs header interception
+		val needsInterception = shouldUseInterception(source, repository)
+		Log.d(TAG, "Source: ${source.name}, needsInterception: $needsInterception")
+
+		cfClient = if (needsInterception) {
+			Log.d(TAG, "Using CloudFlareInterceptClient with header filtering")
+			CloudFlareInterceptClient(cookieJar, this, adBlock, url)
+		} else {
+			Log.d(TAG, "Using regular CloudFlareClient (no interception)")
+			CloudFlareClient(cookieJar, this, adBlock, url)
+		}
+
 		viewBinding.webView.webViewClient = cfClient
 		lifecycleScope.launch {
 			try {
@@ -110,7 +124,7 @@ class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 				runCatchingCancellable {
 					captchaHandler.discard(MangaSource(source))
 				}.onFailure {
-					it.printStackTraceDebug("CloudFlareActivity::onCheckPassed")
+					it.printStackTraceDebug()
 				}
 			}
 			finishAfterTransition()
@@ -135,10 +149,35 @@ class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 		}
 	}
 
-	private suspend fun clearCfCookies(url: HttpUrl) = runInterruptible(Dispatchers.IO) {
+	private suspend fun clearCfCookies(url: HttpUrl) = runInterruptible(Dispatchers.Default) {
 		cookieJar.removeCookies(url) { cookie ->
 			CloudFlareHelper.isCloudFlareCookie(cookie.name)
 		}
+	}
+
+	private fun shouldUseInterception(source: MangaSource, repository: ParserMangaRepository?): Boolean {
+		Log.d(TAG, "shouldUseInterception called for source: ${source.name}")
+		Log.d(TAG, "Repository type: ${repository?.javaClass?.simpleName}")
+
+		if (repository !is ParserMangaRepository) {
+			Log.d(TAG, "Repository is not ParserMangaRepository, returning false")
+			return false
+		}
+
+		// Check if parser has InterceptCloudflare ConfigKey
+		val configKeys = repository.getConfigKeys()
+		Log.d(TAG, "Config keys count: ${configKeys.size}")
+		Log.d(TAG, "Config keys: ${configKeys.map { it.javaClass.simpleName }}")
+
+		val interceptKey = configKeys.filterIsInstance<ConfigKey.InterceptCloudflare>().firstOrNull()
+		Log.d(TAG, "InterceptCloudflare key found: ${interceptKey != null}")
+		if (interceptKey != null) {
+			Log.d(TAG, "InterceptCloudflare defaultValue: ${interceptKey.defaultValue}")
+		}
+
+		val result = interceptKey?.defaultValue == true
+		Log.d(TAG, "Returning: $result")
+		return result
 	}
 
 	class Contract : ActivityResultContract<CloudFlareProtectedException, Boolean>() {

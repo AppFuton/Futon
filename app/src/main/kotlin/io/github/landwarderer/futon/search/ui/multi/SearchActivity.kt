@@ -32,8 +32,8 @@ import io.github.landwarderer.futon.list.ui.adapter.TypedListSpacingDecoration
 import io.github.landwarderer.futon.list.ui.model.ListHeader
 import io.github.landwarderer.futon.list.ui.model.MangaListModel
 import io.github.landwarderer.futon.list.ui.size.DynamicItemSizeResolver
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaTag
 import io.github.landwarderer.futon.search.domain.SearchKind
 import io.github.landwarderer.futon.search.ui.multi.adapter.SearchAdapter
 import javax.inject.Inject

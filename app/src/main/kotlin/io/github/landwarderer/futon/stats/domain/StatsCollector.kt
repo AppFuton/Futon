@@ -8,7 +8,7 @@ import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.RetainedLifecycleCoroutineScope
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.ui.ReaderState
 import io.github.landwarderer.futon.stats.data.StatsEntity
 import kotlinx.coroutines.Dispatchers

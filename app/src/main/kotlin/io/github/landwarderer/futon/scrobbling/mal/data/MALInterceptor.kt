@@ -4,8 +4,8 @@ import okhttp3.Interceptor
 import okhttp3.Response
 import okio.IOException
 import io.github.landwarderer.futon.core.network.CommonHeaders
-import io.github.landwarderer.futon.parsers.util.mimeType
-import io.github.landwarderer.futon.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.mimeType
+import org.koitharu.kotatsu.parsers.util.parseHtml
 import io.github.landwarderer.futon.scrobbling.common.data.ScrobblerStorage
 import io.github.landwarderer.futon.scrobbling.common.domain.ScrobblerAuthRequiredException
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblerService

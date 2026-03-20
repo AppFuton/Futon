@@ -10,10 +10,10 @@ import io.github.landwarderer.futon.core.ui.BaseViewModel
 import io.github.landwarderer.futon.core.ui.widgets.ChipsView
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.MangaTag
-import io.github.landwarderer.futon.parsers.util.mapToSet
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.search.domain.MangaSearchRepository
 import io.github.landwarderer.futon.search.ui.suggestion.model.SearchSuggestionItem
 import kotlinx.coroutines.Dispatchers

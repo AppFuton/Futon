@@ -1,7 +1,7 @@
 package io.github.landwarderer.futon.reader.ui
 
 import com.google.android.material.slider.LabelFormatter
-import io.github.landwarderer.futon.parsers.util.format
+import org.koitharu.kotatsu.parsers.util.format
 
 class PageLabelFormatter : LabelFormatter {
 

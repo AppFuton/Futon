@@ -16,7 +16,7 @@ import io.github.landwarderer.futon.core.ui.BasePreferenceFragment
 import io.github.landwarderer.futon.core.util.ext.getDisplayMessage
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.viewLifecycleScope
-import io.github.landwarderer.futon.parsers.util.await
+import org.koitharu.kotatsu.parsers.util.await
 import io.github.landwarderer.futon.settings.utils.EditTextBindListener
 import io.github.landwarderer.futon.settings.utils.PasswordSummaryProvider
 import io.github.landwarderer.futon.settings.utils.validation.DomainValidator

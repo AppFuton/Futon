@@ -5,7 +5,7 @@ import android.content.Intent
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.bookmarks.domain.Bookmark
 import io.github.landwarderer.futon.core.model.parcelable.ParcelableManga
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.reader.ui.ReaderActivity
 import io.github.landwarderer.futon.reader.ui.ReaderState
 

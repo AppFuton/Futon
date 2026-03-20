@@ -1,6 +1,6 @@
 package io.github.landwarderer.futon.core.model
 
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 data class MangaSourceInfo(
 	val mangaSource: MangaSource,

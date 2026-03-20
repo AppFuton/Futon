@@ -29,7 +29,7 @@ import io.github.landwarderer.futon.list.ui.adapter.emptyStateListAD
 import io.github.landwarderer.futon.list.ui.adapter.loadingFooterAD
 import io.github.landwarderer.futon.list.ui.adapter.loadingStateAD
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import javax.inject.Inject
 
 @AndroidEntryPoint

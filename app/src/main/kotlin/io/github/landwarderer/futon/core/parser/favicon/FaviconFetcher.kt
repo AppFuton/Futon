@@ -33,7 +33,7 @@ import io.github.landwarderer.futon.core.util.ext.toMimeTypeOrNull
 import io.github.landwarderer.futon.local.data.FaviconCache
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.LocalStorageCache
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.runInterruptible

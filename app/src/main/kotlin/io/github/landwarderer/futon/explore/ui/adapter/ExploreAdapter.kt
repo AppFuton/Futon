@@ -8,7 +8,7 @@ import io.github.landwarderer.futon.list.ui.adapter.emptyHintAD
 import io.github.landwarderer.futon.list.ui.adapter.listHeaderAD
 import io.github.landwarderer.futon.list.ui.adapter.loadingStateAD
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 
 class ExploreAdapter(
 	listener: ExploreListEventListener,

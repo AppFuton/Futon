@@ -3,8 +3,8 @@ package io.github.landwarderer.futon.history.domain
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
 import io.github.landwarderer.futon.history.data.HistoryRepository
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.ui.ReaderState
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers

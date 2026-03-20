@@ -10,7 +10,7 @@ import okhttp3.Response
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.observeAsStateFlow
 import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
-import io.github.landwarderer.futon.parsers.util.await
+import org.koitharu.kotatsu.parsers.util.await
 import javax.inject.Inject
 import javax.inject.Singleton
 

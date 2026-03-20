@@ -28,11 +28,11 @@ import io.github.landwarderer.futon.details.data.MangaDetails
 import io.github.landwarderer.futon.explore.domain.RecoverMangaUseCase
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import io.github.landwarderer.futon.parsers.exception.NotFoundException
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.nullIfEmpty
-import io.github.landwarderer.futon.parsers.util.recoverNotNull
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.exception.NotFoundException
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
+import org.koitharu.kotatsu.parsers.util.recoverNotNull
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 
 class DetailsLoadUseCase @Inject constructor(

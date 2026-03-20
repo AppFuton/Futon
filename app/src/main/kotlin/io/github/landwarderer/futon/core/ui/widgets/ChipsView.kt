@@ -34,7 +34,7 @@ import io.github.landwarderer.futon.core.ui.image.ChipIconTarget
 import io.github.landwarderer.futon.core.util.ext.enqueueWith
 import io.github.landwarderer.futon.core.util.ext.getThemeColor
 import io.github.landwarderer.futon.core.util.ext.setProgressIcon
-import io.github.landwarderer.futon.parsers.util.ifZero
+import org.koitharu.kotatsu.parsers.util.ifZero
 import javax.inject.Inject
 import com.google.android.material.R as materialR
 

@@ -2,7 +2,7 @@ package io.github.landwarderer.futon.reader.ui.pager
 
 import android.content.res.Resources
 import io.github.landwarderer.futon.core.model.getLocalizedTitle
-import io.github.landwarderer.futon.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 
 data class ReaderUiState(
 	val mangaName: String?,

@@ -19,7 +19,7 @@ import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.list.ui.model.toErrorState
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

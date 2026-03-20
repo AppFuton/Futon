@@ -9,11 +9,11 @@ import io.github.landwarderer.futon.core.util.ext.readEnumSet
 import io.github.landwarderer.futon.core.util.ext.readParcelableCompat
 import io.github.landwarderer.futon.core.util.ext.readSerializableCompat
 import io.github.landwarderer.futon.core.util.ext.writeEnumSet
-import io.github.landwarderer.futon.parsers.model.ContentRating
-import io.github.landwarderer.futon.parsers.model.ContentType
-import io.github.landwarderer.futon.parsers.model.Demographic
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.ContentRating
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.Demographic
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaState
 
 object MangaListFilterParceler : Parceler<MangaListFilter> {
 

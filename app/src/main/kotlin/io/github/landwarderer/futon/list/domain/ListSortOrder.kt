@@ -2,7 +2,7 @@ package io.github.landwarderer.futon.list.domain
 
 import androidx.annotation.StringRes
 import io.github.landwarderer.futon.R
-import io.github.landwarderer.futon.parsers.util.find
+import org.koitharu.kotatsu.parsers.util.find
 import java.util.EnumSet
 
 enum class ListSortOrder(

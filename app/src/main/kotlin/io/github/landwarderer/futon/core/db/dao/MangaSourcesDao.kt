@@ -16,8 +16,8 @@ import kotlinx.coroutines.isActive
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.core.db.entity.MangaSourceEntity
 import io.github.landwarderer.futon.explore.data.SourcesSortOrder
-import io.github.landwarderer.futon.parsers.network.CloudFlareHelper
-import io.github.landwarderer.futon.parsers.network.CloudFlareHelper.PROTECTION_CAPTCHA
+import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
+import org.koitharu.kotatsu.parsers.network.CloudFlareHelper.PROTECTION_CAPTCHA
 
 @Dao
 abstract class MangaSourcesDao {

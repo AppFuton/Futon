@@ -43,8 +43,8 @@ import io.github.landwarderer.futon.history.data.HistoryRepository
 import io.github.landwarderer.futon.list.domain.ListFilterOption
 import io.github.landwarderer.futon.local.domain.DeleteLocalMangaUseCase
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaState
 import io.github.landwarderer.futon.reader.ui.ReaderActivity
 import io.github.landwarderer.futon.reader.ui.ReaderState
 import io.github.landwarderer.futon.reader.ui.ReaderViewModel

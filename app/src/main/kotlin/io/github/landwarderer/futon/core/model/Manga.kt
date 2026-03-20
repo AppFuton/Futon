@@ -14,15 +14,15 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.ui.model.MangaOverride
 import io.github.landwarderer.futon.core.util.ext.iterator
 import io.github.landwarderer.futon.details.ui.model.ChapterListItem
-import io.github.landwarderer.futon.parsers.model.ContentRating
-import io.github.landwarderer.futon.parsers.model.Demographic
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaChapter
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.model.MangaState
-import io.github.landwarderer.futon.parsers.util.findById
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
-import io.github.landwarderer.futon.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.model.ContentRating
+import org.koitharu.kotatsu.parsers.model.Demographic
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.util.findById
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.mapToSet
 import com.google.android.material.R as materialR
 
 @JvmName("mangaIds")

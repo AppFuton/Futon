@@ -62,7 +62,7 @@ import io.github.landwarderer.futon.core.util.ext.toUriOrNull
 import io.github.landwarderer.futon.core.util.ext.zipWithPrevious
 import io.github.landwarderer.futon.databinding.ActivityReaderBinding
 import io.github.landwarderer.futon.details.ui.pager.pages.PagesSavedObserver
-import io.github.landwarderer.futon.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 import io.github.landwarderer.futon.reader.data.TapGridSettings
 import io.github.landwarderer.futon.reader.domain.TapGridArea
 import io.github.landwarderer.futon.reader.ui.config.ReaderConfigSheet

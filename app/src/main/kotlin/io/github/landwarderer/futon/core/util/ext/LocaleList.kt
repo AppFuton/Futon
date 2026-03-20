@@ -3,8 +3,8 @@ package io.github.landwarderer.futon.core.util.ext
 import android.content.Context
 import androidx.core.os.LocaleListCompat
 import io.github.landwarderer.futon.R
-import io.github.landwarderer.futon.parsers.util.Set
-import io.github.landwarderer.futon.parsers.util.toTitleCase
+import org.koitharu.kotatsu.parsers.util.Set
+import org.koitharu.kotatsu.parsers.util.toTitleCase
 import java.util.Locale
 
 operator fun LocaleListCompat.iterator(): ListIterator<Locale> = LocaleListCompatIterator(this)

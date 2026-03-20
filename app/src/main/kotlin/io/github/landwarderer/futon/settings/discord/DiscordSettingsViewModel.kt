@@ -13,7 +13,7 @@ import kotlinx.coroutines.plus
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.ui.BaseViewModel
 import io.github.landwarderer.futon.core.util.ext.isNetworkError
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.scrobbling.discord.data.DiscordRepository
 import javax.inject.Inject
 

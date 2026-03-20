@@ -8,7 +8,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.util.ext.getDisplayMessage
 import io.github.landwarderer.futon.core.util.ext.isSerializable
-import io.github.landwarderer.futon.parsers.exception.ParseException
+import org.koitharu.kotatsu.parsers.exception.ParseException
 
 class DialogErrorObserver(
 	host: View,

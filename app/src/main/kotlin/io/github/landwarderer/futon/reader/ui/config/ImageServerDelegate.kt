@@ -8,11 +8,11 @@ import kotlinx.coroutines.withContext
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.parser.ParserMangaRepository
-import io.github.landwarderer.futon.parsers.config.ConfigKey
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.util.mapToArray
-import io.github.landwarderer.futon.parsers.util.suspendlazy.getOrNull
-import io.github.landwarderer.futon.parsers.util.suspendlazy.suspendLazy
+import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.mapToArray
+import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import kotlin.coroutines.resume
 
 class ImageServerDelegate(

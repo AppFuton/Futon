@@ -9,7 +9,7 @@ import io.github.landwarderer.futon.core.util.ext.getDisplayMessage
 import io.github.landwarderer.futon.core.util.ext.isSerializable
 import io.github.landwarderer.futon.main.ui.owners.BottomNavOwner
 import io.github.landwarderer.futon.main.ui.owners.BottomSheetOwner
-import io.github.landwarderer.futon.parsers.exception.ParseException
+import org.koitharu.kotatsu.parsers.exception.ParseException
 
 class SnackbarErrorObserver(
 	host: View,

@@ -5,11 +5,11 @@ import android.webkit.WebView
 import io.github.landwarderer.futon.browser.BrowserClient
 import io.github.landwarderer.futon.core.network.cookies.MutableCookieJar
 import io.github.landwarderer.futon.core.network.webview.adblock.AdBlock
-import io.github.landwarderer.futon.parsers.network.CloudFlareHelper
+import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
 
 private const val LOOP_COUNTER = 3
 
-class CloudFlareClient(
+open class CloudFlareClient(
 	private val cookieJar: MutableCookieJar,
 	private val callback: CloudFlareCallback,
 	adBlock: AdBlock,

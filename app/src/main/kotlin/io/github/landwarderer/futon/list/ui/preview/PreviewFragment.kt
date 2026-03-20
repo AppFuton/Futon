@@ -19,9 +19,9 @@ import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.textAndVisible
 import io.github.landwarderer.futon.databinding.FragmentPreviewBinding
 import io.github.landwarderer.futon.filter.ui.FilterCoordinator
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaTag
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import io.github.landwarderer.futon.search.ui.MangaListActivity
 
 @AndroidEntryPoint

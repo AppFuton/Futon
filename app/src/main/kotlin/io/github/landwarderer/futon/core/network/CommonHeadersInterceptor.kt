@@ -7,10 +7,10 @@ import io.github.landwarderer.futon.core.parser.MangaLoaderContextImpl
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.parser.ParserMangaRepository
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.util.mergeWith
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.mergeWith
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import okhttp3.Headers
 import okhttp3.Interceptor
 import okhttp3.Interceptor.Chain

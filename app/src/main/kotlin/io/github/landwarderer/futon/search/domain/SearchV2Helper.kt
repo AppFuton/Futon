@@ -9,13 +9,13 @@ import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.contains
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaListFilter
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.model.SortOrder
-import io.github.landwarderer.futon.parsers.util.almostEquals
-import io.github.landwarderer.futon.parsers.util.levenshteinDistance
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.util.almostEquals
+import org.koitharu.kotatsu.parsers.util.levenshteinDistance
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 
 private const val MATCH_THRESHOLD_DEFAULT = 0.2f
 

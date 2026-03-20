@@ -5,11 +5,11 @@ import io.github.landwarderer.futon.core.model.isLocal
 import io.github.landwarderer.futon.core.model.withOverride
 import io.github.landwarderer.futon.core.ui.model.MangaOverride
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.model.MangaChapter
-import io.github.landwarderer.futon.parsers.model.MangaState
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
-import io.github.landwarderer.futon.parsers.util.nullIfEmpty
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import io.github.landwarderer.futon.reader.data.filterChapters
 import java.util.Locale
 

@@ -2,7 +2,7 @@ package io.github.landwarderer.futon.core.util
 
 import android.graphics.Paint
 import androidx.core.graphics.PaintCompat
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import java.util.Locale
 
 object LocaleUtils {

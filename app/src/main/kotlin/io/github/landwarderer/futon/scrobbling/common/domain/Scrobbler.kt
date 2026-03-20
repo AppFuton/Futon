@@ -9,9 +9,9 @@ import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.util.ext.findKeyByValue
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.sanitize
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.findById
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.findById
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.scrobbling.common.data.ScrobblerRepository
 import io.github.landwarderer.futon.scrobbling.common.data.ScrobblingEntity
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblerManga

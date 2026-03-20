@@ -30,7 +30,7 @@ import io.github.landwarderer.futon.list.ui.GridSpanResolver
 import io.github.landwarderer.futon.list.ui.adapter.ListItemType
 import io.github.landwarderer.futon.list.ui.adapter.TypedListSpacingDecoration
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import io.github.landwarderer.futon.picker.ui.PageImagePickActivity
 import javax.inject.Inject
 

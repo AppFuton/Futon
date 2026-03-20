@@ -2,7 +2,7 @@ package io.github.landwarderer.futon.stats.domain
 
 import io.github.landwarderer.futon.details.data.ReadingTime
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import java.util.concurrent.TimeUnit
 
 data class StatsRecord(

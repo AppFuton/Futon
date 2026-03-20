@@ -39,7 +39,7 @@ import io.github.landwarderer.futon.list.ui.model.ListHeader
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.list.ui.model.toErrorState
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject

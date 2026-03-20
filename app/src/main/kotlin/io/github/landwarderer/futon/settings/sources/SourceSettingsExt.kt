@@ -10,9 +10,9 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.parser.EmptyMangaRepository
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.parser.ParserMangaRepository
-import io.github.landwarderer.futon.parsers.config.ConfigKey
-import io.github.landwarderer.futon.parsers.network.UserAgents
-import io.github.landwarderer.futon.parsers.util.mapToArray
+import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.network.UserAgents
+import org.koitharu.kotatsu.parsers.util.mapToArray
 import io.github.landwarderer.futon.settings.utils.AutoCompleteTextViewPreference
 import io.github.landwarderer.futon.settings.utils.EditTextBindListener
 import io.github.landwarderer.futon.settings.utils.EditTextDefaultSummaryProvider
@@ -100,6 +100,14 @@ private fun PreferenceFragmentCompat.addPreferencesFromParserRepository(reposito
 					setDialogTitle(R.string.image_server)
 					summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
 				}
+			}
+
+			is ConfigKey.DisableUpdateChecking -> {
+				continue
+			}
+
+			is ConfigKey.InterceptCloudflare -> {
+				continue
 			}
 		}
 		preference.isIconSpaceReserved = false

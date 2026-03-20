@@ -23,8 +23,8 @@ import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.list.ui.model.toErrorFooter
 import io.github.landwarderer.futon.list.ui.model.toErrorState
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
-import io.github.landwarderer.futon.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
 
 @HiltViewModel(assistedFactory = TagsCatalogViewModel.Factory::class)
 class TagsCatalogViewModel @AssistedInject constructor(

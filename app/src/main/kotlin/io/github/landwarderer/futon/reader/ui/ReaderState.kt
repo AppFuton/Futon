@@ -3,7 +3,7 @@ package io.github.landwarderer.futon.reader.ui
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import io.github.landwarderer.futon.core.model.MangaHistory
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 
 @Parcelize
 data class ReaderState(

@@ -7,7 +7,7 @@ import androidx.annotation.WorkerThread
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.util.ext.isHttpUrl
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import javax.inject.Inject
 
 class SyncSettings(

@@ -29,7 +29,7 @@ import io.github.landwarderer.futon.core.util.ext.getThemeColorStateList
 import io.github.landwarderer.futon.core.util.ext.isNightMode
 import io.github.landwarderer.futon.core.util.ext.measureDimension
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.util.format
+import org.koitharu.kotatsu.parsers.util.format
 import io.github.landwarderer.futon.reader.ui.pager.ReaderUiState
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter

@@ -14,7 +14,7 @@ import io.github.landwarderer.futon.core.db.entity.toManga
 import io.github.landwarderer.futon.core.ui.util.ReversibleHandle
 import io.github.landwarderer.futon.core.util.ext.mapItems
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

@@ -5,7 +5,7 @@ import androidx.collection.MutableObjectLongMap
 import kotlinx.coroutines.delay
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.parser.ParserMangaRepository
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.exceptions.resolve.ExceptionResolver
 import io.github.landwarderer.futon.core.util.ext.getDisplayIcon
-import io.github.landwarderer.futon.parsers.util.ifZero
+import org.koitharu.kotatsu.parsers.util.ifZero
 
 fun Throwable.toErrorState(canRetry: Boolean = true, @StringRes secondaryAction: Int = 0) = ErrorState(
 	exception = this,

@@ -58,7 +58,7 @@ import io.github.landwarderer.futon.local.ui.LocalIndexUpdateService
 import io.github.landwarderer.futon.local.ui.LocalStorageCleanupWorker
 import io.github.landwarderer.futon.main.ui.owners.AppBarOwner
 import io.github.landwarderer.futon.main.ui.owners.BottomNavOwner
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.remotelist.ui.MangaSearchMenuProvider
 import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionItemCallback
 import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionListenerImpl

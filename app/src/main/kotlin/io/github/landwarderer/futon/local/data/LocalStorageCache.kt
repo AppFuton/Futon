@@ -14,9 +14,9 @@ import io.github.landwarderer.futon.core.util.ext.subdir
 import io.github.landwarderer.futon.core.util.ext.takeIfReadable
 import io.github.landwarderer.futon.core.util.ext.takeIfWriteable
 import io.github.landwarderer.futon.core.util.ext.writeAllCancellable
-import io.github.landwarderer.futon.parsers.util.ifNullOrEmpty
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
-import io.github.landwarderer.futon.parsers.util.suspendlazy.suspendLazy
+import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext

@@ -2,8 +2,8 @@ package io.github.landwarderer.futon.download.ui.dialog
 
 import androidx.collection.ArraySet
 import androidx.collection.LongLongMap
-import io.github.landwarderer.futon.parsers.model.MangaChapter
-import io.github.landwarderer.futon.parsers.util.mapNotNullToSet
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
 
 interface ChaptersSelectMacro {
 

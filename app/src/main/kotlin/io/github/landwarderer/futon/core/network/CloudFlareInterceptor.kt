@@ -5,8 +5,8 @@ import okhttp3.Response
 import okio.IOException
 import io.github.landwarderer.futon.core.exceptions.CloudFlareBlockedException
 import io.github.landwarderer.futon.core.exceptions.CloudFlareProtectedException
-import io.github.landwarderer.futon.parsers.model.MangaSource
-import io.github.landwarderer.futon.parsers.network.CloudFlareHelper
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
 
 class CloudFlareInterceptor : Interceptor {
 

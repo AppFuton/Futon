@@ -16,7 +16,7 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import io.github.landwarderer.futon.core.util.ext.getAnimationDuration
 import io.github.landwarderer.futon.core.util.ext.isAnimationsEnabled
 import io.github.landwarderer.futon.core.util.ext.resolveDp
-import io.github.landwarderer.futon.parsers.util.replaceWith
+import org.koitharu.kotatsu.parsers.util.replaceWith
 
 class SegmentedBarView @JvmOverloads constructor(
 	context: Context,

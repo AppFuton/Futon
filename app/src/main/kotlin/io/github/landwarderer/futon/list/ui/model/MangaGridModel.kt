@@ -4,7 +4,7 @@ import io.github.landwarderer.futon.core.ui.model.MangaOverride
 import io.github.landwarderer.futon.list.domain.ReadingProgress
 import io.github.landwarderer.futon.list.ui.ListModelDiffCallback.Companion.PAYLOAD_ANYTHING_CHANGED
 import io.github.landwarderer.futon.list.ui.ListModelDiffCallback.Companion.PAYLOAD_PROGRESS_CHANGED
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 
 data class MangaGridModel(
 	override val manga: Manga,

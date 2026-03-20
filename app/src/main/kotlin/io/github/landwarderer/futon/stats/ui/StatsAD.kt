@@ -6,7 +6,7 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.ui.list.OnListItemClickListener
 import io.github.landwarderer.futon.core.util.FutonColors
 import io.github.landwarderer.futon.databinding.ItemStatsBinding
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.stats.domain.StatsRecord
 
 fun statsAD(

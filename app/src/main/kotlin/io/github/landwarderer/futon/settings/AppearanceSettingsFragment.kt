@@ -29,9 +29,9 @@ import io.github.landwarderer.futon.core.util.ext.postDelayed
 import io.github.landwarderer.futon.core.util.ext.setDefaultValueCompat
 import io.github.landwarderer.futon.core.util.ext.sortedWithSafe
 import io.github.landwarderer.futon.core.util.ext.toList
-import io.github.landwarderer.futon.parsers.util.mapToSet
-import io.github.landwarderer.futon.parsers.util.names
-import io.github.landwarderer.futon.parsers.util.toTitleCase
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.names
+import org.koitharu.kotatsu.parsers.util.toTitleCase
 import io.github.landwarderer.futon.settings.protect.ProtectSetupActivity
 import io.github.landwarderer.futon.settings.utils.ActivityListPreference
 import io.github.landwarderer.futon.settings.utils.MultiSummaryProvider

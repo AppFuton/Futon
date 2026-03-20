@@ -31,7 +31,7 @@ import io.github.landwarderer.futon.core.util.ext.toLocale
 import io.github.landwarderer.futon.databinding.ActivitySourcesCatalogBinding
 import io.github.landwarderer.futon.list.ui.adapter.TypedListSpacingDecoration
 import io.github.landwarderer.futon.main.ui.owners.AppBarOwner
-import io.github.landwarderer.futon.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.ContentType
 
 @AndroidEntryPoint
 class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),

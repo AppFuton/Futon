@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import io.github.landwarderer.futon.core.model.isLocal
 import io.github.landwarderer.futon.local.data.index.LocalMangaIndex
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 
 abstract class LocalObserveMapper<E : Any, R : Any>(
 	private val localMangaIndex: LocalMangaIndex,

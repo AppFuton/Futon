@@ -23,8 +23,8 @@ import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.lifecycleScope
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
 import io.github.landwarderer.futon.explore.data.SourcesSortOrder
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
-import io.github.landwarderer.futon.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.util.mapToSet
 import io.github.landwarderer.futon.settings.sources.model.SourceConfigItem
 import javax.inject.Inject
 

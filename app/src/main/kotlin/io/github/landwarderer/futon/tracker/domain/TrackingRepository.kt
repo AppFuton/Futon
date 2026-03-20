@@ -1,21 +1,26 @@
 package io.github.landwarderer.futon.tracker.domain
 
+import android.content.Context
 import androidx.annotation.VisibleForTesting
 import androidx.room.withTransaction
 import dagger.Reusable
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.db.entity.toManga
 import io.github.landwarderer.futon.core.db.entity.toMangaTags
+import io.github.landwarderer.futon.core.parser.MangaRepository
+import io.github.landwarderer.futon.core.parser.ParserMangaRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.mapItems
 import io.github.landwarderer.futon.core.util.ext.toInstantOrNull
 import io.github.landwarderer.futon.details.domain.ProgressUpdateUseCase
 import io.github.landwarderer.futon.list.domain.ListFilterOption
-import io.github.landwarderer.futon.parsers.model.Manga
-import io.github.landwarderer.futon.parsers.util.ifZero
+import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.ifZero
 import io.github.landwarderer.futon.tracker.data.TrackEntity
 import io.github.landwarderer.futon.tracker.data.TrackLogEntity
 import io.github.landwarderer.futon.tracker.data.toTrackingLogItem
@@ -33,6 +38,8 @@ class TrackingRepository @Inject constructor(
 	private val db: MangaDatabase,
 	private val settings: AppSettings,
 	private val progressUpdateUseCase: ProgressUpdateUseCase,
+	@ApplicationContext private val context: Context,
+	private val mangaRepositoryFactory: MangaRepository.Factory,
 ) {
 
 	private var isGcCalled = AtomicBoolean(false)
@@ -70,15 +77,30 @@ class TrackingRepository @Inject constructor(
 	}
 
 	suspend fun getTracks(offset: Int, limit: Int): List<MangaTracking> {
-		return db.getTracksDao().findAll(offset = offset, limit = limit).map {
-			MangaTracking(
-				manga = it.manga.toManga(emptySet(), null),
-				lastChapterId = it.track.lastChapterId,
-				lastCheck = it.track.lastCheckTime.toInstantOrNull(),
-				lastChapterDate = it.track.lastChapterDate.toInstantOrNull(),
-				newChapters = it.track.newChapters,
-			)
+		return db.getTracksDao().findAll(offset = offset, limit = limit)
+			.filter { track ->
+				val manga = track.manga.toManga(emptySet(), null)
+				!isUpdateCheckingDisabled(manga)
+			}
+			.map {
+				MangaTracking(
+					manga = it.manga.toManga(emptySet(), null),
+					lastChapterId = it.track.lastChapterId,
+					lastCheck = it.track.lastCheckTime.toInstantOrNull(),
+					lastChapterDate = it.track.lastChapterDate.toInstantOrNull(),
+					newChapters = it.track.newChapters,
+				)
+			}
+	}
+
+	private fun isUpdateCheckingDisabled(manga: Manga): Boolean {
+		val repository = mangaRepositoryFactory.create(manga.source)
+		if (repository !is ParserMangaRepository) {
+			return false
 		}
+		val configKeys = repository.getConfigKeys()
+		val disableKey = configKeys.filterIsInstance<ConfigKey.DisableUpdateChecking>().firstOrNull()
+		return disableKey?.defaultValue == true
 	}
 
 	@Deprecated("")

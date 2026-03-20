@@ -38,7 +38,7 @@ import io.github.landwarderer.futon.list.ui.adapter.ListStateHolderListener
 import io.github.landwarderer.futon.list.ui.adapter.TypedListSpacingDecoration
 import io.github.landwarderer.futon.list.ui.model.ListHeader
 import io.github.landwarderer.futon.main.ui.owners.AppBarOwner
-import io.github.landwarderer.futon.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.reader.ui.PageSaveHelper
 import javax.inject.Inject
 

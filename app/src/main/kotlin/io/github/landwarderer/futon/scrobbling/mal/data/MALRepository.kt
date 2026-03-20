@@ -10,10 +10,10 @@ import okhttp3.Request
 import org.json.JSONObject
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.db.MangaDatabase
-import io.github.landwarderer.futon.parsers.util.await
-import io.github.landwarderer.futon.parsers.util.json.getStringOrNull
-import io.github.landwarderer.futon.parsers.util.json.mapJSONNotNull
-import io.github.landwarderer.futon.parsers.util.parseJson
+import org.koitharu.kotatsu.parsers.util.await
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
+import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull
+import org.koitharu.kotatsu.parsers.util.parseJson
 import io.github.landwarderer.futon.scrobbling.common.data.ScrobblerRepository
 import io.github.landwarderer.futon.scrobbling.common.data.ScrobblerStorage
 import io.github.landwarderer.futon.scrobbling.common.data.ScrobblingEntity

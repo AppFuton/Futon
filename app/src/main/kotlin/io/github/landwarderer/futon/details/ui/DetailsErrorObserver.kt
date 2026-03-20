@@ -8,8 +8,8 @@ import io.github.landwarderer.futon.core.exceptions.resolve.ExceptionResolver
 import io.github.landwarderer.futon.core.util.ext.getDisplayMessage
 import io.github.landwarderer.futon.core.util.ext.isNetworkError
 import io.github.landwarderer.futon.core.util.ext.isSerializable
-import io.github.landwarderer.futon.parsers.exception.NotFoundException
-import io.github.landwarderer.futon.parsers.exception.ParseException
+import org.koitharu.kotatsu.parsers.exception.NotFoundException
+import org.koitharu.kotatsu.parsers.exception.ParseException
 
 class DetailsErrorObserver(
 	override val activity: DetailsActivity,

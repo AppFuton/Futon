@@ -37,7 +37,7 @@ import io.github.landwarderer.futon.core.util.progress.Progress
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
 import io.github.landwarderer.futon.filter.data.PersistableFilter
 import io.github.landwarderer.futon.filter.data.SavedFiltersRepository
-import io.github.landwarderer.futon.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.data.TapGridSettings
 import java.io.InputStream
 import java.io.OutputStream

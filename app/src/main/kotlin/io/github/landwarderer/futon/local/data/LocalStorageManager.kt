@@ -27,7 +27,7 @@ import io.github.landwarderer.futon.core.util.ext.isReadable
 import io.github.landwarderer.futon.core.util.ext.isWriteable
 import io.github.landwarderer.futon.core.util.ext.resolveFile
 import io.github.landwarderer.futon.core.util.ext.takeIfWriteable
-import io.github.landwarderer.futon.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.mapToSet
 import java.io.File
 import javax.inject.Inject
 

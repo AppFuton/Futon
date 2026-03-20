@@ -4,8 +4,8 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.TypeParceler
 import io.github.landwarderer.futon.core.model.parcelable.MangaSourceParceler
-import io.github.landwarderer.futon.parsers.model.MangaPage
-import io.github.landwarderer.futon.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 @Parcelize
 @TypeParceler<MangaSource, MangaSourceParceler>

@@ -3,7 +3,7 @@ package io.github.landwarderer.futon.settings.sources.catalog
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import io.github.landwarderer.futon.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 
 sealed interface SourceCatalogItem : ListModel {
 
