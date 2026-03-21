@@ -181,7 +181,7 @@ class WebViewExecutor @Inject constructor(
 			}
 		}.onFailure { e ->
 			exception.addSuppressed(e)
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("WebViewExecutor::tryResolveCaptcha")
 		}.isSuccess
 	}
 
