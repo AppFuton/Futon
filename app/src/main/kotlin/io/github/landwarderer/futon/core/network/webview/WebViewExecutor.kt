@@ -49,7 +49,7 @@ class WebViewExecutor @Inject constructor(
 		try {
 			WebSettings.getDefaultUserAgent(context)
 		} catch (e: AndroidRuntimeException) {
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("WebViewExecutor::defaultUserAgent")
 			// Probably WebView is not available
 			null
 		}
