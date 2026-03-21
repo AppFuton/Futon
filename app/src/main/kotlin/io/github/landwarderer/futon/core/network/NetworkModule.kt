@@ -44,7 +44,7 @@ interface NetworkModule {
         ): MutableCookieJar = runCatching {
             AndroidCookieJar()
         }.getOrElse { e ->
-            e.printStackTraceDebug()
+            e.printStackTraceDebug("NetworkModule::provideCookieJar")
             // WebView is not available
             PreferencesCookieJar(context)
         }
