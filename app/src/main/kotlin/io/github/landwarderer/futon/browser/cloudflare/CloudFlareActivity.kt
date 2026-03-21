@@ -124,7 +124,7 @@ class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 				runCatchingCancellable {
 					captchaHandler.discard(MangaSource(source))
 				}.onFailure {
-					it.printStackTraceDebug()
+					it.printStackTraceDebug("CloudFlareActivity::onCheckPassed")
 				}
 			}
 			finishAfterTransition()
