@@ -13,6 +13,17 @@ Date: Late March 2026
 
 - (Work in progress)
 
+---
+## v9.6.14
+Date: 2026-03-18
+
+### Highlights
+- Moved to Kotatsu-Redo parsers thanks to the Kotatsu-Redo dev.
+- Fixed SSL errors.
+- New website landing page.
+
+### Fixes
+- Fixed Reproducible builds issue.
 
 ---
 ## v9.6.13

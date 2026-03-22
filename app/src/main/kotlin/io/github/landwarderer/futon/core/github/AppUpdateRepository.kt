@@ -56,7 +56,7 @@ class AppUpdateRepository @Inject constructor(
 			val json = JSONObject(response.body?.string() ?: "{}")
 			
 			val currentVersion = VersionId(BuildConfig.VERSION_NAME)
-			val releaseVersion = VersionId(json.getString("name").removePrefix("v"))
+			val releaseVersion = VersionId(json.getString("tag_name").removePrefix("v"))
 			
 			// Only return update if there's a newer version available
 			if (releaseVersion <= currentVersion) {
