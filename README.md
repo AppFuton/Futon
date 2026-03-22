@@ -112,6 +112,11 @@ For detailed contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
     alt="Get it on F-Droid"
     height="80">](https://f-droid.org/packages/io.github.landwarderer.futon)
 
+### Localization
+Help us by translating
+
+<a href="https://hosted.weblate.org/engage/futon/"><img src="https://hosted.weblate.org/widget/futon/open-graph.png" width="500"></a>
+<a href="https://hosted.weblate.org/engage/futon/"><img src="https://hosted.weblate.org/widget/futon/horizontal-auto.svg" width="500"></a>
 
 ### Contributing
 
