@@ -13,4 +13,6 @@
     <string name="removed_from_favourites">Removed from favourites</string>
     <string name="migrate_confirmation">Manga \"%1$s\" from \"%2$s\" will be replaced with \"%3$s\" from \"%4$s\" in your history and favourites (if present)</string>
     <string name="not_in_favorites">Not in favourites</string>
+    <string name="chapters">Chapters</string>
+    <string name="new_chapters">New chapters</string>
 </resources>

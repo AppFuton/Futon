@@ -428,7 +428,7 @@
     <string name="this_month">本月</string>
     <string name="languages">语言</string>
     <string name="captcha_required_summary">%s 需要通过人机验证才能正常运行</string>
-    <string name="progress">阅读进度</string>
+    <string name="progress">进度</string>
     <string name="error_corrupted_file">回传的数据无效或文件已损坏</string>
     <string name="related_manga_summary">显示相关漫画，可能并不相关或没有相关漫画</string>
     <string name="tracker_wifi_only_summary">使用移动网络时停止检查新章节</string>
@@ -553,7 +553,7 @@
     <string name="reader_actions_summary">配置屏幕点按区域的操作</string>
     <string name="reader_actions">阅读操作</string>
     <string name="tap_action">点按操作</string>
-    <string name="use_two_pages_landscape">横屏时开启双页模式 (测试)</string>
+    <string name="use_two_pages_landscape">横屏启用双页布局</string>
     <string name="config_reset_confirm">确定重置为默认设置？重置后无法撤销。</string>
     <string name="email_password_enter_hint">输入邮箱和密码以继续</string>
     <string name="fullscreen_mode">全屏模式</string>
@@ -641,7 +641,7 @@
     <string name="tracker_debug_info">章节检查更新日志</string>
     <string name="tracker_debug_info_summary">记录漫画后台更新时的调试日志</string>
     <string name="_new">最新</string>
-    <string name="screenshots_block_incognito">开启无痕模式时禁止</string>
+    <string name="screenshots_block_incognito">无痕模式时禁止</string>
     <string name="all_languages">所有语言</string>
     <string name="image_server">图片质量</string>
     <string name="crop_pages">页面裁切</string>
@@ -662,7 +662,7 @@
     <string name="text_empty_holder_secondary_filtered">无筛选结果</string>
     <string name="invalid_proxy_configuration">无效代理配置</string>
     <string name="show_quick_filters">显示快速筛选</string>
-    <string name="show_quick_filters_summary">可通过某些确定的范围来筛选漫画</string>
+    <string name="show_quick_filters_summary">能够通过固有关键词来筛选漫画</string>
     <string name="invalid_server_address_message">无效服务器地址</string>
     <string name="sfw">全年龄</string>
     <string name="too_many_requests_message_retry">请求过多，%s 之后再尝试</string>
@@ -708,7 +708,7 @@
     <string name="demographic_josei">女性向</string>
     <string name="years">年</string>
     <string name="any">所有</string>
-    <string name="filter_search_warning">本图源不支持筛选搜索，筛选已被重置</string>
+    <string name="filter_search_warning">本图源不支持对搜索结果进行筛选。筛选已被重置</string>
     <string name="manga_replaced">来自(%2$s)源的\"%1$s\"漫画已替换成来自(%4$s)源的\"%3$s\"</string>
     <string name="popular_in_hour">一小时内热门</string>
     <string name="demographic_kodomo">子供向</string>
@@ -865,4 +865,25 @@
     <string name="enable_pull_gesture_title">启用推拉手势</string>
     <string name="enable_pull_gesture_summary">条漫模式下使用推拉手势切换章节</string>
     <string name="auto_double_foldable">折叠设备自动双页</string>
+    <string name="saved_filters">保存的筛选</string>
+    <string name="github_download_warning">从Github下载会跳过由IzzyOnDroid执行的安全检查</string>
+    <string name="enter_name">输入名称</string>
+    <string name="pinned_sources_only">仅置顶图源</string>
+    <string name="hide_empty_sources">隐藏空白结果的图源</string>
+    <string name="frequency_every_6_hours">每6小时</string>
+    <string name="two_page_scroll_sensitivity">双页布局翻页灵敏度</string>
+    <string name="reader_chapter_toast">显示章节变更弹窗</string>
+    <string name="reader_chapter_toast_summary">章节变更时显示章节名弹窗</string>
+    <string name="rename">重命名</string>
+    <string name="save_filter">保存筛选</string>
+    <string name="overwrite">覆盖</string>
+    <string name="filter_overwrite_confirm">已存在名为\"%s\"的筛选，是否覆盖此筛选？</string>
+    <string name="storage_and_network">存储与网络</string>
+    <string name="create_or_restore_backup">创建或恢复备份</string>
+    <string name="data_removal">数据删除</string>
+    <string name="privacy">隐私</string>
+    <string name="source_broken_warning">该漫画图源已标记为损坏，部分功能可能故障</string>
+    <string name="download_default_directory">下载漫画的默认目录</string>
+    <string name="private_app_directory_warning">卸载本应用，此目录内的所有数据会被删除</string>
+    <string name="available_pattern">%1$s 可用</string>
 </resources>
