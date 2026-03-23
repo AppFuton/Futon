@@ -2,7 +2,7 @@
 
 **Futon is a free and open-source manga reader for Android with built-in online content sources.**
 
-![Android 6.0](https://img.shields.io/badge/android-6.0+-brightgreen) [![Sources count](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FAppFuton%2Ffuton-parsers%2Frefs%2Fheads%2Fmaster%2F.github%2Fsummary.yaml&query=total&label=manga%20sources&color=%23E9321C)](https://github.com/AppFuton/futon-parsers) [![License](https://img.shields.io/github/license/AppFuton/Futon)](https://github.com/AppFuton/Futon/blob/devel/LICENSE) [![GitHub Release](https://img.shields.io/github/v/release/appfuton/futon?sort=date&display_name=tag&style=flat&link=https%3A%2F%2Fgithub.com%2FAppFuton%2FFuton%2Freleases%2Flatest)](https://github.com/AppFuton/Futon/releases/latest) [![IzzyOnDroid Yearly Downloads](https://img.shields.io/badge/dynamic/json?url=https://dlstats.izzyondroid.org/iod-stats-collector/stats/basic/yearly/rolling.json&query=$.['io.github.landwarderer.futon']&label=IzzyOnDroid%20yearly%20downloads)](https://apt.izzysoft.de/packages/io.github.landwarderer.futon) [![F-Droid Version](https://img.shields.io/badge/F--Droid-%2311AB00.svg?logo=f-droid&logoColor=white)](https://f-droid.org/en/packages/io.github.landwarderer.futon/) [![Open Source Helpers](https://www.codetriage.com/appfuton/futon/badges/users.svg)](https://www.codetriage.com/appfuton/futon) [![Discord](https://img.shields.io/discord/1452862077134700628)
+![Android 6.0](https://img.shields.io/badge/android-6.0+-brightgreen) [![Sources count](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FKotatsu-Redo%2Fkotatsu-parsers-redo%2Frefs%2Fheads%2Fmaster%2F.github%2Fsummary.yaml&query=total&label=manga%20sources&color=%23E9321C)](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo) [![License](https://img.shields.io/github/license/AppFuton/Futon)](https://github.com/AppFuton/Futon/blob/devel/LICENSE) [![GitHub Release](https://img.shields.io/github/v/release/appfuton/futon?sort=date&display_name=tag&style=flat&link=https%3A%2F%2Fgithub.com%2FAppFuton%2FFuton%2Freleases%2Flatest)](https://github.com/AppFuton/Futon/releases/latest) [![IzzyOnDroid Yearly Downloads](https://img.shields.io/badge/dynamic/json?url=https://dlstats.izzyondroid.org/iod-stats-collector/stats/basic/yearly/rolling.json&query=$.['io.github.landwarderer.futon']&label=IzzyOnDroid%20yearly%20downloads)](https://apt.izzysoft.de/packages/io.github.landwarderer.futon) [![F-Droid Version](https://img.shields.io/badge/F--Droid-%2311AB00.svg?logo=f-droid&logoColor=white)](https://f-droid.org/en/packages/io.github.landwarderer.futon/) [![Open Source Helpers](https://www.codetriage.com/appfuton/futon/badges/users.svg)](https://www.codetriage.com/appfuton/futon) [![Discord](https://img.shields.io/discord/1452862077134700628)
 ](https://discord.gg/9sqBHXhwzz)
 
 
@@ -10,7 +10,7 @@
 
 <div align="left">
 
-* Online [manga catalogues](https://github.com/AppFuton/futon-parsers) (with 1200+ manga sources)
+* Online [manga catalogues](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo) (with 1200+ manga sources)
 * Search manga by name, genres and more filters
 * Favorites organized by user-defined categories
 * Reading history, bookmarks and incognito mode support
@@ -170,7 +170,7 @@ We are deeply grateful to:
 * **The original Kotatsu developers** for creating such an outstanding manga reader and making it open source
 * **The Kotatsu community** for their contributions, testing, and support
 * **All translators** who helped localize Kotatsu through [Weblate](https://hosted.weblate.org/engage/kotatsu/)
-* **Parser contributors** who maintain the extensive library of [manga sources](https://github.com/AppFuton/futon-parsers)
+* **Parser contributors** who maintain the extensive library of [manga sources](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo)
 
 This project stands on the shoulders of giants. The Kotatsu team's dedication to creating a feature-rich, user-friendly manga reader has provided an incredible foundation for Futon to build upon.
 

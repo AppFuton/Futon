@@ -3,7 +3,7 @@
 I acknowledge that:
 
 - I have updated to the latest version of the app (https://github.com/AppFuton/Futon/releases/latest)
-- If this is an issue with a parser, that I should be opening an issue in https://github.com/AppFuton/futon-parsers
+- If this is an issue with a parser, that I should be opening an issue in https://github.com/Kotatsu-Redo/kotatsu-parsers-redo instead of here.
 - I have searched the existing issues and this is new ticket **NOT** a duplicate or related to another open or closed issue
 - I will fill out the title and the information in this template
 
