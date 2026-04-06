@@ -530,6 +530,7 @@ class DetailsActivity :
 
 	private fun loadCover(imageUrl: String?) {
 		viewBinding.imageViewCover.setImageAsync(imageUrl, viewModel.getMangaOrNull())
+        viewBinding.imageViewBlurBackground?.setImageAsync(imageUrl, viewModel.getMangaOrNull())
 	}
 
 	private fun String.withEstimatedTime(time: ReadingTime?): String {
