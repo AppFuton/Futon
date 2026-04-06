@@ -8,6 +8,7 @@ import androidx.core.content.edit
 private const val CATEGORY_ID = "cat_id"
 private const val BACKGROUND = "bg"
 
+private const val SOURCE_TYPE = "source_type"
 class AppWidgetConfig(
 	context: Context,
 	cls: Class<out AppWidgetProvider>,
@@ -24,6 +25,10 @@ class AppWidgetConfig(
 		get() = prefs.getBoolean(BACKGROUND, Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
 		set(value) = prefs.edit { putBoolean(BACKGROUND, value) }
 
+    var sourceType : String
+        get() = prefs.getString(SOURCE_TYPE, "favourites") ?: "favourites"
+        set(value) = prefs.edit { putString(SOURCE_TYPE, value) }
+
 	fun clear() {
 		prefs.edit { clear() }
 	}
@@ -33,6 +38,7 @@ class AppWidgetConfig(
 			clear()
 			putLong(CATEGORY_ID, other.categoryId)
 			putBoolean(BACKGROUND, other.hasBackground)
+            putString(SOURCE_TYPE, other.sourceType)
 		}
 	}
 }

@@ -49,7 +49,7 @@
 			android:paddingTop="6dp"
 			android:paddingEnd="?listPreferredItemPaddingEnd"
 			android:singleLine="true"
-			android:text="@string/favourites_categories"
+			android:text="@string/categories"
 			android:textAppearance="?textAppearanceTitleSmall" />
 
 	</com.google.android.material.appbar.AppBarLayout>

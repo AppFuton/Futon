@@ -10,7 +10,7 @@
 
 	<LinearLayout
 		android:id="@+id/rootLayout"
-		android:layout_width="wrap_content"
+		android:layout_width="@dimen/widget_cover_width"
 		android:layout_height="wrap_content"
 		android:layout_gravity="center_horizontal"
 		android:background="@drawable/bg_appwidget_card"

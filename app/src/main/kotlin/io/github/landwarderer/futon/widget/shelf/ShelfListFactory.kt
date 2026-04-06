@@ -21,12 +21,14 @@ import io.github.landwarderer.futon.core.ui.image.TrimTransformation
 import io.github.landwarderer.futon.core.util.ext.getDrawableOrThrow
 import io.github.landwarderer.futon.core.util.ext.mangaExtra
 import io.github.landwarderer.futon.favourites.domain.FavouritesRepository
+import io.github.landwarderer.futon.history.data.HistoryRepository
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.util.replaceWith
 
 class ShelfListFactory(
 	private val context: Context,
 	private val favouritesRepository: FavouritesRepository,
+	private val historyRepository: HistoryRepository,
 	private val coilLazy: Lazy<ImageLoader>,
 	private val settings: AppSettings,
 	widgetId: Int,
@@ -51,11 +53,16 @@ class ShelfListFactory(
 	override fun onDataSetChanged() {
 		val data = if (settings.appPassword.isNullOrEmpty()) {
 			runBlocking {
-				val category = config.categoryId
-				if (category == 0L) {
-					favouritesRepository.getAllManga()
-				} else {
-					favouritesRepository.getManga(category)
+				when (config.sourceType) {
+					"recent" -> historyRepository.getList(0, 20)
+					else -> {
+						val category = config.categoryId
+						if (category == 0L) {
+							favouritesRepository.getAllManga()
+						} else {
+							favouritesRepository.getManga(category)
+						}
+					}
 				}
 			}
 		} else {

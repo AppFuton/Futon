@@ -48,7 +48,11 @@ class ShelfWidgetConfigActivity :
 			return
 		}
 		config = AppWidgetConfig(this, ShelfWidgetProvider::class.java, appWidgetId)
-		viewModel.checkedId = config.categoryId
+		if (config.sourceType == "recent") {
+			viewModel.selectRecent()
+		} else {
+			viewModel.checkedId = config.categoryId
+		}
 		viewBinding.switchBackground.isChecked = config.hasBackground
 
 		viewModel.content.observe(this, adapter)
@@ -73,6 +77,7 @@ class ShelfWidgetConfigActivity :
 	override fun onClick(v: View) {
 		when (v.id) {
 			R.id.button_done -> {
+				config.sourceType = viewModel.sourceType.value
 				config.categoryId = viewModel.checkedId
 				config.hasBackground = viewBinding.switchBackground.isChecked
 				updateWidget()
@@ -86,7 +91,11 @@ class ShelfWidgetConfigActivity :
 	}
 
 	override fun onItemClick(item: CategoryItem, view: View) {
-		viewModel.checkedId = item.id
+		if (item.id == -1L) {
+			viewModel.selectRecent()
+		} else {
+			viewModel.checkedId = item.id
+		}
 	}
 
 	private fun updateWidget() {
