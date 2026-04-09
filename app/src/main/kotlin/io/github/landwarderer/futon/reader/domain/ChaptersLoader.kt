@@ -10,6 +10,7 @@ import io.github.landwarderer.futon.details.data.MangaDetails
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import io.github.landwarderer.futon.reader.ui.pager.ReaderPage
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 
 private const val PAGES_TRIM_THRESHOLD = 120
@@ -17,6 +18,7 @@ private const val PAGES_TRIM_THRESHOLD = 120
 @ViewModelScoped
 class ChaptersLoader @Inject constructor(
 	private val mangaRepositoryFactory: MangaRepository.Factory,
+	private val readerOfflineCache: ReaderOfflineCache,
 ) {
 
 	private val chapters = LongSparseArray<MangaChapter>()
@@ -91,8 +93,15 @@ class ChaptersLoader @Inject constructor(
 
 	private suspend fun loadChapter(chapterId: Long): List<ReaderPage> {
 		val chapter = checkNotNull(chapters[chapterId]) { "Requested chapter not found" }
-		val repo = mangaRepositoryFactory.create(chapter.source)
-		return repo.getPages(chapter).mapIndexed { index, page ->
+		val pages = runCatchingCancellable {
+			val repo = mangaRepositoryFactory.create(chapter.source)
+			repo.getPages(chapter).also {
+				readerOfflineCache.putChapterPages(chapter.id, chapter.source, it)
+			}
+		}.recoverCatching { error ->
+			readerOfflineCache.getChapterPages(chapter.id, chapter.source) ?: throw error
+		}.getOrThrow()
+		return pages.mapIndexed { index, page ->
 			ReaderPage(page, index, chapterId)
 		}
 	}

@@ -89,6 +89,7 @@ class PageLoader @Inject constructor(
 	private val coil: ImageLoader,
 	private val settings: AppSettings,
 	private val mangaRepositoryFactory: MangaRepository.Factory,
+	private val readerOfflineCache: ReaderOfflineCache,
 	private val imageProxyInterceptor: ImageProxyInterceptor,
 	private val downloadSlowdownDispatcher: DownloadSlowdownDispatcher,
 ) {
@@ -285,8 +286,20 @@ class PageLoader @Inject constructor(
 		isPrefetch: Boolean,
 		skipCache: Boolean,
 	): Uri = semaphore.withPermit {
-		val pageUrl = getPageUrl(page)
+		val fallbackPageUrl = readerOfflineCache.getResolvedPageUrl(page.id, page.source)
+		if (!skipCache) {
+			cache[page.url]?.let { return it.toUri() }
+			fallbackPageUrl?.let { url ->
+				cache[url]?.let { return it.toUri() }
+			}
+		}
+		val pageUrl = runCatchingCancellable {
+			getPageUrl(page)
+		}.recoverCatching { error ->
+			fallbackPageUrl ?: throw error
+		}.getOrThrow()
 		check(pageUrl.isNotBlank()) { "Cannot obtain full image url for $page" }
+		readerOfflineCache.putResolvedPageUrl(page.id, page.source, pageUrl)
 		if (!skipCache) {
 			cache[pageUrl]?.let { return it.toUri() }
 		}
