@@ -24,6 +24,7 @@ import io.github.landwarderer.futon.core.image.BitmapDecoderCompat
 import io.github.landwarderer.futon.core.network.CommonHeaders
 import io.github.landwarderer.futon.core.network.MangaHttpClient
 import io.github.landwarderer.futon.core.network.imageproxy.ImageProxyInterceptor
+import io.github.landwarderer.futon.core.os.NetworkState
 import io.github.landwarderer.futon.core.parser.CachingMangaRepository
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
@@ -73,6 +74,7 @@ import okhttp3.Request
 import okio.use
 import org.jetbrains.annotations.Blocking
 import java.io.File
+import java.io.IOException
 import java.util.LinkedList
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.ZipFile
@@ -90,6 +92,7 @@ class PageLoader @Inject constructor(
 	private val settings: AppSettings,
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 	private val readerOfflineCache: ReaderOfflineCache,
+	private val networkState: NetworkState,
 	private val imageProxyInterceptor: ImageProxyInterceptor,
 	private val downloadSlowdownDispatcher: DownloadSlowdownDispatcher,
 ) {
@@ -292,6 +295,9 @@ class PageLoader @Inject constructor(
 			fallbackPageUrl?.let { url ->
 				cache[url]?.let { return it.toUri() }
 			}
+		}
+		if (!networkState.isOnline()) {
+			throw IOException("No cached page available in offline mode")
 		}
 		val pageUrl = runCatchingCancellable {
 			getPageUrl(page)

@@ -3,6 +3,7 @@ package io.github.landwarderer.futon.reader.domain
 import android.util.LongSparseArray
 import androidx.annotation.CheckResult
 import dagger.hilt.android.scopes.ViewModelScoped
+import io.github.landwarderer.futon.core.os.NetworkState
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import io.github.landwarderer.futon.core.parser.MangaRepository
@@ -12,6 +13,7 @@ import org.koitharu.kotatsu.parsers.model.MangaPage
 import io.github.landwarderer.futon.reader.ui.pager.ReaderPage
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import javax.inject.Inject
+import java.io.IOException
 
 private const val PAGES_TRIM_THRESHOLD = 120
 
@@ -19,6 +21,7 @@ private const val PAGES_TRIM_THRESHOLD = 120
 class ChaptersLoader @Inject constructor(
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 	private val readerOfflineCache: ReaderOfflineCache,
+	private val networkState: NetworkState,
 ) {
 
 	private val chapters = LongSparseArray<MangaChapter>()
@@ -93,13 +96,20 @@ class ChaptersLoader @Inject constructor(
 
 	private suspend fun loadChapter(chapterId: Long): List<ReaderPage> {
 		val chapter = checkNotNull(chapters[chapterId]) { "Requested chapter not found" }
+		val cachedPages = readerOfflineCache.getChapterPages(chapter.id, chapter.source)
+		if (!networkState.isOnline()) {
+			val offlinePages = cachedPages ?: throw IOException("No cached chapter pages available in offline mode")
+			return offlinePages.mapIndexed { index, page ->
+				ReaderPage(page, index, chapterId)
+			}
+		}
 		val pages = runCatchingCancellable {
 			val repo = mangaRepositoryFactory.create(chapter.source)
 			repo.getPages(chapter).also {
 				readerOfflineCache.putChapterPages(chapter.id, chapter.source, it)
 			}
 		}.recoverCatching { error ->
-			readerOfflineCache.getChapterPages(chapter.id, chapter.source) ?: throw error
+			cachedPages ?: throw error
 		}.getOrThrow()
 		return pages.mapIndexed { index, page ->
 			ReaderPage(page, index, chapterId)

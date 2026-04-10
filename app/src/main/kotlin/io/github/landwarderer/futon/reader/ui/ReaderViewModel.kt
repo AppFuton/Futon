@@ -412,13 +412,12 @@ class ReaderViewModel @Inject constructor(
     fun updateReadingProgress() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                manga.collectLatest {
-                    if (it != null) {
-                        progressUpdateUseCase(it)
-                    }
+                manga.filterNotNull().first().let { currentManga ->
+                    progressUpdateUseCase(currentManga)
                 }
-
-                pageLoader.updateCache(getCurrentPage()!!)
+                getCurrentPage()?.let { currentPage ->
+                    pageLoader.updateCache(currentPage)
+                }
             }
         }
     }
