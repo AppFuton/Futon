@@ -11,6 +11,9 @@ import io.github.landwarderer.futon.core.model.TestMangaSource
 import io.github.landwarderer.futon.core.model.UnknownMangaSource
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaRepository
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
+import io.github.landwarderer.futon.core.parser.mihon.MihonMangaRepository
+import io.github.landwarderer.futon.core.parser.mihon.loader.MihonModule
+import io.github.landwarderer.futon.core.parser.mihon.model.MihonMangaSource
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -60,6 +63,7 @@ interface MangaRepository {
 		private val loaderContext: MangaLoaderContext,
 		private val contentCache: MemoryContentCache,
 		private val mirrorSwitcher: MirrorSwitcher,
+		private val mihonModule: MihonModule,
 	) {
 
 		private val cache = ArrayMap<MangaSource, WeakReference<MangaRepository>>()
@@ -105,6 +109,12 @@ interface MangaRepository {
 			} else {
 				EmptyMangaRepository(source)
 			}
+
+			is MihonMangaSource -> MihonMangaRepository(
+				source = source,
+				mihonModule = mihonModule,
+				cache = contentCache,
+			)
 
 			else -> null
 		}

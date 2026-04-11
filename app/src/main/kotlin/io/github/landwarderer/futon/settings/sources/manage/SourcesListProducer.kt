@@ -4,6 +4,16 @@ import android.content.Context
 import androidx.room.InvalidationTracker
 import dagger.hilt.android.ViewModelLifecycle
 import dagger.hilt.android.scopes.ViewModelScoped
+import io.github.landwarderer.futon.R
+import io.github.landwarderer.futon.core.LocalizedAppContext
+import io.github.landwarderer.futon.core.db.TABLE_SOURCES
+import io.github.landwarderer.futon.core.model.getTitle
+import io.github.landwarderer.futon.core.model.isNsfw
+import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.util.ext.lifecycleScope
+import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
+import io.github.landwarderer.futon.explore.data.SourcesSortOrder
+import io.github.landwarderer.futon.settings.sources.model.SourceConfigItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,19 +23,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import io.github.landwarderer.futon.R
-import io.github.landwarderer.futon.core.LocalizedAppContext
-import io.github.landwarderer.futon.core.db.TABLE_SOURCES
-import io.github.landwarderer.futon.core.model.getTitle
-import io.github.landwarderer.futon.core.model.isNsfw
-import io.github.landwarderer.futon.core.model.unwrap
-import io.github.landwarderer.futon.core.prefs.AppSettings
-import io.github.landwarderer.futon.core.util.ext.lifecycleScope
-import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
-import io.github.landwarderer.futon.explore.data.SourcesSortOrder
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.util.mapToSet
-import io.github.landwarderer.futon.settings.sources.model.SourceConfigItem
 import javax.inject.Inject
 
 @ViewModelScoped
@@ -66,7 +64,7 @@ class SourcesListProducer @Inject constructor(
 	}
 
 	private suspend fun buildList(): List<SourceConfigItem> {
-		val enabledSources = repository.getEnabledSources().filter { it.unwrap() is MangaParserSource }
+		val enabledSources = repository.getEnabledSources()
 		val pinned = repository.getPinnedSources().mapToSet { it.name }
 		val isNsfwDisabled = settings.isNsfwContentDisabled
 		val isReorderAvailable = settings.sourcesSortOrder == SourcesSortOrder.MANUAL

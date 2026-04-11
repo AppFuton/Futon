@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.inSpans
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
+import io.github.landwarderer.futon.core.parser.mihon.model.MihonMangaSource
 import io.github.landwarderer.futon.core.util.ext.getDisplayName
 import io.github.landwarderer.futon.core.util.ext.toLocale
 import io.github.landwarderer.futon.core.util.ext.toLocaleOrNull
@@ -41,6 +42,27 @@ fun MangaSource(name: String?): MangaSource {
 	if (name.startsWith("content:")) {
 		val parts = name.substringAfter(':').splitTwoParts('/') ?: return UnknownMangaSource
 		return ExternalMangaSource(packageName = parts.first, authority = parts.second)
+	}
+	if (name.startsWith("mihon:")) {
+		val parts = name.substringAfter(':').split(':')
+		if (parts.size >= 3) {
+			val packageName = parts[2]
+			var className = parts.getOrNull(3) ?: ""
+			if (className.startsWith(".")) {
+				className = packageName + className
+			}
+			var factoryClassName = parts.getOrNull(4)
+			if (factoryClassName?.startsWith(".") == true) {
+				factoryClassName = packageName + factoryClassName
+			}
+			return MihonMangaSource(
+				id = parts[0].toLongOrNull() ?: 0L,
+				title = parts[1],
+				packageName = packageName,
+				className = className,
+				factoryClassName = factoryClassName
+			)
+		}
 	}
 	MangaParserSource.entries.forEach {
 		if (it.name == name) return it
@@ -98,8 +120,12 @@ fun MangaSource.getTitle(context: Context): String = when (val source = unwrap()
 	LocalMangaSource -> context.getString(R.string.local_storage)
 	TestMangaSource -> context.getString(R.string.test_parser)
 	is ExternalMangaSource -> source.resolveName(context)
+	is MihonMangaSource -> source.name
 	else -> context.getString(R.string.unknown)
 }
+
+val MangaSource.isBroken: Boolean
+	get() = (this as? MangaParserSource)?.isBroken == true
 
 fun SpannableStringBuilder.appendIcon(textView: TextView, @DrawableRes resId: Int): SpannableStringBuilder {
 	val icon = ContextCompat.getDrawable(textView.context, resId) ?: return this

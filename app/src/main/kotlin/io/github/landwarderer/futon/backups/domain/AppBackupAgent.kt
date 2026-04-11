@@ -8,13 +8,14 @@ import android.content.Context
 import android.os.ParcelFileDescriptor
 import androidx.annotation.VisibleForTesting
 import com.google.common.io.ByteStreams
-import kotlinx.coroutines.runBlocking
 import io.github.landwarderer.futon.backups.data.BackupRepository
 import io.github.landwarderer.futon.core.db.MangaDatabase
+import io.github.landwarderer.futon.core.parser.mihon.MihonExtensionManager
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
 import io.github.landwarderer.futon.filter.data.SavedFiltersRepository
 import io.github.landwarderer.futon.reader.data.TapGridSettings
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.FileDescriptor
 import java.io.FileInputStream
@@ -48,6 +49,7 @@ class AppBackupAgent : BackupAgent() {
 					context = applicationContext,
 					db = MangaDatabase(context = applicationContext),
 					settings = AppSettings(applicationContext),
+					mihonExtensionManager = MihonExtensionManager(applicationContext),
 				),
 				savedFiltersRepository = SavedFiltersRepository(
 					context = applicationContext,
@@ -81,6 +83,7 @@ class AppBackupAgent : BackupAgent() {
 						context = applicationContext,
 						db = MangaDatabase(context = applicationContext),
 						settings = AppSettings(applicationContext),
+						mihonExtensionManager = MihonExtensionManager(applicationContext),
 					),
 					savedFiltersRepository = SavedFiltersRepository(
 						context = applicationContext,
