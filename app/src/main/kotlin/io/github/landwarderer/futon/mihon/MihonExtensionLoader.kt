@@ -278,10 +278,10 @@ class MihonExtensionLoader @Inject constructor(
         }
         
         // Get app name and language
-        val appName = ExternalExtensionLoaderSupport.getAppLabel(context, appInfo)
+        val appName = try { ExternalExtensionLoaderSupport.getAppLabel(context, appInfo) } catch (e: Exception) { null }
         val lang = ExternalExtensionLoaderSupport.extractLanguage(pkgName, "extension")
         
-        Log.d(TAG, "Loading extension: $pkgName (lib $libVersion, $lang)")
+        Log.d(TAG, "Loading extension: $pkgName (lib $libVersion, $lang) - Name: $appName")
         
         // Create ClassLoader for this extension
         val classLoader = try {
@@ -313,7 +313,7 @@ class MihonExtensionLoader @Inject constructor(
         
         return MihonLoadResult.Success(
             pkgName = pkgName,
-            appName = appName,
+            appName = appName ?: "Unknown",
             versionCode = versionCode,
             versionName = versionName,
             libVersion = libVersion,

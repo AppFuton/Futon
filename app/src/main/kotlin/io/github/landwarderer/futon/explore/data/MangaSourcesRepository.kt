@@ -13,6 +13,7 @@ import io.github.landwarderer.futon.core.db.dao.MangaSourcesDao
 import io.github.landwarderer.futon.core.db.entity.MangaSourceEntity
 import io.github.landwarderer.futon.core.model.MangaSourceInfo
 import io.github.landwarderer.futon.core.model.getTitle
+import io.github.landwarderer.futon.core.model.isBroken
 import io.github.landwarderer.futon.core.model.isNsfw
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
 import io.github.landwarderer.futon.core.prefs.AppSettings
@@ -424,6 +425,9 @@ class MangaSourcesRepository @Inject constructor(
 		for (entity in this) {
 			val source = entity.source.toMangaSourceOrNull() ?: continue
 			if (skipNsfwSources && source.isNsfw()) {
+				continue
+			}
+			if (source.isBroken) {
 				continue
 			}
 			if (source is MangaParserSource || source.name.startsWith("mihon:") || source.name.startsWith("MIHON_")) {

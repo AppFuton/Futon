@@ -29,7 +29,7 @@ fun SManga.toDomainContent(
     val absolutePublicUrl = resolveUrl(baseUrl, safeUrl) ?: safeUrl
     
     // Safely access lateinit properties
-    val safeTitle = try { title } catch (e: UninitializedPropertyAccessException) { "Unknown" }
+    val safeTitle = try { title } catch (e: UninitializedPropertyAccessException) { null }
     val safeGenres = try { getGenres() } catch (e: UninitializedPropertyAccessException) { null }
     val safeAuthor = try { author } catch (e: UninitializedPropertyAccessException) { null }
     val safeArtist = try { artist } catch (e: UninitializedPropertyAccessException) { null }
@@ -40,7 +40,7 @@ fun SManga.toDomainContent(
     
     return Content(
         id = generateContentId(safeUrl, source.name),
-        title = safeTitle.ifBlank { "Unknown" },
+        title = safeTitle ?: "Unknown",
         altTitles = emptySet(),
         url = safeUrl,
         Url = publicUrl.ifBlank { absolutePublicUrl },

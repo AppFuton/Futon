@@ -121,7 +121,9 @@ class MihonMangaRepository(
             sContent.toDomainContent(
                 source = source,
                 publicUrl = (mihonSource as? HttpSource)?.getPublicContentUrl(sContent) ?: "",
-            ).toManga()
+            ).also {
+                android.util.Log.d(TAG, "Mapped to Domain Content: ${it.title}")
+            }.toManga()
         }
     }
     
@@ -348,4 +350,8 @@ class MihonMangaRepository(
     }
     
     override suspend fun getRelatedMangaImpl(seed: Manga): List<Manga> = emptyList()
+
+    suspend fun getFavicons(): org.koitharu.kotatsu.parsers.model.Favicons {
+        return org.koitharu.kotatsu.parsers.model.Favicons(emptyList(), "")
+    }
 }

@@ -33,13 +33,14 @@ import io.github.landwarderer.futon.core.util.ext.toMimeTypeOrNull
 import io.github.landwarderer.futon.local.data.FaviconCache
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.LocalStorageCache
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import io.github.landwarderer.futon.mihon.MihonMangaRepository
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.runInterruptible
 import okio.FileSystem
 import okio.IOException
 import okio.Path.Companion.toOkioPath
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.File
 import javax.inject.Inject
 import coil3.Uri as CoilUri
@@ -65,6 +66,11 @@ class FaviconFetcher(
 			)
 
 			is LocalMangaRepository -> imageLoader.fetch(R.drawable.ic_storage, options)
+			is MihonMangaRepository -> ImageFetchResult(
+				image = ColorImage(Color.WHITE),
+				isSampled = false,
+				dataSource = DataSource.MEMORY,
+			)
 
 			else -> throw IllegalArgumentException("Unsupported repo ${repo.javaClass.simpleName}")
 		}
