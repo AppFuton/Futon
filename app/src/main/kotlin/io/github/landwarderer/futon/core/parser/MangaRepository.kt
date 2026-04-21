@@ -11,10 +11,10 @@ import io.github.landwarderer.futon.core.model.TestMangaSource
 import io.github.landwarderer.futon.core.model.UnknownMangaSource
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaRepository
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
-import io.github.landwarderer.futon.core.parser.mihon.MihonMangaRepository
-import io.github.landwarderer.futon.core.parser.mihon.loader.MihonModule
-import io.github.landwarderer.futon.core.parser.mihon.model.MihonMangaSource
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
+import io.github.landwarderer.futon.mihon.MihonExtensionManager
+import io.github.landwarderer.futon.mihon.MihonMangaRepository
+import io.github.landwarderer.futon.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
@@ -63,7 +63,7 @@ interface MangaRepository {
 		private val loaderContext: MangaLoaderContext,
 		private val contentCache: MemoryContentCache,
 		private val mirrorSwitcher: MirrorSwitcher,
-		private val mihonModule: MihonModule,
+		private val mihonExtensionManager: MihonExtensionManager,
 	) {
 
 		private val cache = ArrayMap<MangaSource, WeakReference<MangaRepository>>()
@@ -112,11 +112,20 @@ interface MangaRepository {
 
 			is MihonMangaSource -> MihonMangaRepository(
 				source = source,
-				mihonModule = mihonModule,
 				cache = contentCache,
 			)
 
-			else -> null
+			else -> {
+				if (source.name.startsWith("mihon:") || source.name.startsWith("MIHON_")) {
+					mihonExtensionManager.getMihonMangaSourceByName(source.name)?.let {
+						return MihonMangaRepository(
+							source = it,
+							cache = contentCache,
+						)
+					}
+				}
+				null
+			}
 		}
 	}
 }

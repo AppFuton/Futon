@@ -47,6 +47,14 @@
         app:useSimpleSummaryProvider="true" />
 
     <ListPreference
+        android:defaultValue="NATIVE"
+        android:entries="@array/github_mirrors"
+        android:entryValues="@array/values_github_mirrors"
+        android:key="github_mirror"
+        android:title="@string/github_mirror_title"
+        app:useSimpleSummaryProvider="true" />
+
+    <ListPreference
         android:defaultValue="-1"
         android:entries="@array/image_proxies"
         android:entryValues="@array/values_image_proxies"

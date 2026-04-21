@@ -15,11 +15,6 @@ import androidx.core.os.LocaleListCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.preference.PreferenceManager
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onStart
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.ZoomMode
 import io.github.landwarderer.futon.core.network.DoHProvider
@@ -32,12 +27,17 @@ import io.github.landwarderer.futon.core.util.ext.takeIfReadable
 import io.github.landwarderer.futon.core.util.ext.toUriOrNull
 import io.github.landwarderer.futon.explore.data.SourcesSortOrder
 import io.github.landwarderer.futon.list.domain.ListSortOrder
+import io.github.landwarderer.futon.reader.domain.ReaderColorFilter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onStart
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.find
 import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.nullIfEmpty
-import io.github.landwarderer.futon.reader.domain.ReaderColorFilter
 import java.io.File
 import java.net.Proxy
 import java.util.EnumSet
@@ -584,6 +584,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_CRASH_ANALYTICS_ENABLED, false)
 		set(value) = prefs.edit { putBoolean(KEY_CRASH_ANALYTICS_ENABLED, value) }
 
+	var gitHubMirror: GitHubMirror
+		get() = prefs.getEnumValue(KEY_GITHUB_MIRROR, GitHubMirror.NATIVE)
+		set(value) = prefs.edit { putEnumValue(KEY_GITHUB_MIRROR, value) }
+
 	val isAutoLocalChaptersCleanupEnabled: Boolean
 		get() = prefs.getBoolean(KEY_CHAPTERS_CLEAR_AUTO, false)
 
@@ -822,6 +826,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_DISCORD_RPC_SKIP_NSFW = "discord_rpc_skip_nsfw"
 		const val KEY_DISCORD_TOKEN = "discord_token"
 		const val KEY_CRASH_ANALYTICS_ENABLED = "crash_analytics_enabled"
+		const val KEY_GITHUB_MIRROR = "github_mirror"
 
 		// keys for non-persistent preferences
 		const val KEY_APP_VERSION = "app_version"

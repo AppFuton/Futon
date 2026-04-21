@@ -9,30 +9,30 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.room.InvalidationTracker
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
-import okhttp3.internal.platform.PlatformRegistry
-
-import org.conscrypt.Conscrypt
 import io.github.landwarderer.futon.BuildConfig
-import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.os.AppValidator
-import io.github.landwarderer.futon.core.os.RomCompat
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
 import io.github.landwarderer.futon.local.data.index.LocalMangaIndex
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
+import io.github.landwarderer.futon.mihon.MihonExtensionManager
 import io.github.landwarderer.futon.settings.work.WorkScheduleManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
+import okhttp3.internal.platform.PlatformRegistry
+import org.conscrypt.Conscrypt
 import java.security.Security
 import javax.inject.Inject
 import javax.inject.Provider
 
 @HiltAndroidApp
 open class BaseApp : Application(), Configuration.Provider {
+
+	@Inject
+	lateinit var mihonExtensionManager: MihonExtensionManager
 
 	@Inject
 	lateinit var databaseObserversProvider: Provider<Set<@JvmSuppressWildcards InvalidationTracker.Observer>>
@@ -80,6 +80,7 @@ open class BaseApp : Application(), Configuration.Provider {
 			Security.insertProviderAt(Conscrypt.newProvider(), 1)
 		}
 		setupActivityLifecycleCallbacks()
+		mihonExtensionManager.initialize()
 		processLifecycleScope.launch(Dispatchers.IO) {
 			setupDatabaseObservers()
 			localStorageChanges.collect(localMangaIndexProvider.get())

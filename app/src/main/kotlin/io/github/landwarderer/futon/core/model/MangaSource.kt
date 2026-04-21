@@ -11,10 +11,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.inSpans
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
-import io.github.landwarderer.futon.core.parser.mihon.model.MihonMangaSource
 import io.github.landwarderer.futon.core.util.ext.getDisplayName
 import io.github.landwarderer.futon.core.util.ext.toLocale
 import io.github.landwarderer.futon.core.util.ext.toLocaleOrNull
+import io.github.landwarderer.futon.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -43,26 +43,8 @@ fun MangaSource(name: String?): MangaSource {
 		val parts = name.substringAfter(':').splitTwoParts('/') ?: return UnknownMangaSource
 		return ExternalMangaSource(packageName = parts.first, authority = parts.second)
 	}
-	if (name.startsWith("mihon:")) {
-		val parts = name.substringAfter(':').split(':')
-		if (parts.size >= 3) {
-			val packageName = parts[2]
-			var className = parts.getOrNull(3) ?: ""
-			if (className.startsWith(".")) {
-				className = packageName + className
-			}
-			var factoryClassName = parts.getOrNull(4)
-			if (factoryClassName?.startsWith(".") == true) {
-				factoryClassName = packageName + factoryClassName
-			}
-			return MihonMangaSource(
-				id = parts[0].toLongOrNull() ?: 0L,
-				title = parts[1],
-				packageName = packageName,
-				className = className,
-				factoryClassName = factoryClassName
-			)
-		}
+	if (name.startsWith("mihon:") || name.startsWith("MIHON_")) {
+		return AnonymousMangaSource(name)
 	}
 	MangaParserSource.entries.forEach {
 		if (it.name == name) return it
@@ -70,11 +52,14 @@ fun MangaSource(name: String?): MangaSource {
 	return UnknownMangaSource
 }
 
+private data class AnonymousMangaSource(override val name: String) : MangaSource
+
 fun Collection<String>.toMangaSources() = map(::MangaSource)
 
-fun MangaSource.isNsfw(): Boolean = when (this) {
-	is MangaSourceInfo -> mangaSource.isNsfw()
-	is MangaParserSource -> contentType == ContentType.HENTAI
+fun MangaSource.isNsfw(): Boolean = when (val source = unwrap()) {
+	is MangaSourceInfo -> source.mangaSource.isNsfw()
+	is MangaParserSource -> source.contentType == ContentType.HENTAI
+	is MihonMangaSource -> source.isNsfw
 	else -> false
 }
 
@@ -120,7 +105,7 @@ fun MangaSource.getTitle(context: Context): String = when (val source = unwrap()
 	LocalMangaSource -> context.getString(R.string.local_storage)
 	TestMangaSource -> context.getString(R.string.test_parser)
 	is ExternalMangaSource -> source.resolveName(context)
-	is MihonMangaSource -> source.name
+	is MihonMangaSource -> source.displayName
 	else -> context.getString(R.string.unknown)
 }
 

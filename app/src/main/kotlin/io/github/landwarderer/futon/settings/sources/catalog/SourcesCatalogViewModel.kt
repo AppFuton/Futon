@@ -4,13 +4,6 @@ import androidx.annotation.WorkerThread
 import androidx.lifecycle.viewModelScope
 import androidx.room.invalidationTrackerFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.plus
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.db.TABLE_SOURCES
@@ -19,11 +12,18 @@ import io.github.landwarderer.futon.core.ui.BaseViewModel
 import io.github.landwarderer.futon.core.ui.util.ReversibleAction
 import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.core.util.ext.call
-import io.github.landwarderer.futon.core.util.ext.mapSortedByCount
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
 import io.github.landwarderer.futon.explore.data.SourcesSortOrder
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingState
+import io.github.landwarderer.futon.mihon.MihonExtensionManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.util.EnumSet
@@ -33,13 +33,16 @@ import javax.inject.Inject
 @HiltViewModel
 class SourcesCatalogViewModel @Inject constructor(
 	private val repository: MangaSourcesRepository,
+	private val mihonExtensionManager: MihonExtensionManager,
 	db: MangaDatabase,
 	settings: AppSettings,
 ) : BaseViewModel() {
 
 	val onActionDone = MutableEventFlow<ReversibleAction>()
-	val locales: Set<String?> = repository.allMangaSources.mapTo(HashSet<String?>()) { it.locale }.also {
-		it.add(null)
+	val locales: Set<String?> = buildSet {
+		repository.allMangaSources.forEach { add(it.locale) }
+		mihonExtensionManager.getMihonMangaSources().forEach { add(it.locale) }
+		add(null)
 	}
 
 	private val searchQuery = MutableStateFlow<String?>(null)
@@ -60,7 +63,8 @@ class SourcesCatalogViewModel @Inject constructor(
 		searchQuery,
 		appliedFilter,
 		db.invalidationTrackerFlow(TABLE_SOURCES),
-	) { q, f, _ ->
+		mihonExtensionManager.installedExtensions,
+	) { q, f, _, _ ->
 		buildSourcesList(f, q)
 	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
 
@@ -137,7 +141,44 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	@WorkerThread
 	private fun getContentTypes(isNsfwDisabled: Boolean): List<ContentType> {
-		val result = repository.allMangaSources.mapSortedByCount { it.contentType }
+		val result = buildSet {
+			repository.allMangaSources.forEach { add(it.contentType) }
+			mihonExtensionManager.getMihonMangaSources().forEach { 
+				when(it.contentType) {
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.MANGA -> add(ContentType.MANGA)
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.HENTAI_MANGA -> add(ContentType.HENTAI)
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.COMICS -> add(ContentType.COMICS)
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.MANHWA -> add(ContentType.MANHWA)
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.MANHUA -> add(ContentType.MANHUA)
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.NOVEL -> add(ContentType.NOVEL)
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.ONE_SHOT -> add(ContentType.ONE_SHOT)
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.DOUJINSHI -> add(ContentType.DOUJINSHI)
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.IMAGE_SET -> add(ContentType.IMAGE_SET)
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.ARTIST_CG -> add(ContentType.ARTIST_CG)
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.GAME_CG -> add(ContentType.GAME_CG)
+					else -> {}
+				}
+			}
+		}.toList().sortedByDescending { type ->
+			val kotatsuCount = repository.allMangaSources.count { it.contentType == type }
+			val mihonCount = mihonExtensionManager.getMihonMangaSources().count { 
+				when(it.contentType) {
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.MANGA -> type == ContentType.MANGA
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.HENTAI_MANGA -> type == ContentType.HENTAI
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.COMICS -> type == ContentType.COMICS
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.MANHWA -> type == ContentType.MANHWA
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.MANHUA -> type == ContentType.MANHUA
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.NOVEL -> type == ContentType.NOVEL
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.ONE_SHOT -> type == ContentType.ONE_SHOT
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.DOUJINSHI -> type == ContentType.DOUJINSHI
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.IMAGE_SET -> type == ContentType.IMAGE_SET
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.ARTIST_CG -> type == ContentType.ARTIST_CG
+					io.github.landwarderer.futon.mihon.parsers.model.ContentType.GAME_CG -> type == ContentType.GAME_CG
+					else -> false
+				}
+			}
+			kotatsuCount + mihonCount
+		}
 		return if (isNsfwDisabled) {
 			result.filterNot { it == ContentType.HENTAI }
 		} else {

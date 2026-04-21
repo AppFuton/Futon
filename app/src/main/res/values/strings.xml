@@ -908,4 +908,13 @@
     <string name="available_pattern">%1$s available</string>
     <string name="crash_reporting">Crash Reporting</string>
     <string name="crash_reporting_summary">Send anonymous crash logs to help improve the app. Takes effect after restart.</string>
+    <string name="github_mirror_title">GitHub mirror</string>
+    <string name="github_mirror_native">Native</string>
+    <string name="github_mirror_kkgithub">KKGitHub (raw.kkgithub.com)</string>
+    <string name="github_mirror_ghproxy">GHProxy (mirror.ghproxy.com)</string>
+    <string name="github_mirror_ghproxy_net">GHProxy.net (ghproxy.net)</string>
+    <string name="enable_source_manga">Enable manga source</string>
+    <string name="domain_manga">Manga source domain</string>
+    <string name="download_option_whole_manga_manga">Whole manga</string>
+    <string name="recommendation_manga">recommended manga</string>
 </resources>
