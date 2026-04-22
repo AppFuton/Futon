@@ -27,10 +27,17 @@ class ExtensionRepoService @Inject constructor(
 	private fun applyMirror(url: String): String {
 		if (url.startsWith("https://raw.githubusercontent.com/")) {
 			return when (settings.gitHubMirror) {
-				GitHubMirror.NATIVE -> url
+				GitHubMirror.KEIYOUSHI -> {
+					if (url.contains("/keiyoushi/extensions/")) {
+						url.replace("raw.githubusercontent.com", "raw.github.com")
+					} else {
+						"https://raw.github.com/keiyoushi/extensions/refs/heads/repo/${url.substringAfter("raw.githubusercontent.com/")}"
+					}
+				}
 				GitHubMirror.KKGITHUB -> url.replace("raw.githubusercontent.com", "raw.kkgithub.com")
 				GitHubMirror.GHPROXY -> "https://mirror.ghproxy.com/$url"
 				GitHubMirror.GHPROXY_NET -> "https://ghproxy.net/$url"
+				else -> url
 			}
 		}
 		return url

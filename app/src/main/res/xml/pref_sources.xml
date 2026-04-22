@@ -32,6 +32,11 @@
         android:persistent="false"
         android:title="@string/sources_catalog" />
 
+    <Preference
+        android:key="extension_downloader"
+        android:persistent="false"
+        android:title="@string/extension_downloader" />
+
     <SwitchPreferenceCompat
         android:defaultValue="true"
         android:key="no_nsfw"

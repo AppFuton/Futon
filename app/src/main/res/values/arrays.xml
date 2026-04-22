@@ -145,15 +145,9 @@
 		<item>@string/disable</item>
 	</string-array>
 	<string-array name="github_mirrors" translatable="false">
-		<item>@string/github_mirror_native</item>
-		<item>@string/github_mirror_kkgithub</item>
-		<item>@string/github_mirror_ghproxy</item>
-		<item>@string/github_mirror_ghproxy_net</item>
+        <item>@string/github_mirror_keiyoushi</item>
 	</string-array>
 	<string-array name="values_github_mirrors" translatable="false">
-		<item>NATIVE</item>
-		<item>KKGITHUB</item>
-		<item>GHPROXY</item>
-		<item>GHPROXY_NET</item>
+        <item>KEIYOUSHI</item>
 	</string-array>
 </resources>

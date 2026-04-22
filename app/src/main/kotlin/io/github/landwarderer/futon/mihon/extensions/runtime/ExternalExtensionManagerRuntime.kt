@@ -52,8 +52,6 @@ class ExternalExtensionManagerRuntime<ResultT, SuccessT, ErrorT, SourceT, Wrappe
 		}
 	}
 
-	fun getInstalledExtensions(): List<SuccessT> = installedExtensions.value
-
 	fun getSourceById(sourceId: Long): SourceT? = sourceCache[sourceId]
 
 	fun getWrappedSourceById(sourceId: Long): WrappedSourceT? = wrappedSourceCache[sourceId]

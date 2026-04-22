@@ -23,11 +23,6 @@ object ExternalExtensionLoaderSupport {
 			packageName.startsWith("io.github.landwarderer.futon.extension.")
 	}
 
-	fun looksLikeAniyomiPackage(packageName: String): Boolean {
-		return packageName.contains(".animeextension") ||
-			packageName.startsWith("eu.kanade.tachiyomi.animeextension.")
-	}
-
 	fun getInstalledPackages(pkgManager: PackageManager): List<PackageInfo> {
 		return try {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

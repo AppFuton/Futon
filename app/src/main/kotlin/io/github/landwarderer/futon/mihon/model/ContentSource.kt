@@ -164,6 +164,7 @@ fun ContentSource.getLocale(): Locale? = unwrap().locale.takeIf { it.isNotEmpty(
 
 fun ContentSource.getContentType(): ContentType = unwrap().contentType
 
+@RequiresApi(Build.VERSION_CODES.N)
 fun ContentSource.getSummary(context: Context, contentType: ContentType? = null): String? = when (val source = unwrap()) {
 	is io.github.landwarderer.futon.mihon.model.MihonMangaSource -> {
 		val resolvedContentType = contentType ?: getContentType()

@@ -47,12 +47,12 @@
         app:useSimpleSummaryProvider="true" />
 
     <ListPreference
-        android:defaultValue="NATIVE"
+        android:defaultValue="KEIYOUSHI"
         android:entries="@array/github_mirrors"
         android:entryValues="@array/values_github_mirrors"
         android:key="github_mirror"
         android:title="@string/github_mirror_title"
-        app:useSimpleSummaryProvider="true" />
+        app:useSimpleSummaryProvider="true"/>
 
     <ListPreference
         android:defaultValue="-1"

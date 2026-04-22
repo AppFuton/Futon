@@ -1,22 +1,21 @@
 package io.github.landwarderer.futon.core.network
 
 import dagger.Lazy
-import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.core.model.MangaSource
 import io.github.landwarderer.futon.core.parser.MangaLoaderContextImpl
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.parser.ParserMangaRepository
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.util.mergeWith
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import okhttp3.Headers
 import okhttp3.Interceptor
 import okhttp3.Interceptor.Chain
 import okhttp3.Request
 import okhttp3.Response
 import okio.IOException
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.mergeWith
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.net.IDN
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,10 +33,6 @@ class CommonHeadersInterceptor @Inject constructor(
 		val repository = if (source is MangaParserSource) {
 			mangaRepositoryFactoryLazy.get().create(source) as? ParserMangaRepository
 		} else {
-			if (BuildConfig.DEBUG && source == null) {
-				IllegalArgumentException("Request without source tag: ${request.url}")
-					.printStackTrace()
-			}
 			null
 		}
 		val headersBuilder = request.headers.newBuilder()

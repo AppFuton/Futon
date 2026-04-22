@@ -288,6 +288,9 @@
 			android:name="io.github.landwarderer.futon.settings.sources.catalog.SourcesCatalogActivity"
 			android:label="@string/sources_catalog" />
 		<activity
+			android:name="io.github.landwarderer.futon.settings.sources.extension.ExtensionDownloaderActivity"
+			android:label="@string/extension_downloader" />
+		<activity
 			android:name="io.github.landwarderer.futon.scrobbling.kitsu.ui.KitsuAuthActivity"
 			android:exported="false"
 			android:label="@string/kitsu"

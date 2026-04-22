@@ -83,8 +83,6 @@ class ExternalExtensionManagerFacade<ResultT, SuccessT, ErrorT, SourceT, Catalog
 		)
 	}
 
-	fun getInstalledExtensions(): List<SuccessT> = installedExtensions.value
-
 	fun getCatalogueSources(): List<CatalogueT> {
 		return installedExtensions.value.flatMap(successCatalogueSources)
 	}

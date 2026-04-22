@@ -34,4 +34,5 @@ enum class ListItemType {
 	NAV_ITEM,
 	CHAPTER_LIST,
 	CHAPTER_GRID,
+	EXTENSION,
 }

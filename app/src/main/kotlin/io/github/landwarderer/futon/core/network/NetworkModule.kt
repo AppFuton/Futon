@@ -18,6 +18,7 @@ import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.assertNotInMainThread
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.local.data.LocalStorageManager
+import kotlinx.serialization.json.Json
 import okhttp3.Cache
 import okhttp3.CookieJar
 import okhttp3.OkHttpClient
@@ -97,6 +98,13 @@ interface NetworkModule {
             addNetworkInterceptor(CacheLimitInterceptor())
             addInterceptor(commonHeadersInterceptor)
         }.build()
+
+        @Provides
+        @Singleton
+        fun provideJson(): Json = Json {
+            ignoreUnknownKeys = true
+            explicitNulls = false
+        }
 
     }
 }

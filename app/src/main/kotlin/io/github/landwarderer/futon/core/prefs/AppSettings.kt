@@ -585,7 +585,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		set(value) = prefs.edit { putBoolean(KEY_CRASH_ANALYTICS_ENABLED, value) }
 
 	var gitHubMirror: GitHubMirror
-		get() = prefs.getEnumValue(KEY_GITHUB_MIRROR, GitHubMirror.NATIVE)
+		get() = prefs.getEnumValue(KEY_GITHUB_MIRROR, GitHubMirror.KEIYOUSHI)
 		set(value) = prefs.edit { putEnumValue(KEY_GITHUB_MIRROR, value) }
 
 	val isAutoLocalChaptersCleanupEnabled: Boolean
@@ -801,6 +801,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_32BIT_COLOR = "enhanced_colors"
 		const val KEY_SOURCES_ORDER = "sources_sort_order"
 		const val KEY_SOURCES_CATALOG = "sources_catalog"
+		const val KEY_EXTENSION_DOWNLOADER = "extension_downloader"
 		const val KEY_CF_BRIGHTNESS = "cf_brightness"
 		const val KEY_CF_CONTRAST = "cf_contrast"
 		const val KEY_CF_INVERTED = "cf_inverted"

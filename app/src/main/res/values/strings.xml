@@ -518,6 +518,7 @@
     <string name="content_type_other">Other</string>
     <string name="source_summary_pattern" translatable="false">%1$s, %2$s</string>
     <string name="sources_catalog">Sources catalog</string>
+    <string name="extension_downloader">Extension downloader</string>
     <string name="source_enabled">Source enabled</string>
     <string name="no_manga_sources_catalog_text">There are no sources available in this section, or all of it might have been already added.\nStay tuned</string>
     <string name="no_manga_sources_found">No available manga sources found by your query</string>
@@ -910,6 +911,7 @@
     <string name="crash_reporting_summary">Send anonymous crash logs to help improve the app. Takes effect after restart.</string>
     <string name="github_mirror_title">GitHub mirror</string>
     <string name="github_mirror_native">Native</string>
+    <string name="github_mirror_keiyoushi">Keiyoushi</string>
     <string name="github_mirror_kkgithub">KKGitHub (raw.kkgithub.com)</string>
     <string name="github_mirror_ghproxy">GHProxy (mirror.ghproxy.com)</string>
     <string name="github_mirror_ghproxy_net">GHProxy.net (ghproxy.net)</string>
@@ -917,4 +919,6 @@
     <string name="domain_manga">Manga source domain</string>
     <string name="download_option_whole_manga_manga">Whole manga</string>
     <string name="recommendation_manga">recommended manga</string>
+    <string name="installed">Installed</string>
+    <string name="install">Install</string>
 </resources>

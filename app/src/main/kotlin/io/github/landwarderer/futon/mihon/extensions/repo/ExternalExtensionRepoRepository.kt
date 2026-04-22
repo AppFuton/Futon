@@ -128,10 +128,33 @@ class ExternalExtensionRepoRepository @Inject constructor(
 	}
 
 	suspend fun getCatalogExtensions(type: ExternalExtensionType): List<RepoAvailableExtension> = coroutineScope {
-		getByType(type)
+		Log.d(TAG, "getCatalogExtensions:start type=$type")
+		val repos = getByType(type)
+		Log.d(TAG, "getCatalogExtensions:db_repos count=${repos.size}")
+		if (type == ExternalExtensionType.MIHON && repos.none { it.baseUrl.contains("keiyoushi") }) {
+			Log.d(TAG, "getCatalogExtensions:keiyoushi_missing auto_adding")
+			val now = System.currentTimeMillis()
+			val keiyoushi = ExternalExtensionRepo(
+				type = ExternalExtensionType.MIHON,
+				baseUrl = "https://raw.githubusercontent.com/keiyoushi/extensions/refs/heads/repo",
+				name = "Keiyoushi",
+				shortName = "Keiyoushi",
+				website = "https://keiyoushi.github.io/extensions",
+				signingKeyFingerprint = "508c909405615d0234a41316b230230559f6b9a89c3f15c13b306b38c2306f50",
+				createdAt = now,
+				updatedAt = now,
+				lastSuccessAt = now,
+				lastError = null,
+			)
+			val result = confirmAddRepo(keiyoushi)
+			Log.d(TAG, "getCatalogExtensions:keiyoushi_added result=$result")
+			return@coroutineScope getCatalogExtensions(type)
+		}
+		val results = repos
 			.map { repo -> async { service.fetchAvailableExtensions(repo) } }
 			.awaitAll()
-			.flatten()
+		Log.d(TAG, "getCatalogExtensions:fetched count=${results.size} total_extensions=${results.sumOf { it.size }}")
+		results.flatten()
 			.groupBy { it.pkgName }
 			.map { (_, list) -> list.maxByOrNull { it.versionCode }!! }
 			.sortedWith(compareBy<RepoAvailableExtension> { it.lang }.thenBy { it.name.lowercase() })

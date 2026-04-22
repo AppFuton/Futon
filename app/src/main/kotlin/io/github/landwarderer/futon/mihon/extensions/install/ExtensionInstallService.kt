@@ -41,6 +41,7 @@ class ExtensionInstallService @Inject constructor(
 				GitHubMirror.KKGITHUB -> url.replace("raw.githubusercontent.com", "raw.kkgithub.com")
 				GitHubMirror.GHPROXY -> "https://mirror.ghproxy.com/$url"
 				GitHubMirror.GHPROXY_NET -> "https://ghproxy.net/$url"
+                GitHubMirror.KEIYOUSHI -> url.replace("raw.githubusercontent.com", "raw.github.com")
 			}
 		}
 		return url
