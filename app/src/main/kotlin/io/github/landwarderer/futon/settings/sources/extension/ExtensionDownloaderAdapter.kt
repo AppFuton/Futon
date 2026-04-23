@@ -1,5 +1,6 @@
 package io.github.landwarderer.futon.settings.sources.extension
 
+import androidx.core.view.isVisible
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.ui.BaseListAdapter
@@ -10,16 +11,18 @@ import io.github.landwarderer.futon.list.ui.model.ListModel
 class ExtensionDownloaderAdapter(
     onInstallClick: (ExtensionItem) -> Unit,
     onCancelClick: (ExtensionItem) -> Unit,
+    onUninstallClick: (ExtensionItem) -> Unit,
 ) : BaseListAdapter<ListModel>() {
 
     init {
-        addDelegate(ListItemType.EXTENSION, extensionItemAD(onInstallClick, onCancelClick))
+        addDelegate(ListItemType.EXTENSION, extensionItemAD(onInstallClick, onCancelClick, onUninstallClick))
     }
 }
 
 private fun extensionItemAD(
     onInstallClick: (ExtensionItem) -> Unit,
     onCancelClick: (ExtensionItem) -> Unit,
+    onUninstallClick: (ExtensionItem) -> Unit,
 ) = adapterDelegateViewBinding<ExtensionItem, ListModel, ItemExtensionBinding>(
     { layoutInflater, parent -> ItemExtensionBinding.inflate(layoutInflater, parent, false) }
 ) {
@@ -31,6 +34,19 @@ private fun extensionItemAD(
         }
     }
 
+    binding.buttonUninstall.setOnClickListener {
+        onUninstallClick(item)
+    }
+
+    binding.root.setOnLongClickListener {
+        if (item.isInstalled) {
+            onUninstallClick(item)
+            true
+        } else {
+            false
+        }
+    }
+
     bind {
         binding.textViewTitle.text = item.available.name
         binding.textViewVersion.text = item.available.versionName
@@ -39,14 +55,31 @@ private fun extensionItemAD(
         val downloadState = item.downloadState
         if (downloadState != null) {
             binding.buttonAction.text = context.getString(android.R.string.cancel)
-            // progress can be added here if needed
-        } else {
-            binding.buttonAction.text = when {
-                item.hasUpdate -> context.getString(R.string.update)
-                item.isInstalled -> context.getString(R.string.installed)
-                else -> context.getString(R.string.install)
+            binding.buttonAction.isVisible = true
+            binding.buttonAction.isEnabled = true
+            binding.buttonUninstall.isVisible = false
+            
+            binding.progressBar.isVisible = true
+            val progress = downloadState.progressPercent
+            if (progress != null) {
+                binding.progressBar.isIndeterminate = false
+                binding.progressBar.progress = progress
+            } else {
+                binding.progressBar.isIndeterminate = true
             }
-            binding.buttonAction.isEnabled = !item.isInstalled || item.hasUpdate
+        } else {
+            binding.progressBar.isVisible = false
+            
+            val hasUpdate = item.hasUpdate
+            val isInstalled = item.isInstalled
+            
+            binding.buttonAction.isVisible = !isInstalled || hasUpdate
+            if (binding.buttonAction.isVisible) {
+                binding.buttonAction.text = if (hasUpdate) context.getString(R.string.update) else context.getString(R.string.install)
+                binding.buttonAction.isEnabled = true
+            }
+            
+            binding.buttonUninstall.isVisible = isInstalled
         }
     }
 }

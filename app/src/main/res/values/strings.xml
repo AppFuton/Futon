@@ -518,7 +518,7 @@
     <string name="content_type_other">Other</string>
     <string name="source_summary_pattern" translatable="false">%1$s, %2$s</string>
     <string name="sources_catalog">Sources catalog</string>
-    <string name="extension_downloader">Extension downloader</string>
+    <string name="extensions_manager">Extensions manager</string>
     <string name="source_enabled">Source enabled</string>
     <string name="no_manga_sources_catalog_text">There are no sources available in this section, or all of it might have been already added.\nStay tuned</string>
     <string name="no_manga_sources_found">No available manga sources found by your query</string>
@@ -921,4 +921,5 @@
     <string name="recommendation_manga">recommended manga</string>
     <string name="installed">Installed</string>
     <string name="install">Install</string>
+    <string name="uninstall">Uninstall</string>
 </resources>

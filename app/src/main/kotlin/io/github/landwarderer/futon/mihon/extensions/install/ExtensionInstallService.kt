@@ -15,10 +15,12 @@ import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.GitHubMirror
 import io.github.landwarderer.futon.mihon.extensions.repo.RepoAvailableExtension
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import java.io.File
@@ -52,7 +54,7 @@ class ExtensionInstallService @Inject constructor(
 
 	val downloadStates: StateFlow<Map<String, ExtensionInstallDownloadState>> = _downloadStates.asStateFlow()
 
-	suspend fun createInstallIntent(extension: RepoAvailableExtension): Intent? {
+	suspend fun createInstallIntent(extension: RepoAvailableExtension): Intent? = withContext(Dispatchers.IO) {
 		val apkUrl = applyMirror("${extension.repoUrl}/apk/${extension.apkName}")
 		val outputDir = File(context.cacheDir, "extension-installs").apply { mkdirs() }
 		val outputFile = File(outputDir, "${extension.pkgName}-${extension.versionCode}.apk")
@@ -89,15 +91,21 @@ class ExtensionInstallService @Inject constructor(
 				.edit {
                     putLong(extension.pkgName, extension.versionCode)
                 }
-			return null
+			return@withContext null
 		}
 		
 		val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.files", outputFile)
-		return Intent(Intent.ACTION_VIEW).apply {
+		Intent(Intent.ACTION_VIEW).apply {
 			setDataAndType(uri, "application/vnd.android.package-archive")
 			addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 			addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 			putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+		}
+	}
+
+	fun getUninstallIntent(packageName: String): Intent {
+		return Intent(Intent.ACTION_DELETE).apply {
+			data = android.net.Uri.fromParts("package", packageName, null)
 		}
 	}
 

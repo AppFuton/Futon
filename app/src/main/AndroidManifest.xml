@@ -24,6 +24,7 @@
 	<uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+	<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 	<uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 	<uses-permission
 		android:name="android.permission.QUERY_ALL_PACKAGES"
@@ -289,7 +290,7 @@
 			android:label="@string/sources_catalog" />
 		<activity
 			android:name="io.github.landwarderer.futon.settings.sources.extension.ExtensionDownloaderActivity"
-			android:label="@string/extension_downloader" />
+			android:label="@string/extensions_manager" />
 		<activity
 			android:name="io.github.landwarderer.futon.scrobbling.kitsu.ui.KitsuAuthActivity"
 			android:exported="false"

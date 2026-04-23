@@ -85,6 +85,11 @@ class ExtensionDownloaderViewModel @Inject constructor(
         }
     }
 
+    fun uninstallExtension(pkgName: String) {
+        val intent = installService.getUninstallIntent(pkgName)
+        _intentAction.call(intent)
+    }
+
     fun cancelDownload(pkgName: String) {
         installService.cancelDownload(pkgName)
     }

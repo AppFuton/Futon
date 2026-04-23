@@ -32,12 +32,10 @@
         android:persistent="false"
         android:title="@string/sources_catalog" />
 
-    <!-- todo - change visibility when download feature is done -->
     <Preference
         android:key="extension_downloader"
         android:persistent="false"
-        android:title="@string/extension_downloader"
-        app:isPreferenceVisible="false"/>
+        android:title="@string/extensions_manager" />
 
     <SwitchPreferenceCompat
         android:defaultValue="true"

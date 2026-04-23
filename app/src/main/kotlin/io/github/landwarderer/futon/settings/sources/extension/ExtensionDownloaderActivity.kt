@@ -21,12 +21,13 @@ class ExtensionDownloaderActivity : BaseActivity<ActivityExtensionDownloaderBind
         super.onCreate(savedInstanceState)
         setContentView(ActivityExtensionDownloaderBinding.inflate(layoutInflater))
         
-        setTitle(R.string.extension_downloader)
+        setTitle(R.string.extensions_manager)
         setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
 
         val adapter = ExtensionDownloaderAdapter(
             onInstallClick = { viewModel.installExtension(it.available) },
-            onCancelClick = { viewModel.cancelDownload(it.available.pkgName) }
+            onCancelClick = { viewModel.cancelDownload(it.available.pkgName) },
+            onUninstallClick = { viewModel.uninstallExtension(it.available.pkgName) }
         )
 
         viewBinding.recyclerView.adapter = adapter
