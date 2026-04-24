@@ -24,7 +24,7 @@ class DatabasePrePopulateCallback(private val resources: Resources) : RoomDataba
 
 		val now = System.currentTimeMillis()
 		db.execSQL(
-			"INSERT INTO external_extension_repos (type, base_url, name, short_name, website, signing_key_fingerprint, created_at, updated_at, last_success_at) VALUES (?,?,?,?,?,?,?,?,?)",
+			"INSERT INTO external_extension_repos (type, baseUrl, name, shortName, website, signingKeyFingerprint, createdAt, updatedAt, lastSuccessAt) VALUES (?,?,?,?,?,?,?,?,?)",
 			arrayOf(
 				"MIHON",
 				"https://raw.githubusercontent.com/keiyoushi/extensions/refs/heads/repo",
