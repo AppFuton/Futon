@@ -66,11 +66,7 @@ class FaviconFetcher(
 			)
 
 			is LocalMangaRepository -> imageLoader.fetch(R.drawable.ic_storage, options)
-			is MihonMangaRepository -> ImageFetchResult(
-				image = ColorImage(Color.WHITE),
-				isSampled = false,
-				dataSource = DataSource.MEMORY,
-			)
+			is MihonMangaRepository -> fetchMihonIcon(repo)
 
 			else -> throw IllegalArgumentException("Unsupported repo ${repo.javaClass.simpleName}")
 		}
@@ -123,6 +119,25 @@ class FaviconFetcher(
 		val icon = runInterruptible {
 			val provider = pm.resolveContentProvider(source.authority, 0)
 			provider?.loadIcon(pm) ?: pm.getApplicationIcon(source.packageName)
+		}
+		return ImageFetchResult(
+			image = icon.nonAdaptive().asImage(),
+			isSampled = false,
+			dataSource = DataSource.DISK,
+		)
+	}
+
+	private suspend fun fetchMihonIcon(repository: MihonMangaRepository): FetchResult {
+		val source = repository.source
+		val pm = options.context.packageManager
+		val icon = runInterruptible {
+			try {
+				pm.getApplicationIcon(source.pkgName)
+			} catch (e: Exception) {
+				e.printStackTraceDebug("FaviconFetcher::fetchMihonIcon")
+				// Fallback to generic icon if extension icon not found
+				pm.getApplicationIcon("com.android.packageinstaller")
+			}
 		}
 		return ImageFetchResult(
 			image = icon.nonAdaptive().asImage(),
