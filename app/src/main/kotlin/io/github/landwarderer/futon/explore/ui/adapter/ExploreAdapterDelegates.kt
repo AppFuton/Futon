@@ -126,13 +126,16 @@ fun exploreSourceGridItemAD(
 
 	bind {
 		val title = item.source.getTitle(context)
+		val summary = item.source.getSummary(context)
 		itemView.setTooltipCompat(
 			buildSpannedString {
 				bold {
 					append(title)
 				}
-				appendLine()
-				append(item.source.getSummary(context))
+				if (summary != null) {
+					appendLine()
+					append(summary)
+				}
 			},
 		)
 		binding.textViewTitle.text = title

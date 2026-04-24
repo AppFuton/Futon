@@ -15,6 +15,7 @@ import io.github.landwarderer.futon.core.util.ext.getDisplayName
 import io.github.landwarderer.futon.core.util.ext.toLocale
 import io.github.landwarderer.futon.core.util.ext.toLocaleOrNull
 import io.github.landwarderer.futon.mihon.model.MihonMangaSource
+import io.github.landwarderer.futon.mihon.parsers.model.ContentType as MihonContentType
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -96,6 +97,27 @@ fun MangaSource.getSummary(context: Context): String? = when (val source = unwra
 	}
 
 	is ExternalMangaSource -> context.getString(R.string.external_source)
+
+	is MihonMangaSource -> {
+		val contentType = when (source.contentType) {
+			MihonContentType.MANGA -> ContentType.MANGA
+			MihonContentType.MANHWA -> ContentType.MANHWA
+			MihonContentType.MANHUA -> ContentType.MANHUA
+			MihonContentType.HENTAI_MANGA, MihonContentType.HENTAI_NOVEL, MihonContentType.HENTAI_VIDEO -> ContentType.HENTAI
+			MihonContentType.COMICS -> ContentType.COMICS
+			MihonContentType.VIDEO -> ContentType.OTHER
+			MihonContentType.NOVEL -> ContentType.NOVEL
+			MihonContentType.ONE_SHOT -> ContentType.ONE_SHOT
+			MihonContentType.DOUJINSHI -> ContentType.DOUJINSHI
+			MihonContentType.IMAGE_SET -> ContentType.IMAGE_SET
+			MihonContentType.ARTIST_CG -> ContentType.ARTIST_CG
+			MihonContentType.GAME_CG -> ContentType.GAME_CG
+			MihonContentType.OTHER -> ContentType.OTHER
+		}
+		val type = context.getString(contentType.titleResId)
+		val locale = source.language.toLocaleOrNull()?.getDisplayName(context) ?: source.language
+		context.getString(R.string.source_summary_pattern, type, locale)
+	}
 
 	else -> null
 }
