@@ -6,12 +6,21 @@ The format is based on "Keep a Changelog" and follows semantic versioning where 
 
 ## [Unreleased]
 ## 9.7
-Date: Late March 2026
+Date: 2026-04-27
 
 ### Highlights
-- UI reworks and new features.
+- Added Tachiyomi keiyoushi extension compatibility!
+- Updated adaptive icon with new monochrome layer and fixed transparency
+- New Futon splash icon
+- Recent manga can now be shown in the shelf widget
+- Added extension downloader activity with search functionality
+- Small UI changes (hide navigation bar labels by default, manga details panel background)
 
-- (Work in progress)
+### Fixes
+- Fixed adaptive icon and splash screen
+
+### Maintenance
+- Updated parsers
 
 ---
 ## v9.6.14
