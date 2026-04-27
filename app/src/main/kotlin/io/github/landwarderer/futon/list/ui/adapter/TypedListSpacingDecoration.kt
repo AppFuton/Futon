@@ -41,7 +41,7 @@ class TypedListSpacingDecoration(
 			ListItemType.MANGA_SCROBBLING,
 			ListItemType.MANGA_LIST,
 				-> outRect.set(0)
-
+            ListItemType.EXTENSION,
 			ListItemType.DOWNLOAD,
 			ListItemType.HINT_EMPTY,
 			ListItemType.MANGA_LIST_DETAILED,

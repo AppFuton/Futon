@@ -78,6 +78,11 @@ class SourcesSettingsFragment : BasePreferenceFragment(R.string.remote_sources),
 			true
 		}
 
+		AppSettings.KEY_EXTENSION_DOWNLOADER -> {
+			router.openExtensionDownloader()
+			true
+		}
+
 		AppSettings.KEY_HANDLE_LINKS -> {
 			viewModel.setLinksEnabled((preference as TwoStatePreference).isChecked)
 			true

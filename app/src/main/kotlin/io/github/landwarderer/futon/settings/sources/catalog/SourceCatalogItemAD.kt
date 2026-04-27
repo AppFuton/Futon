@@ -7,6 +7,7 @@ import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.getSummary
 import io.github.landwarderer.futon.core.model.getTitle
+import io.github.landwarderer.futon.core.model.isBroken
 import io.github.landwarderer.futon.core.ui.image.FaviconDrawable
 import io.github.landwarderer.futon.core.ui.list.OnListItemClickListener
 import io.github.landwarderer.futon.core.util.ext.drawableStart

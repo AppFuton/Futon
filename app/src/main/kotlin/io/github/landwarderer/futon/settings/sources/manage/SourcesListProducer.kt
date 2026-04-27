@@ -4,28 +4,28 @@ import android.content.Context
 import androidx.room.InvalidationTracker
 import dagger.hilt.android.ViewModelLifecycle
 import dagger.hilt.android.scopes.ViewModelScoped
+import io.github.landwarderer.futon.R
+import io.github.landwarderer.futon.core.LocalizedAppContext
+import io.github.landwarderer.futon.core.db.TABLE_SOURCES
+import io.github.landwarderer.futon.core.model.getTitle
+import io.github.landwarderer.futon.core.model.isNsfw
+import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.util.ext.lifecycleScope
+import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
+import io.github.landwarderer.futon.explore.data.SourcesSortOrder
+import io.github.landwarderer.futon.mihon.MihonExtensionManager
+import io.github.landwarderer.futon.settings.sources.model.SourceConfigItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import io.github.landwarderer.futon.R
-import io.github.landwarderer.futon.core.LocalizedAppContext
-import io.github.landwarderer.futon.core.db.TABLE_SOURCES
-import io.github.landwarderer.futon.core.model.getTitle
-import io.github.landwarderer.futon.core.model.isNsfw
-import io.github.landwarderer.futon.core.model.unwrap
-import io.github.landwarderer.futon.core.prefs.AppSettings
-import io.github.landwarderer.futon.core.util.ext.lifecycleScope
-import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
-import io.github.landwarderer.futon.explore.data.SourcesSortOrder
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.util.mapToSet
-import io.github.landwarderer.futon.settings.sources.model.SourceConfigItem
 import javax.inject.Inject
 
 @ViewModelScoped
@@ -34,6 +34,7 @@ class SourcesListProducer @Inject constructor(
 	@LocalizedAppContext private val context: Context,
 	private val repository: MangaSourcesRepository,
 	private val settings: AppSettings,
+	private val mihonExtensionManager: MihonExtensionManager,
 ) : InvalidationTracker.Observer(TABLE_SOURCES) {
 
 	private val scope = lifecycle.lifecycleScope
@@ -45,8 +46,12 @@ class SourcesListProducer @Inject constructor(
 	}
 
 	init {
-		settings.observeChanges()
-			.filter { it == AppSettings.KEY_TIPS_CLOSED || it == AppSettings.KEY_DISABLE_NSFW }
+		combine(
+			settings.observeChanges()
+				.filter { it == AppSettings.KEY_TIPS_CLOSED || it == AppSettings.KEY_DISABLE_NSFW },
+			mihonExtensionManager.installedExtensions,
+			mihonExtensionManager.failedExtensions,
+		) { _, _, _ -> }
 			.flowOn(Dispatchers.IO)
 			.onEach { onInvalidated(emptySet()) }
 			.launchIn(scope)
@@ -66,7 +71,7 @@ class SourcesListProducer @Inject constructor(
 	}
 
 	private suspend fun buildList(): List<SourceConfigItem> {
-		val enabledSources = repository.getEnabledSources().filter { it.unwrap() is MangaParserSource }
+		val enabledSources = repository.getEnabledSources()
 		val pinned = repository.getPinnedSources().mapToSet { it.name }
 		val isNsfwDisabled = settings.isNsfwContentDisabled
 		val isReorderAvailable = settings.sourcesSortOrder == SourcesSortOrder.MANUAL

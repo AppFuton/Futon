@@ -173,12 +173,17 @@ dependencies {
 	implementation libs.material
 	implementation libs.androidx.lifecycle.common.java8
 	implementation libs.androidx.webkit
+    implementation libs.injekt.core
 
 	implementation libs.androidx.work.runtime
 	implementation libs.guava
+    implementation libs.quickjs.kt
 
     // Foldable/Window layout
     implementation libs.androidx.window
+
+	implementation libs.rxjava
+	implementation libs.rxandroid
 
 	implementation libs.androidx.room.runtime
 	implementation libs.androidx.room.ktx

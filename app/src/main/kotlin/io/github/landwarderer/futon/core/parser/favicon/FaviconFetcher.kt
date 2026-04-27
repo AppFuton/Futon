@@ -33,13 +33,14 @@ import io.github.landwarderer.futon.core.util.ext.toMimeTypeOrNull
 import io.github.landwarderer.futon.local.data.FaviconCache
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.LocalStorageCache
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import io.github.landwarderer.futon.mihon.MihonMangaRepository
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.runInterruptible
 import okio.FileSystem
 import okio.IOException
 import okio.Path.Companion.toOkioPath
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.File
 import javax.inject.Inject
 import coil3.Uri as CoilUri
@@ -65,6 +66,7 @@ class FaviconFetcher(
 			)
 
 			is LocalMangaRepository -> imageLoader.fetch(R.drawable.ic_storage, options)
+			is MihonMangaRepository -> fetchMihonIcon(repo)
 
 			else -> throw IllegalArgumentException("Unsupported repo ${repo.javaClass.simpleName}")
 		}
@@ -117,6 +119,25 @@ class FaviconFetcher(
 		val icon = runInterruptible {
 			val provider = pm.resolveContentProvider(source.authority, 0)
 			provider?.loadIcon(pm) ?: pm.getApplicationIcon(source.packageName)
+		}
+		return ImageFetchResult(
+			image = icon.nonAdaptive().asImage(),
+			isSampled = false,
+			dataSource = DataSource.DISK,
+		)
+	}
+
+	private suspend fun fetchMihonIcon(repository: MihonMangaRepository): FetchResult {
+		val source = repository.source
+		val pm = options.context.packageManager
+		val icon = runInterruptible {
+			try {
+				pm.getApplicationIcon(source.pkgName)
+			} catch (e: Exception) {
+				e.printStackTraceDebug("FaviconFetcher::fetchMihonIcon")
+				// Fallback to generic icon if extension icon not found
+				pm.getApplicationIcon("com.android.packageinstaller")
+			}
 		}
 		return ImageFetchResult(
 			image = icon.nonAdaptive().asImage(),

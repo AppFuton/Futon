@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="?listPreferredItemHeightSmall"
+    android:orientation="horizontal"
+    android:paddingStart="?listPreferredItemPaddingStart"
+    tools:ignore="RtlSymmetry">
+
+	<io.github.landwarderer.futon.core.image.CoilImageView
+		android:id="@+id/imageView_icon"
+		android:layout_width="40dp"
+		android:layout_height="40dp"
+		android:labelFor="@id/textView_title"
+		android:scaleType="fitCenter"
+		tools:src="@tools:sample/avatars" />
+
+	<LinearLayout
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_marginStart="?android:listPreferredItemPaddingStart"
+		android:layout_marginEnd="?android:listPreferredItemPaddingEnd"
+		android:layout_weight="1"
+		android:orientation="vertical">
+
+		<TextView
+			android:id="@+id/textView_title"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ellipsize="end"
+			android:singleLine="true"
+			android:textAppearance="?attr/textAppearanceTitleSmall"
+			tools:text="Keiyoushi: English" />
+
+		<TextView
+			android:id="@+id/textView_version"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="2dp"
+			android:ellipsize="end"
+			android:singleLine="true"
+			android:textAppearance="?attr/textAppearanceBodySmall"
+			tools:text="1.4.1" />
+
+		<com.google.android.material.progressindicator.LinearProgressIndicator
+			android:id="@+id/progressBar"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="4dp"
+			android:visibility="gone"
+			tools:progress="50"
+			tools:visibility="visible" />
+
+	</LinearLayout>
+
+	<View
+		android:layout_width="1dp"
+		android:layout_height="match_parent"
+		android:layout_marginVertical="@dimen/margin_small"
+		android:background="?colorOutline" />
+
+	<com.google.android.material.button.MaterialButton
+		android:id="@+id/button_action"
+		style="@style/Widget.Material3.Button.TextButton"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		tools:text="Install" />
+
+	<com.google.android.material.button.MaterialButton
+		android:id="@+id/button_uninstall"
+		style="@style/Widget.Material3.Button.TextButton"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginEnd="@dimen/margin_small"
+		android:text="@string/uninstall"
+		android:textColor="?colorError"
+		android:visibility="gone"
+		tools:visibility="visible" />
+
+</LinearLayout>

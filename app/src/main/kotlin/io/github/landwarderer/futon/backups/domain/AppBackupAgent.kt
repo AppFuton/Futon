@@ -8,21 +8,26 @@ import android.content.Context
 import android.os.ParcelFileDescriptor
 import androidx.annotation.VisibleForTesting
 import com.google.common.io.ByteStreams
-import kotlinx.coroutines.runBlocking
 import io.github.landwarderer.futon.backups.data.BackupRepository
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
 import io.github.landwarderer.futon.filter.data.SavedFiltersRepository
+import io.github.landwarderer.futon.mihon.MihonExtensionManager
 import io.github.landwarderer.futon.reader.data.TapGridSettings
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.FileDescriptor
 import java.io.FileInputStream
 import java.util.EnumSet
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import javax.inject.Inject
+import javax.inject.Provider
 
 class AppBackupAgent : BackupAgent() {
+    @Inject
+    lateinit var mihonExtensionManager: Provider<MihonExtensionManager>
 
 	override fun onBackup(
 		oldState: ParcelFileDescriptor?,
@@ -38,6 +43,7 @@ class AppBackupAgent : BackupAgent() {
 
 	override fun onFullBackup(data: FullBackupDataOutput) {
 		super.onFullBackup(data)
+
 		val file = createBackupFile(
 			this,
 			BackupRepository(
@@ -48,6 +54,7 @@ class AppBackupAgent : BackupAgent() {
 					context = applicationContext,
 					db = MangaDatabase(context = applicationContext),
 					settings = AppSettings(applicationContext),
+					mihonExtensionManager = mihonExtensionManager.get(),
 				),
 				savedFiltersRepository = SavedFiltersRepository(
 					context = applicationContext,
@@ -81,6 +88,7 @@ class AppBackupAgent : BackupAgent() {
 						context = applicationContext,
 						db = MangaDatabase(context = applicationContext),
 						settings = AppSettings(applicationContext),
+						mihonExtensionManager = mihonExtensionManager.get(),
 					),
 					savedFiltersRepository = SavedFiltersRepository(
 						context = applicationContext,

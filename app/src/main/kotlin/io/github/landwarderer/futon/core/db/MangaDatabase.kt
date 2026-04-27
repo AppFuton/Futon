@@ -6,19 +6,17 @@ import androidx.room.InvalidationTracker
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import io.github.landwarderer.futon.bookmarks.data.BookmarkEntity
 import io.github.landwarderer.futon.bookmarks.data.BookmarksDao
 import io.github.landwarderer.futon.core.db.dao.ChaptersDao
+import io.github.landwarderer.futon.core.db.dao.ExternalExtensionRepoDao
 import io.github.landwarderer.futon.core.db.dao.MangaDao
 import io.github.landwarderer.futon.core.db.dao.MangaSourcesDao
 import io.github.landwarderer.futon.core.db.dao.PreferencesDao
 import io.github.landwarderer.futon.core.db.dao.TagsDao
 import io.github.landwarderer.futon.core.db.dao.TrackLogsDao
 import io.github.landwarderer.futon.core.db.entity.ChapterEntity
+import io.github.landwarderer.futon.core.db.entity.ExternalExtensionRepoEntity
 import io.github.landwarderer.futon.core.db.entity.MangaEntity
 import io.github.landwarderer.futon.core.db.entity.MangaPrefsEntity
 import io.github.landwarderer.futon.core.db.entity.MangaSourceEntity
@@ -69,6 +67,10 @@ import io.github.landwarderer.futon.suggestions.data.SuggestionEntity
 import io.github.landwarderer.futon.tracker.data.TrackEntity
 import io.github.landwarderer.futon.tracker.data.TrackLogEntity
 import io.github.landwarderer.futon.tracker.data.TracksDao
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 const val DATABASE_VERSION = 27
 
@@ -77,7 +79,7 @@ const val DATABASE_VERSION = 27
 		MangaEntity::class, TagEntity::class, HistoryEntity::class, MangaTagsEntity::class, ChapterEntity::class,
 		FavouriteCategoryEntity::class, FavouriteEntity::class, MangaPrefsEntity::class, TrackEntity::class,
 		TrackLogEntity::class, SuggestionEntity::class, BookmarkEntity::class, ScrobblingEntity::class,
-		MangaSourceEntity::class, StatsEntity::class, LocalMangaIndexEntity::class,
+		MangaSourceEntity::class, StatsEntity::class, LocalMangaIndexEntity::class, ExternalExtensionRepoEntity::class,
 	],
 	version = DATABASE_VERSION,
 )
@@ -112,6 +114,8 @@ abstract class MangaDatabase : RoomDatabase() {
 	abstract fun getLocalMangaIndexDao(): LocalMangaIndexDao
 
 	abstract fun getChaptersDao(): ChaptersDao
+
+	abstract fun getExternalExtensionRepoDao(): ExternalExtensionRepoDao
 }
 
 fun getDatabaseMigrations(context: Context): Array<Migration> = arrayOf(

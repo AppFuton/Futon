@@ -14,6 +14,8 @@ import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
 import io.github.landwarderer.futon.core.util.ext.getDisplayName
 import io.github.landwarderer.futon.core.util.ext.toLocale
 import io.github.landwarderer.futon.core.util.ext.toLocaleOrNull
+import io.github.landwarderer.futon.mihon.model.MihonMangaSource
+import io.github.landwarderer.futon.mihon.parsers.model.ContentType as MihonContentType
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -42,17 +44,23 @@ fun MangaSource(name: String?): MangaSource {
 		val parts = name.substringAfter(':').splitTwoParts('/') ?: return UnknownMangaSource
 		return ExternalMangaSource(packageName = parts.first, authority = parts.second)
 	}
+	if (name.startsWith("mihon:") || name.startsWith("MIHON_")) {
+		return AnonymousMangaSource(name)
+	}
 	MangaParserSource.entries.forEach {
 		if (it.name == name) return it
 	}
 	return UnknownMangaSource
 }
 
+private data class AnonymousMangaSource(override val name: String) : MangaSource
+
 fun Collection<String>.toMangaSources() = map(::MangaSource)
 
-fun MangaSource.isNsfw(): Boolean = when (this) {
-	is MangaSourceInfo -> mangaSource.isNsfw()
-	is MangaParserSource -> contentType == ContentType.HENTAI
+fun MangaSource.isNsfw(): Boolean = when (val source = unwrap()) {
+	is MangaSourceInfo -> source.mangaSource.isNsfw()
+	is MangaParserSource -> source.contentType == ContentType.HENTAI
+	is MihonMangaSource -> source.isNsfw
 	else -> false
 }
 
@@ -90,6 +98,27 @@ fun MangaSource.getSummary(context: Context): String? = when (val source = unwra
 
 	is ExternalMangaSource -> context.getString(R.string.external_source)
 
+	is MihonMangaSource -> {
+		val contentType = when (source.contentType) {
+			MihonContentType.MANGA -> ContentType.MANGA
+			MihonContentType.MANHWA -> ContentType.MANHWA
+			MihonContentType.MANHUA -> ContentType.MANHUA
+			MihonContentType.HENTAI_MANGA, MihonContentType.HENTAI_NOVEL, MihonContentType.HENTAI_VIDEO -> ContentType.HENTAI
+			MihonContentType.COMICS -> ContentType.COMICS
+			MihonContentType.VIDEO -> ContentType.OTHER
+			MihonContentType.NOVEL -> ContentType.NOVEL
+			MihonContentType.ONE_SHOT -> ContentType.ONE_SHOT
+			MihonContentType.DOUJINSHI -> ContentType.DOUJINSHI
+			MihonContentType.IMAGE_SET -> ContentType.IMAGE_SET
+			MihonContentType.ARTIST_CG -> ContentType.ARTIST_CG
+			MihonContentType.GAME_CG -> ContentType.GAME_CG
+			MihonContentType.OTHER -> ContentType.OTHER
+		}
+		val type = context.getString(contentType.titleResId)
+		val locale = source.language.toLocaleOrNull()?.getDisplayName(context) ?: source.language
+		context.getString(R.string.source_summary_pattern, type, locale)
+	}
+
 	else -> null
 }
 
@@ -98,8 +127,12 @@ fun MangaSource.getTitle(context: Context): String = when (val source = unwrap()
 	LocalMangaSource -> context.getString(R.string.local_storage)
 	TestMangaSource -> context.getString(R.string.test_parser)
 	is ExternalMangaSource -> source.resolveName(context)
+	is MihonMangaSource -> source.displayName
 	else -> context.getString(R.string.unknown)
 }
+
+val MangaSource.isBroken: Boolean
+	get() = (this as? MangaParserSource)?.isBroken == true
 
 fun SpannableStringBuilder.appendIcon(textView: TextView, @DrawableRes resId: Int): SpannableStringBuilder {
 	val icon = ContextCompat.getDrawable(textView.context, resId) ?: return this

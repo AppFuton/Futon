@@ -144,4 +144,10 @@
 		<item>@string/ask_every_time</item>
 		<item>@string/disable</item>
 	</string-array>
+	<string-array name="github_mirrors" translatable="false">
+        <item>@string/github_mirror_keiyoushi</item>
+	</string-array>
+	<string-array name="values_github_mirrors" translatable="false">
+        <item>KEIYOUSHI</item>
+	</string-array>
 </resources>

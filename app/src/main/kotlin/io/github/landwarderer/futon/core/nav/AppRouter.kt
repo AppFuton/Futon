@@ -77,15 +77,6 @@ import io.github.landwarderer.futon.local.ui.ImportDialogFragment
 import io.github.landwarderer.futon.local.ui.info.LocalInfoDialog
 import io.github.landwarderer.futon.main.ui.MainActivity
 import io.github.landwarderer.futon.main.ui.welcome.WelcomeSheet
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.util.ellipsize
-import org.koitharu.kotatsu.parsers.util.isNullOrEmpty
-import org.koitharu.kotatsu.parsers.util.mapToArray
 import io.github.landwarderer.futon.reader.ui.colorfilter.ColorFilterConfigActivity
 import io.github.landwarderer.futon.reader.ui.config.ReaderConfigSheet
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblerService
@@ -100,6 +91,7 @@ import io.github.landwarderer.futon.settings.override.OverrideConfigActivity
 import io.github.landwarderer.futon.settings.reader.ReaderTapGridConfigActivity
 import io.github.landwarderer.futon.settings.sources.auth.SourceAuthActivity
 import io.github.landwarderer.futon.settings.sources.catalog.SourcesCatalogActivity
+import io.github.landwarderer.futon.settings.sources.extension.ExtensionDownloaderActivity
 import io.github.landwarderer.futon.settings.storage.MangaDirectorySelectDialog
 import io.github.landwarderer.futon.settings.storage.directories.MangaDirectoriesActivity
 import io.github.landwarderer.futon.settings.tracker.categories.TrackerCategoriesConfigSheet
@@ -107,6 +99,15 @@ import io.github.landwarderer.futon.stats.ui.StatsActivity
 import io.github.landwarderer.futon.stats.ui.sheet.MangaStatsSheet
 import io.github.landwarderer.futon.suggestions.ui.SuggestionsActivity
 import io.github.landwarderer.futon.tracker.ui.updates.UpdatesActivity
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.util.ellipsize
+import org.koitharu.kotatsu.parsers.util.isNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.mapToArray
 import java.io.File
 import androidx.appcompat.R as appcompatR
 
@@ -206,6 +207,8 @@ class AppRouter private constructor(
     }
 
     fun openSourcesCatalog() = startActivity(SourcesCatalogActivity::class.java)
+
+    fun openExtensionDownloader() = startActivity(ExtensionDownloaderActivity::class.java)
 
     fun openDownloads() = startActivity(DownloadsActivity::class.java)
 
