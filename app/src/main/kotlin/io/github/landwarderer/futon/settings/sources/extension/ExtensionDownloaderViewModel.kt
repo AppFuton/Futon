@@ -32,6 +32,7 @@ class ExtensionDownloaderViewModel @Inject constructor(
 
     private val refreshing = MutableStateFlow(false)
     private val catalogExtensions = MutableStateFlow<List<RepoAvailableExtension>>(emptyList())
+    private val searchQuery = MutableStateFlow("")
 
     private val _intentAction = MutableEventFlow<android.content.Intent>()
     val intentAction = _intentAction
@@ -48,9 +49,15 @@ class ExtensionDownloaderViewModel @Inject constructor(
         catalogExtensions,
         extensionManager.installedExtensions,
         installService.downloadStates,
-        refreshing
-    ) { available, installed, downloads, isRefreshing ->
-        val items = available.map { extension ->
+        refreshing,
+        searchQuery
+    ) { available, installed, downloads, isRefreshing, query ->
+        val filteredExtensions = if (query.isNotEmpty()) {
+            available.filter { it.name.contains(query, ignoreCase = true) }
+        } else {
+            available
+        }
+        val items = filteredExtensions.map { extension ->
             val installedExtension = installed.find { it.pkgName == extension.pkgName }
             ExtensionItem(
                 available = extension,
@@ -92,6 +99,10 @@ class ExtensionDownloaderViewModel @Inject constructor(
 
     fun cancelDownload(pkgName: String) {
         installService.cancelDownload(pkgName)
+    }
+
+    fun performSearch(query: String?) {
+        searchQuery.value = query?.trim().orEmpty()
     }
 }
 

@@ -1,7 +1,12 @@
 package io.github.landwarderer.futon.settings.sources.extension
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import androidx.activity.viewModels
+import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuProvider
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
@@ -40,11 +45,47 @@ class ExtensionDownloaderActivity : BaseActivity<ActivityExtensionDownloaderBind
         viewModel.intentAction.observeEvent(this) { intent ->
             startActivity(intent)
         }
+
+        addMenuProvider(ExtensionManagerMenuProvider())
     }
 
     override fun onApplyWindowInsets(v: android.view.View, insets: WindowInsetsCompat): WindowInsetsCompat {
         val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
         v.updatePadding(bottom = systemBars.bottom)
         return insets
+    }
+
+    private inner class ExtensionManagerMenuProvider :
+        MenuProvider,
+        MenuItem.OnActionExpandListener,
+        SearchView.OnQueryTextListener {
+
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            menuInflater.inflate(R.menu.opt_extensions, menu)
+            val searchMenuItem = menu.findItem(R.id.action_search)
+            searchMenuItem.setOnActionExpandListener(this)
+            val searchView = searchMenuItem.actionView as SearchView
+            searchView.setOnQueryTextListener(this)
+            searchView.setIconifiedByDefault(false)
+            searchView.queryHint = searchMenuItem.title
+        }
+
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean = false
+
+        override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+            return true
+        }
+
+        override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+            (item.actionView as SearchView).setQuery("", false)
+            return true
+        }
+
+        override fun onQueryTextSubmit(query: String?): Boolean = false
+
+        override fun onQueryTextChange(newText: String?): Boolean {
+            viewModel.performSearch(newText)
+            return true
+        }
     }
 }
