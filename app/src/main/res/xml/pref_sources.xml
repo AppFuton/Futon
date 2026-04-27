@@ -35,6 +35,7 @@
     <Preference
         android:key="extension_downloader"
         android:persistent="false"
+        android:summary="@string/extensions_manager_summary"
         android:title="@string/extensions_manager" />
 
     <SwitchPreferenceCompat
