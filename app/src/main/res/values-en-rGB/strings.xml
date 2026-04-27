@@ -15,4 +15,8 @@
     <string name="not_in_favorites">Not in favourites</string>
     <string name="chapters">Chapters</string>
     <string name="new_chapters">New chapters</string>
+    <string name="local_storage">Local storage</string>
+    <string name="history">History</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="network_error">Network error</string>
 </resources>
