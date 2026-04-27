@@ -883,4 +883,8 @@
     <string name="available_pattern">%1$s tersedia</string>
     <string name="pinned_sources_only">Hanya sumber yang disematkan</string>
     <string name="hide_empty_sources">Sembunyikan sumber kosong</string>
+    <string name="github_download_warning">Mengunduh dari GitHub akan melewati pemeriksaan keamanan yang dilakukan oleh IzzyOnDroid.</string>
+    <string name="auto_double_foldable">Otomatis Dua Halaman Pada Lipatan</string>
+    <string name="crash_reporting">Pelaporan Kecelakaan</string>
+    <string name="crash_reporting_summary">Kirim log kerusakan anonim untuk membantu meningkatkan aplikasi. Berlaku setelah aplikasi dimulai ulang.</string>
 </resources>
