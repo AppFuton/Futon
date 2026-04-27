@@ -31,7 +31,7 @@ jobs:
       - name: Build debug APK
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: ./gradlew assembleDebug --stacktrace --info
+        run: ./gradlew assembleDebug --stacktrace --info --no-build-cache --no-configuration-cache
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4

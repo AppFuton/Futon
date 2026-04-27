@@ -141,7 +141,8 @@ jobs:
         run: |
           ./gradlew assembleRelease \
             -PversionName=${{ steps.version.outputs.version }} \
-            -PversionCode=${{ steps.version.outputs.version_code }}
+            -PversionCode=${{ steps.version.outputs.version_code }} \
+            --no-build-cache --no-configuration-cache
 
       - name: Notify Discord - APK Build Complete
         env:

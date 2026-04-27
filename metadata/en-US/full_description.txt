@@ -6,6 +6,7 @@ Note: Futon is an unofficial fork of Kotatsu
 
 
 - Online manga catalogs (with 1100+ manga sources)
+- Support for Tachiyomi keiyoushi extensions
 - Search manga by name, genres, and more filters
 - Favorites organized by user-defined categories
 - Reading history, bookmarks, and incognito mode support

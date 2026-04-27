@@ -1,0 +1,17 @@
+Date: 2026-04-27
+Highlights
+
+- Added Tachiyomi keiyoushi extension compatibility!
+- Updated adaptive icon with new monochrome layer and fixed transparency
+- New Futon splash icon
+- Recent manga can now be shown in the shelf widget
+- Added extension downloader activity with search functionality
+- Small UI changes (hide navigation bar labels by default, manga details panel background)
+
+Fixes
+
+- Fixed adaptive icon and splash screen
+
+Maintenance
+
+- Updated parsers

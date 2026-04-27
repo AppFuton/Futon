@@ -11,6 +11,7 @@
 <div align="left">
 
 * Online [manga catalogues](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo) (with 1200+ manga sources)
+* Support for [Tachiyomi keiyoushi](https://github.com/keiyoushi/extensions) extensions
 * Search manga by name, genres and more filters
 * Favorites organized by user-defined categories
 * Reading history, bookmarks and incognito mode support
@@ -171,6 +172,8 @@ We are deeply grateful to:
 * **The Kotatsu community** for their contributions, testing, and support
 * **All translators** who helped localize Kotatsu through [Weblate](https://hosted.weblate.org/engage/kotatsu/)
 * **Parser contributors** who maintain the extensive library of [manga sources](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo)
+* **[Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo)** for continuing parser development and maintenance
+* **[Kototoro](https://github.com/Kototoro-app/Kototoro)** for the Tachiyomi extension integration guide
 
 This project stands on the shoulders of giants. The Kotatsu team's dedication to creating a feature-rich, user-friendly manga reader has provided an incredible foundation for Futon to build upon.
 
