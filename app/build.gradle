@@ -10,13 +10,12 @@ plugins {
 	id 'org.jetbrains.kotlin.plugin.serialization'
 	// enable if needed
 	// id 'dev.reformator.stacktracedecoroutinator'
-
     id 'io.sentry.android.gradle' version '6.1.0'
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
 	compileSdk = 36
-	buildToolsVersion = '35.0.0'
 	namespace = 'io.github.landwarderer.futon'
 
 	dependenciesInfo {
@@ -78,6 +77,7 @@ android {
 	buildFeatures {
 		viewBinding true
 		buildConfig true
+        compose true
 	}
 	packagingOptions {
 		resources {
@@ -86,7 +86,10 @@ android {
 				'META-INF/NOTICE.md'
 			]
 		}
-	}
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
 	sourceSets {
 		androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
 		main.java.srcDirs += 'src/main/kotlin/'
@@ -148,6 +151,10 @@ dependencies {
 	implementation("com.github.clquwu:kotatsu-parsers-redo:$parsersVersion") {
 		exclude group: 'org.json', module: 'json'
 	}
+
+    def composeBom = platform(libs.compose.bom)
+    implementation composeBom
+    androidTestImplementation composeBom
 
 	coreLibraryDesugaring libs.desugar.jdk.libs
 	implementation libs.kotlin.stdlib
@@ -217,9 +224,21 @@ dependencies {
 	implementation libs.conscrypt.android
 	implementation libs.sentry.android
 
+    implementation libs.compose.material3
+    implementation libs.compose.foundation
+    implementation libs.compose.ui
+    implementation libs.compose.ui.tooling.preview
+    implementation libs.compose.material3.adaptive
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.lifecycle.viewmodel.compose
+    implementation libs.compose.runtime.livedata
+    implementation libs.compose.runtime.rxjava2
+
 	debugImplementation libs.leakcanary.android
 	nightlyImplementation libs.leakcanary.android
 	debugImplementation libs.workinspector
+    debugImplementation libs.compose.ui.tooling
+    debugImplementation libs.compose.ui.test.manifest
 
 	testImplementation libs.junit
 	testImplementation libs.json
@@ -229,6 +248,7 @@ dependencies {
 	androidTestImplementation libs.androidx.rules
 	androidTestImplementation libs.androidx.test.core
 	androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.compose.ui.test.junit4
 
 	androidTestImplementation libs.kotlinx.coroutines.test
 
