@@ -2,7 +2,7 @@ Futon is a free and open source manga reader for Android.
 
 Note: Futon is an unofficial fork of Kotatsu
 
-**Main Features:**
+<strong>Main Features:</strong>
 
 
 - Online manga catalogs (with 1100+ manga sources)
