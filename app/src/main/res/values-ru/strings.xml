@@ -880,4 +880,9 @@
     <string name="private_app_directory_warning">Данный каталог вместе со всеми данными будет удалён при удалении приложения</string>
     <string name="available_pattern">%1$s доступно</string>
     <string name="enter_name">Введите имя</string>
+    <string name="saved_filters">Сохранённые фильтры</string>
+    <string name="crash_reporting_summary">Отправлять анонимные отчёты о сбоях для улучшения приложения. Применяется после перезапуска.</string>
+    <string name="pinned_sources_only">Только закреплённые источники</string>
+    <string name="hide_empty_sources">Скрывать пустые источники</string>
+    <string name="frequency_every_6_hours">Каждые 6 часов</string>
 </resources>
