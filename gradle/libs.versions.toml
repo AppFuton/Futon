@@ -18,7 +18,7 @@ desugar = "2.1.5"
 diskLruCache = "1.5"
 documentfile = "1.1.0"
 fragment = "1.8.9"
-gradle = "8.13.2"
+gradle = "9.1.1"
 guava = "33.4.8-android"
 hilt = "1.3.0"
 json = "20250517"
@@ -26,7 +26,7 @@ junit = "4.13.2"
 junitKtx = "1.3.0"
 kotlin = "2.2.10"
 kizzyRpc = "ad8f2e32eb"
-ksp = "2.2.10-2.0.2"
+ksp = "2.3.2"
 leakcanary = "3.0-alpha-8"
 lifecycle = "2.9.4"
 markwon = "4.6.2"
@@ -53,6 +53,9 @@ webkit = "1.14.0"
 workRuntime = "2.10.5"
 workinspector = "1.2"
 window = "1.3.0"
+composeBom = "2026.03.00"
+activityCompose = "1.13.0"
+lifecycleViewmodelCompose = "2.10.0"
 
 [libraries]
 adapterdelegates = { module = "com.hannesdorfmann:adapterdelegates4-kotlin-dsl", version.ref = "adapterdelegates" }
@@ -124,6 +127,19 @@ ssiv = { module = "com.github.AppFuton:subsampling-scale-image-view", version.re
 workinspector = { module = "com.github.Koitharu:WorkInspector", version.ref = "workinspector" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
 injekt-core = { module = "uy.kohesive.injekt:injekt-core", version = "1.16.1" }
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+compose-foundation = { module = "androidx.compose.foundation:foundation" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-material3-adaptive = { module = "androidx.compose.material3.adaptive:adaptive" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+compose-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata" }
+compose-runtime-rxjava2 = { module = "androidx.compose.runtime:runtime-rxjava2" }
+compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "gradle" }
@@ -133,3 +149,4 @@ kotlinx-serizliation = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
 decoroutinator = { id = "dev.reformator.stacktracedecoroutinator", version.ref = "decoroutinator" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
