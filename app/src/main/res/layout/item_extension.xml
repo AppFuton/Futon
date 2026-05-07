@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?selectableItemBackground"
+    android:focusable="true"
+    android:clickable="true"
     android:gravity="center_vertical"
     android:minHeight="?listPreferredItemHeightSmall"
     android:orientation="horizontal"
@@ -15,7 +17,6 @@
 		android:id="@+id/imageView_icon"
 		android:layout_width="40dp"
 		android:layout_height="40dp"
-		android:labelFor="@id/textView_title"
 		android:scaleType="fitCenter"
 		tools:src="@tools:sample/avatars" />
 
