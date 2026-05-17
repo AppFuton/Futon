@@ -3,6 +3,7 @@ package io.github.landwarderer.futon.browser
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.os.Looper
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -31,6 +32,21 @@ open class BrowserClient(
 	override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
 		super.onPageStarted(view, url, favicon)
 		callback.onLoadingStateChanged(isLoading = true)
+	}
+
+	override fun onReceivedError(
+		view: WebView?,
+		request: WebResourceRequest?,
+		error: WebResourceError?,
+	) {
+		super.onReceivedError(view, request, error)
+		// Drop the spinner on main-frame failures (DNS, certificate, offline,
+		// 4xx/5xx) too, since onPageFinished does not always fire after an
+		// error and the BrowserCallback would otherwise stay stuck on
+		// isLoading = true.
+		if (request?.isForMainFrame == true) {
+			callback.onLoadingStateChanged(isLoading = false)
+		}
 	}
 
 	override fun onPageCommitVisible(view: WebView, url: String) {
