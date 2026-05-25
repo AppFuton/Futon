@@ -3,23 +3,6 @@ package io.github.landwarderer.futon.backups.data
 import androidx.collection.ArrayMap
 import androidx.room.withTransaction
 import dagger.Reusable
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.collectIndexed
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.json.DecodeSequenceMode
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeToSequence
-import kotlinx.serialization.json.encodeToStream
-import kotlinx.serialization.serializer
-import org.json.JSONArray
-import org.json.JSONObject
 import io.github.landwarderer.futon.backups.data.model.BackupIndex
 import io.github.landwarderer.futon.backups.data.model.BookmarkBackup
 import io.github.landwarderer.futon.backups.data.model.CategoryBackup
@@ -37,8 +20,25 @@ import io.github.landwarderer.futon.core.util.progress.Progress
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
 import io.github.landwarderer.futon.filter.data.PersistableFilter
 import io.github.landwarderer.futon.filter.data.SavedFiltersRepository
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.reader.data.TapGridSettings
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.json.DecodeSequenceMode
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeToSequence
+import kotlinx.serialization.json.encodeToStream
+import kotlinx.serialization.serializer
+import org.json.JSONArray
+import org.json.JSONObject
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.ZipEntry
@@ -151,6 +151,7 @@ class BackupRepository @Inject constructor(
         input: ZipInputStream,
         sections: Set<BackupSection>,
         progress: FlowCollector<Progress>?,
+        isMerge: Boolean = false,
     ): CompositeResult {
         progress?.emit(Progress.INDETERMINATE)
         var commonProgress = Progress(0, sections.size)
@@ -176,12 +177,12 @@ class BackupRepository @Inject constructor(
                     }
 
                     BackupSection.SETTINGS -> input.readMap().let {
-                        settings.upsertAll(it)
+                        settings.upsertAll(it, isMerge)
                         CompositeResult.success()
                     }
 
                     BackupSection.SETTINGS_READER_GRID -> input.readMap().let {
-                        tapGridSettings.upsertAll(it)
+                        tapGridSettings.upsertAll(it, isMerge)
                         CompositeResult.success()
                     }
 

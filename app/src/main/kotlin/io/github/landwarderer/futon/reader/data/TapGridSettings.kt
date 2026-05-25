@@ -5,14 +5,14 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
 import io.github.landwarderer.futon.core.util.ext.getEnumValue
 import io.github.landwarderer.futon.core.util.ext.observeChanges
 import io.github.landwarderer.futon.core.util.ext.putAll
 import io.github.landwarderer.futon.core.util.ext.putEnumValue
 import io.github.landwarderer.futon.reader.domain.TapGridArea
 import io.github.landwarderer.futon.reader.ui.tapgrid.TapAction
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 @Reusable
@@ -48,8 +48,10 @@ class TapGridSettings @Inject constructor(@ApplicationContext context: Context) 
 
 	fun getAllValues(): Map<String, *> = prefs.all
 
-	fun upsertAll(m: Map<String, *>) = prefs.edit {
-		clear()
+    fun upsertAll(m: Map<String, *>, isMerge: Boolean = false) = prefs.edit {
+        if (!isMerge) {
+            clear()
+        }
 		putAll(m)
 	}
 

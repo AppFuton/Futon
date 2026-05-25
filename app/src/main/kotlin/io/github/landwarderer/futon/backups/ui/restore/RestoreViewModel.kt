@@ -34,6 +34,7 @@ class RestoreViewModel @Inject constructor(
 
 	val availableEntries = MutableStateFlow<List<BackupSectionModel>>(emptyList())
 	val backupDate = MutableStateFlow<Date?>(null)
+    val isMergeEnabled = MutableStateFlow(false)
 
 	init {
 		launchLoadingJob(Dispatchers.IO) {
@@ -79,6 +80,10 @@ class RestoreViewModel @Inject constructor(
 		map.validate()
 		availableEntries.value = map.values.sortedBy { it.section.ordinal }
 	}
+
+    fun onMergeToggle(isChecked: Boolean) {
+        isMergeEnabled.value = isChecked
+    }
 
 	fun getCheckedSections(): Set<BackupSection> = availableEntries.value
 		.mapNotNullTo(EnumSet.noneOf(BackupSection::class.java)) {

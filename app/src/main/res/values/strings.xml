@@ -48,6 +48,8 @@
     <string name="filter">Filter</string>
     <string name="saved_filters">Saved filters</string>
     <string name="theme">Theme</string>
+    <string name="merge_with_existing_data">Merge with existing data</string>
+    <string name="manga">Manga</string>
     <string name="light">Light</string>
     <string name="dark">Dark</string>
     <!-- Should be as abstract as possible -->

@@ -10,7 +10,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.combine
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.ui.AlertDialogFragment
@@ -20,6 +19,7 @@ import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.observeEvent
 import io.github.landwarderer.futon.core.util.ext.textAndVisible
 import io.github.landwarderer.futon.databinding.DialogRestoreBinding
+import kotlinx.coroutines.flow.combine
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -47,8 +47,12 @@ class RestoreDialogFragment : AlertDialogFragment<DialogRestoreBinding>(), OnLis
 			viewModel.isLoading,
 			viewModel.availableEntries,
 			viewModel.backupDate,
-			::Triple,
+            viewModel.isMergeEnabled,
+            ::Quadruple,
 		).observe(viewLifecycleOwner, this::onLoadingChanged)
+        binding.checkboxMerge.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onMergeToggle(isChecked)
+        }
 	}
 
 	override fun onBuildDialog(builder: MaterialAlertDialogBuilder): MaterialAlertDialogBuilder {
@@ -76,12 +80,14 @@ class RestoreDialogFragment : AlertDialogFragment<DialogRestoreBinding>(), OnLis
 		viewModel.onItemClick(item)
 	}
 
-	private fun onLoadingChanged(value: Triple<Boolean, List<BackupSectionModel>, Date?>) {
-		val (isLoading, entries, backupDate) = value
+    private fun onLoadingChanged(value: Quadruple<Boolean, List<BackupSectionModel>, Date?, Boolean>) {
+        val (isLoading, entries, backupDate, isMergeEnabled) = value
 		val hasEntries = entries.isNotEmpty()
 		with(requireViewBinding()) {
 			progressBar.isVisible = isLoading
 			recyclerView.isGone = isLoading
+            checkboxMerge.isVisible = !isLoading && hasEntries
+            checkboxMerge.isChecked = isMergeEnabled
 			textViewSubtitle.textAndVisible =
 				when {
 					!isLoading -> backupDate?.formatBackupDate()
@@ -97,6 +103,7 @@ class RestoreDialogFragment : AlertDialogFragment<DialogRestoreBinding>(), OnLis
 			context ?: return false,
 			viewModel.uri ?: return false,
 			viewModel.getCheckedSections(),
+            viewModel.isMergeEnabled.value,
 		)
 	}
 
@@ -115,4 +122,11 @@ class RestoreDialogFragment : AlertDialogFragment<DialogRestoreBinding>(), OnLis
 			.show()
 		dismiss()
 	}
+
+    data class Quadruple<out A, out B, out C, out D>(
+        val first: A,
+        val second: B,
+        val third: C,
+        val fourth: D,
+    )
 }

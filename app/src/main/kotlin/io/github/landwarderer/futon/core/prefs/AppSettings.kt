@@ -651,8 +651,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 
 	fun getAllValues(): Map<String, *> = prefs.all
 
-	fun upsertAll(m: Map<String, *>) = prefs.edit {
-		clear()
+    fun upsertAll(m: Map<String, *>, isMerge: Boolean = false) = prefs.edit {
+        if (!isMerge) {
+            clear()
+        }
 		putAll(m)
 	}
 

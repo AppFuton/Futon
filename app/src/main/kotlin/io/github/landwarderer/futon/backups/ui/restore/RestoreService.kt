@@ -50,6 +50,7 @@ class RestoreService : BaseBackupRestoreService() {
 		val source = intent.getStringExtra(AppRouter.KEY_DATA)?.toUriOrNull() ?: throw FileNotFoundException()
 		val sections =
 			requireNotNull(intent.getSerializableExtraCompat<Array<BackupSection>>(AppRouter.KEY_ENTRIES)?.toSet())
+        val isMerge = intent.getBooleanExtra(KEY_MERGE, false)
 		powerManager.withPartialWakeLock(TAG) {
 			val progress = MutableStateFlow(Progress.INDETERMINATE)
 			val progressUpdateJob = if (checkNotificationPermission(CHANNEL_ID)) {
@@ -62,7 +63,7 @@ class RestoreService : BaseBackupRestoreService() {
 				null
 			}
 			val result = ZipInputStream(contentResolver.openInputStream(source)).use { input ->
-				repository.restoreBackup(input, sections, progress)
+                repository.restoreBackup(input, sections, progress, isMerge)
 			}
 			progressUpdateJob?.cancelAndJoin()
 			showResultNotification(source, result)
@@ -102,12 +103,14 @@ class RestoreService : BaseBackupRestoreService() {
 
 		private const val TAG = "RESTORE"
 		private const val FOREGROUND_NOTIFICATION_ID = 39
+        private const val KEY_MERGE = "merge"
 
 		@CheckResult
-		fun start(context: Context, uri: Uri, sections: Set<BackupSection>): Boolean = try {
+        fun start(context: Context, uri: Uri, sections: Set<BackupSection>, isMerge: Boolean): Boolean = try {
 			val intent = Intent(context, RestoreService::class.java)
 			intent.putExtra(AppRouter.KEY_DATA, uri.toString())
 			intent.putExtra(AppRouter.KEY_ENTRIES, sections.toTypedArray())
+            intent.putExtra(KEY_MERGE, isMerge)
 			ContextCompat.startForegroundService(context, intent)
 			true
 		} catch (e: Exception) {

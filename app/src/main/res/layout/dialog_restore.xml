@@ -32,7 +32,17 @@
 		tools:listitem="@layout/item_checkable_multiple"
 		tools:visibility="visible" />
 
-	<TextView
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/checkbox_merge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="?dialogPreferredPadding"
+        android:text="@string/merge_with_existing_data"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <TextView
 		android:id="@+id/textView_subtitle"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
