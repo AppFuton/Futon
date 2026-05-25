@@ -65,6 +65,14 @@
 				android:text="@string/week"
 				app:chipIcon="@drawable/ic_history" />
 
+			<com.google.android.material.chip.Chip
+				android:id="@+id/chip_type"
+				style="@style/Widget.Futon.Chip.Dropdown"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/manga"
+				app:chipIcon="@drawable/ic_sort" />
+
 		</com.google.android.material.chip.ChipGroup>
 
 	</HorizontalScrollView>

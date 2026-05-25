@@ -7,11 +7,12 @@ import java.util.concurrent.TimeUnit
 
 data class StatsRecord(
 	val manga: Manga?,
+	val tagName: String? = null,
 	val duration: Long,
 ) : ListModel {
 
 	override fun areItemsTheSame(other: ListModel): Boolean {
-		return other is StatsRecord && other.manga == manga
+		return other is StatsRecord && other.manga == manga && other.tagName == tagName
 	}
 
 	val time: ReadingTime

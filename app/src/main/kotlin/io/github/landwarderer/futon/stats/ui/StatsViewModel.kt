@@ -1,11 +1,6 @@
 package io.github.landwarderer.futon.stats.ui
 
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.take
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.FavouriteCategory
 import io.github.landwarderer.futon.core.ui.BaseViewModel
@@ -16,6 +11,11 @@ import io.github.landwarderer.futon.favourites.domain.FavouritesRepository
 import io.github.landwarderer.futon.stats.data.StatsRepository
 import io.github.landwarderer.futon.stats.domain.StatsPeriod
 import io.github.landwarderer.futon.stats.domain.StatsRecord
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.take
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,6 +25,7 @@ class StatsViewModel @Inject constructor(
 ) : BaseViewModel() {
 
 	val period = MutableStateFlow(StatsPeriod.WEEK)
+	val byGenre = MutableStateFlow(false)
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 	val selectedCategories = MutableStateFlow<Set<Long>>(emptySet())
 	val favoriteCategories = favouritesRepository.observeCategories()
@@ -34,13 +35,14 @@ class StatsViewModel @Inject constructor(
 
 	init {
 		launchJob(Dispatchers.IO) {
-			combine<StatsPeriod, Set<Long>, Pair<StatsPeriod, Set<Long>>>(
+			combine(
 				period,
 				selectedCategories,
-				::Pair,
-			).collectLatest { p ->
+				byGenre,
+				::Triple,
+			).collectLatest { (p, categories, genre) ->
 				readingStats.value = withLoading {
-					repository.getReadingStats(p.first, p.second)
+					repository.getReadingStats(p, categories, genre)
 				}
 			}
 		}

@@ -6,8 +6,8 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.ui.list.OnListItemClickListener
 import io.github.landwarderer.futon.core.util.FutonColors
 import io.github.landwarderer.futon.databinding.ItemStatsBinding
-import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.stats.domain.StatsRecord
+import org.koitharu.kotatsu.parsers.model.Manga
 
 fun statsAD(
 	listener: OnListItemClickListener<Manga>,
@@ -16,11 +16,11 @@ fun statsAD(
 ) {
 
 	binding.root.setOnClickListener { v ->
-		listener.onItemClick(item.manga ?: return@setOnClickListener, v)
+		item.manga?.let { listener.onItemClick(it, v) }
 	}
 
 	bind {
-		binding.textViewTitle.text = item.manga?.title ?: getString(R.string.other_manga)
+		binding.textViewTitle.text = item.manga?.title ?: item.tagName ?: getString(R.string.other_manga)
 		binding.textViewSummary.text = item.time.format(context.resources)
 		binding.imageViewBadge.imageTintList = ColorStateList.valueOf(FutonColors.ofManga(context, item.manga))
 		binding.root.isClickable = item.manga != null

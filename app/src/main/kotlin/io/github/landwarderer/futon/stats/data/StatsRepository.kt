@@ -1,17 +1,17 @@
 package io.github.landwarderer.futon.stats.data
 
 import androidx.room.withTransaction
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.db.entity.toManga
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.observeAsFlow
 import io.github.landwarderer.futon.stats.domain.StatsPeriod
 import io.github.landwarderer.futon.stats.domain.StatsRecord
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import java.util.NavigableMap
 import java.util.TreeMap
 import java.util.concurrent.TimeUnit
@@ -22,15 +22,41 @@ class StatsRepository @Inject constructor(
 	private val db: MangaDatabase,
 ) {
 
-	suspend fun getReadingStats(period: StatsPeriod, categories: Set<Long>): List<StatsRecord> {
+	suspend fun getReadingStats(
+		period: StatsPeriod,
+		categories: Set<Long>,
+		byGenre: Boolean = false,
+	): List<StatsRecord> {
 		val fromDate = if (period == StatsPeriod.ALL) {
 			0L
 		} else {
 			System.currentTimeMillis() - TimeUnit.DAYS.toMillis(period.days.toLong())
 		}
+		if (byGenre) {
+			val stats = db.getStatsDao().getTagDurationStats(fromDate, null, categories)
+			val total = stats.values.sum()
+			val result = ArrayList<StatsRecord>(stats.size)
+			var other = StatsRecord(manga = null, tagName = null, duration = 0)
+			for ((tagName, duration) in stats) {
+				val percent = duration.toDouble() / total
+				if (percent < 0.05) {
+					other = other.copy(duration = other.duration + duration)
+				} else {
+					result += StatsRecord(
+						manga = null,
+						tagName = tagName,
+						duration = duration,
+					)
+				}
+			}
+			if (other.duration != 0L) {
+				result += other
+			}
+			return result
+		}
 		val stats = db.getStatsDao().getDurationStats(fromDate, null, categories)
 		val result = ArrayList<StatsRecord>(stats.size)
-		var other = StatsRecord(null, 0)
+		var other = StatsRecord(manga = null, tagName = null, duration = 0)
 		val total = stats.values.sum()
 		for ((mangaEntity, duration) in stats) {
 			val manga = mangaEntity.toManga(emptySet(), null)
