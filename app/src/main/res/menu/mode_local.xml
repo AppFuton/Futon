@@ -10,6 +10,12 @@
 		app:showAsAction="ifRoom|withText" />
 
 	<item
+		android:id="@+id/action_favourite"
+		android:icon="@drawable/ic_heart_outline"
+		android:title="@string/add_to_favourites"
+		app:showAsAction="ifRoom|withText" />
+
+	<item
 		android:id="@+id/action_remove"
 		android:icon="@drawable/ic_delete"
 		android:title="@string/delete"
