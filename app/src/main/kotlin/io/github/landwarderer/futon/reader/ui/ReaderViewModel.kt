@@ -30,6 +30,7 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.bookmarks.domain.Bookmark
 import io.github.landwarderer.futon.bookmarks.domain.BookmarksRepository
 import io.github.landwarderer.futon.core.exceptions.EmptyMangaException
+import io.github.landwarderer.futon.core.model.LocalMangaSource
 import io.github.landwarderer.futon.core.model.getPreferredBranch
 import io.github.landwarderer.futon.core.nav.MangaIntent
 import io.github.landwarderer.futon.core.nav.ReaderIntent
@@ -409,23 +410,36 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
-    fun updateReadingProgress() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                manga.collectLatest {
-                    if (it != null) {
-                        progressUpdateUseCase(it)
+    override suspend fun onDownloadComplete(downloadedManga: LocalManga?) {
+        super.onDownloadComplete(downloadedManga)
+        val state = readingState.value ?: return
+        val details = mangaDetails.value ?: return
+        if (downloadedManga != null && details.id == downloadedManga.manga.id) {
+            chaptersLoader.init(details)
+            if (chaptersLoader.peekChapter(state.chapterId)?.source == LocalMangaSource) {
+                val pages = chaptersLoader.getPages(state.chapterId)
+                if (pages.isEmpty() || pages.first().source != LocalMangaSource) {
+                    runCatchingCancellable {
+                        chaptersLoader.loadSingleChapter(state.chapterId)
+                    }.onSuccess {
+                        content.value = ReaderContent(chaptersLoader.snapshot(), state)
                     }
                 }
-
-                pageLoader.updateCache(getCurrentPage()!!)
             }
+        }
+    }
+
+    fun updateReadingProgress() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val manga = manga.filterNotNull().first()
+            progressUpdateUseCase(manga)
+            getCurrentPage()?.let { pageLoader.updateCache(it) }
         }
     }
 
     private fun loadImpl() {
         loadingJob = launchLoadingJob(Dispatchers.IO + EventExceptionHandler(onLoadingError)) {
-            var exception: Exception? = null
+            var exception: Throwable? = null
             var loadedDetails: MangaDetails? = null
             try {
                 detailsLoadUseCase(intent, force = false)
@@ -434,7 +448,14 @@ class ReaderViewModel @Inject constructor(
                         if (mangaDetails.value == null) {
                             mangaDetails.value = details
                         }
+                        val currentChapterId = readingState.value?.chapterId
+                        val wasCurrentChapterLocal = currentChapterId?.let {
+                            chaptersLoader.peekChapter(it)?.source == LocalMangaSource
+                        } ?: false
                         chaptersLoader.init(details)
+                        val isCurrentChapterLocal = currentChapterId?.let {
+                            chaptersLoader.peekChapter(it)?.source == LocalMangaSource
+                        } ?: false
                         val manga = details.toManga()
                         // obtain state
                         if (readingState.value == null) {
@@ -451,10 +472,18 @@ class ReaderViewModel @Inject constructor(
                             readerMode.value = mode
                             try {
                                 chaptersLoader.loadSingleChapter(newState.chapterId)
-                            } catch (e: Exception) {
+                            } catch (e: Throwable) {
                                 readingState.value = null // try next time
                                 exception = e.mergeWith(exception)
                                 return@collect
+                            }
+                        } else if (!wasCurrentChapterLocal && isCurrentChapterLocal) {
+                            readingState.value?.let {
+                                runCatchingCancellable {
+                                    chaptersLoader.loadSingleChapter(it.chapterId)
+                                }.onFailure { e ->
+                                    exception = e.mergeWith(exception)
+                                }
                             }
                         }
                         mangaDetails.value = details.filterChapters(selectedBranch.value)
@@ -471,7 +500,7 @@ class ReaderViewModel @Inject constructor(
                     }
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 exception = e.mergeWith(exception)
             }
             if (readingState.value == null) {
@@ -633,7 +662,7 @@ class ReaderViewModel @Inject constructor(
         return ReaderState(manga, preferredBranch)
     }
 
-    private fun Exception.mergeWith(other: Exception?): Exception = if (other == null) {
+    private fun Throwable.mergeWith(other: Throwable?): Throwable = if (other == null) {
         this
     } else {
         other.addSuppressed(this)

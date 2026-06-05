@@ -244,7 +244,7 @@ abstract class ChaptersPagesViewModel(
 		return filter { it.contains(query) }
 	}
 
-	private suspend fun onDownloadComplete(downloadedManga: LocalManga?) {
+	protected open suspend fun onDownloadComplete(downloadedManga: LocalManga?) {
 		downloadedManga ?: return
 		mangaDetails.update {
 			interactor.updateLocal(it, downloadedManga)
