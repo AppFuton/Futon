@@ -115,7 +115,7 @@ GEM
       mutex_m
     hurley (0.2)
     json (1.8.6)
-    jwt (2.10.2)
+    jwt (2.10.3)
       base64
     krausefx-shenzhen (0.14.11)
       commander (>= 4.3, < 5.0)
@@ -239,7 +239,6 @@ DEPENDENCIES
   fastlane
   ostruct
 
-CHECKSUMS
   CFPropertyList (3.0.8) sha256=2c99d0d980536d3d7ab252f7bd59ac8be50fbdd1ff487c98c949bb66bb114261
   abbrev (0.1.2) sha256=ad1b4eaaaed4cb722d5684d63949e4bde1d34f2a95e20db93aecfe7cbac74242
   addressable (2.8.8) sha256=7c13b8f9536cf6364c03b9d417c19986019e28f7c00ac8132da4eb0fe393b057
@@ -273,7 +272,7 @@ CHECKSUMS
   httpclient (2.9.0) sha256=4b645958e494b2f86c2f8a2f304c959baa273a310e77a2931ddb986d83e498c8
   hurley (0.2) sha256=6f44cd30f47141ef3c5dbc799c6613e45d52ce9c1a499dc64bc165db9692ee92
   json (1.8.6) sha256=65af27ca985f70eb0d083aab0f75712c771871222af021ce533bad77bd3bb262
-  jwt (2.10.2) sha256=31e1ee46f7359883d5e622446969fe9c118c3da87a0b1dca765ce269c3a0c4f4
+  jwt (2.10.3) sha256=e4d9352fbc7309b1a7448c7dd713dfe4d8c47077af80759cdbed8f878ea0b484
   krausefx-shenzhen (0.14.11) sha256=075cb79cc894f8be528a3aadbcd778cca0bd510aee749884936cb58f5cf9bf7e
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
   match (0.11.1) sha256=4d767f760215c9005a33a1fa9e5dc33db730cf83510ac09b2aea2e1b1c0f5c86
