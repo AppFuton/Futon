@@ -12,6 +12,7 @@ class SourceBackup(
 	@SerialName("added_in") val addedIn: Int,
 	@SerialName("pinned") val isPinned: Boolean = false,
 	@SerialName("enabled") val isEnabled: Boolean = true, // for compatibility purposes, should be only true
+	@SerialName("title") val title: String? = null,
 ) {
 
 	constructor(entity: MangaSourceEntity) : this(
@@ -21,6 +22,7 @@ class SourceBackup(
 		addedIn = entity.addedIn,
 		isPinned = entity.isPinned,
 		isEnabled = entity.isEnabled,
+		title = entity.title,
 	)
 
 	fun toEntity() = MangaSourceEntity(
@@ -31,5 +33,6 @@ class SourceBackup(
 		lastUsedAt = lastUsedAt,
 		isPinned = isPinned,
 		cfState = 0,
+		title = title,
 	)
 }

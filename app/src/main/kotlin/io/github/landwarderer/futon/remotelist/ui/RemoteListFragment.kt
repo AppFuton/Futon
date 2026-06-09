@@ -41,7 +41,7 @@ class RemoteListFragment : MangaListFragment(), FilterCoordinator.Owner, View.On
         addMenuProvider(RemoteListMenuProvider())
         addMenuProvider(MangaSearchMenuProvider(filterCoordinator, viewModel))
         viewModel.isRandomLoading.observe(viewLifecycleOwner, MenuInvalidator(requireActivity()))
-        viewModel.onOpenManga.observeEvent(viewLifecycleOwner) { router.openDetails(it) }
+        viewModel.onOpenManga.observeEvent(viewLifecycleOwner) { router.openDetails(it, viewModel.source.getTitle(requireContext())) }
         viewModel.onSourceBroken.observeEvent(viewLifecycleOwner) { showSourceBrokenWarning() }
         filterCoordinator.observe().distinctUntilChangedBy { it.listFilter.isEmpty() }
             .drop(1)

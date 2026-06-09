@@ -15,6 +15,7 @@ import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
 import io.github.landwarderer.futon.R
+import io.github.landwarderer.futon.core.model.getTitle
 import io.github.landwarderer.futon.core.model.titleResId
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.ui.BaseActivity
@@ -94,7 +95,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	override fun onItemClick(item: SourceCatalogItem.Source, view: View) {
-		router.openList(item.source, null, null)
+		router.openList(item.source, null, null, item.source.getTitle(this))
 	}
 
 	override fun onItemLongClick(item: SourceCatalogItem.Source, view: View): Boolean {

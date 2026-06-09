@@ -394,7 +394,7 @@ class DetailsActivity :
 				ListItemType.MANGA_GRID,
 				mangaGridItemAD(
 					sizeResolver = StaticItemSizeResolver(resources.getDimensionPixelSize(R.dimen.smaller_grid_width)),
-				) { item, view ->
+				) { item, _ ->
 					router.openDetails(item.toMangaWithOverride())
 				},
 			).also { rv.adapter = it }
@@ -460,7 +460,12 @@ class DetailsActivity :
 				textViewSource.isVisible = false
 				textViewSourceLabel.isVisible = false
 			} else {
-				textViewSource.textAndVisible = manga.source.getTitle(this@DetailsActivity)
+				val sourceTitle = manga.source.getTitle(this@DetailsActivity)
+				textViewSource.textAndVisible = if (sourceTitle == getString(R.string.unknown)) {
+					viewModel.sourceTitle ?: sourceTitle
+				} else {
+					sourceTitle
+				}
 				textViewSource.setTooltipCompat(manga.source.getSummary(this@DetailsActivity))
 				textViewSourceLabel.isVisible = textViewSource.isVisible == true
 			}

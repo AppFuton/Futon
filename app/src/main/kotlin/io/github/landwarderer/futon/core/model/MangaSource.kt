@@ -21,6 +21,13 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.splitTwoParts
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
+
+private val MIHON_TITLES = ConcurrentHashMap<String, String>()
+
+fun updateMihonTitle(name: String, title: String) {
+	MIHON_TITLES[name] = title
+}
 
 data object LocalMangaSource : MangaSource {
 	override val name = "LOCAL"
@@ -34,7 +41,7 @@ data object TestMangaSource : MangaSource {
 	override val name = "TEST"
 }
 
-fun MangaSource(name: String?): MangaSource {
+fun MangaSource(name: String?, title: String? = null): MangaSource {
 	when (name ?: return UnknownMangaSource) {
 		UnknownMangaSource.name -> return UnknownMangaSource
 		LocalMangaSource.name -> return LocalMangaSource
@@ -45,7 +52,7 @@ fun MangaSource(name: String?): MangaSource {
 		return ExternalMangaSource(packageName = parts.first, authority = parts.second)
 	}
 	if (name.startsWith("mihon:") || name.startsWith("MIHON_")) {
-		return AnonymousMangaSource(name)
+		return AnonymousMangaSource(name, title)
 	}
 	MangaParserSource.entries.forEach {
 		if (it.name == name) return it
@@ -53,9 +60,12 @@ fun MangaSource(name: String?): MangaSource {
 	return UnknownMangaSource
 }
 
-private data class AnonymousMangaSource(override val name: String) : MangaSource
+data class AnonymousMangaSource(
+	override val name: String,
+	val title: String? = null
+) : MangaSource
 
-fun Collection<String>.toMangaSources() = map(::MangaSource)
+fun Collection<String>.toMangaSources() = map { MangaSource(it) }
 
 fun MangaSource.isNsfw(): Boolean = when (val source = unwrap()) {
 	is MangaSourceInfo -> source.mangaSource.isNsfw()
@@ -127,7 +137,8 @@ fun MangaSource.getTitle(context: Context): String = when (val source = unwrap()
 	LocalMangaSource -> context.getString(R.string.local_storage)
 	TestMangaSource -> context.getString(R.string.test_parser)
 	is ExternalMangaSource -> source.resolveName(context)
-	is MihonMangaSource -> source.displayName
+	is MihonMangaSource -> source.displayName.also { updateMihonTitle(source.name, it) }
+	is AnonymousMangaSource -> MIHON_TITLES[source.name] ?: source.title ?: context.getString(R.string.unknown)
 	else -> context.getString(R.string.unknown)
 }
 

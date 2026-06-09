@@ -87,6 +87,7 @@ class DetailsViewModel @Inject constructor(
 	private val intent = MangaIntent(savedStateHandle)
 	private var loadingJob: Job
 	val mangaId = intent.mangaId
+	val sourceTitle = intent.sourceTitle
 	private val scrobblers: Set<@JvmSuppressWildcards Scrobbler> by lazy { scrobblersProvider.get() }
 
 	init {

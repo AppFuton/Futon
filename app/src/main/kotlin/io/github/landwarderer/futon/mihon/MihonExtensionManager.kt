@@ -7,10 +7,13 @@ import eu.kanade.tachiyomi.source.Source
 import io.github.landwarderer.futon.mihon.extensions.runtime.ExternalExtensionManagerFacade
 import io.github.landwarderer.futon.mihon.model.MihonLoadResult
 import io.github.landwarderer.futon.mihon.model.MihonMangaSource
+import io.github.landwarderer.futon.core.model.updateMihonTitle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -61,7 +64,9 @@ class MihonExtensionManager @Inject constructor(
                 pkgName = pkgName,
                 isNsfw = isNsfw,
                 hasLanguageSuffix = hasLanguageSuffix,
-            )
+            ).also {
+                updateMihonTitle(it.name, it.displayName)
+            }
         },
         errorPackageName = { it.pkgName },
         errorMessage = { it.message },
@@ -72,6 +77,13 @@ class MihonExtensionManager @Inject constructor(
     val isLoading: StateFlow<Boolean> = facade.isLoading
 
     init {
+        facade.wrappedSources
+            .onEach { sources ->
+                for (source in sources) {
+                    updateMihonTitle(source.name, source.displayName)
+                }
+            }
+            .launchIn(scope)
         initialize()
     }
     

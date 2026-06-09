@@ -4,6 +4,7 @@ import eu.kanade.tachiyomi.source.CatalogueSource
 import io.github.landwarderer.futon.mihon.extensions.runtime.getExternalExtensionLanguageDisplayName
 import io.github.landwarderer.futon.mihon.parsers.model.ContentSource
 import io.github.landwarderer.futon.mihon.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 /**
  * Wrapper that adapts a Mihon CatalogueSource to App's ContentSource interface.
@@ -62,8 +63,8 @@ data class MihonMangaSource(
 
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
-		if (other !is ContentSource) return false
-		// Compare by name to support comparison with anonymous ContentSource objects
+		if (other !is MangaSource) return false
+		// Compare by name to support comparison with anonymous MangaSource objects
 		// that are created when loading from the database
 		return name == other.name
 	}
