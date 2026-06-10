@@ -26,6 +26,7 @@ junit = "4.13.2"
 junitKtx = "1.3.0"
 kotlin = "2.2.10"
 kizzyRpc = "ad8f2e32eb"
+konfetti = "2.0.4"
 ksp = "2.3.2"
 leakcanary = "3.0-alpha-8"
 lifecycle = "2.9.4"
@@ -101,6 +102,8 @@ hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", vers
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "dagger" }
 json = { module = "org.json:json", version.ref = "json" }
 junit = { module = "junit:junit", version.ref = "junit" }
+konfetti-xml = { module = "nl.dionsegijn:konfetti-xml", version.ref = "konfetti" }
+konfetti-core = { module = "nl.dionsegijn:konfetti-core", version.ref = "konfetti" }
 kizzyrpc = { module = "com.github.dead8309:KizzyRPC", version.ref = "kizzyRpc" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }

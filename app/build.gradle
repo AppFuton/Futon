@@ -220,6 +220,7 @@ dependencies {
 	implementation libs.disk.lru.cache
 	implementation libs.markwon
 	implementation libs.kizzyrpc
+	implementation libs.konfetti.xml
 
 	implementation libs.conscrypt.android
 	implementation libs.sentry.android

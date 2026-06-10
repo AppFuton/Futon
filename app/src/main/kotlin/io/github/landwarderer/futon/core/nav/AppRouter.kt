@@ -86,7 +86,6 @@ import io.github.landwarderer.futon.search.domain.SearchKind
 import io.github.landwarderer.futon.search.ui.MangaListActivity
 import io.github.landwarderer.futon.search.ui.multi.SearchActivity
 import io.github.landwarderer.futon.settings.SettingsActivity
-import io.github.landwarderer.futon.settings.about.AppUpdateActivity
 import io.github.landwarderer.futon.settings.override.OverrideConfigActivity
 import io.github.landwarderer.futon.settings.reader.ReaderTapGridConfigActivity
 import io.github.landwarderer.futon.settings.sources.auth.SourceAuthActivity
@@ -200,7 +199,6 @@ class AppRouter private constructor(
 
     fun openBookmarks() = startActivity(AllBookmarksActivity::class.java)
 
-    fun openAppUpdate() = startActivity(AppUpdateActivity::class.java)
 
     fun openSuggestions() {
         startActivity(suggestionsIntent(contextOrNull() ?: return))
