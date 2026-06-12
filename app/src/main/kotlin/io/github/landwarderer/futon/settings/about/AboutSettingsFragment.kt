@@ -1,6 +1,7 @@
 package io.github.landwarderer.futon.settings.about
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -17,6 +18,7 @@ import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.ui.BasePreferenceFragment
 import nl.dionsegijn.konfetti.core.models.Shape
 import nl.dionsegijn.konfetti.xml.KonfettiView
+import nl.dionsegijn.konfetti.xml.image.DrawableImage
 import kotlin.random.Random
 
 @AndroidEntryPoint
@@ -34,9 +36,12 @@ class AboutSettingsFragment : BasePreferenceFragment(R.string.about) {
 		findPreference<Preference>(AppSettings.KEY_LINK_TELEGRAM)?.isVisible = false
 	}
 
-	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-		super.onViewCreated(view, savedInstanceState)
-
+	override fun onCreateView(
+		inflater: LayoutInflater,
+		container: ViewGroup?,
+		savedInstanceState: Bundle?
+	): View {
+		val list = super.onCreateView(inflater, container, savedInstanceState)
 		konfettiView = KonfettiView(requireContext()).apply {
 			layoutParams = FrameLayout.LayoutParams(
 				ViewGroup.LayoutParams.MATCH_PARENT,
@@ -46,8 +51,18 @@ class AboutSettingsFragment : BasePreferenceFragment(R.string.about) {
 			isClickable = false
 			isFocusable = false
 		}
+		return FrameLayout(requireContext()).apply {
+			layoutParams = ViewGroup.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.MATCH_PARENT
+			)
+			addView(list)
+			addView(konfettiView)
+		}
+	}
 
-		(view as? ViewGroup)?.addView(konfettiView)
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+		super.onViewCreated(view, savedInstanceState)
 	}
 
 	override fun onDestroyView() {
@@ -94,7 +109,13 @@ class AboutSettingsFragment : BasePreferenceFragment(R.string.about) {
 
 	private fun triggerEasterEgg() {
 		val drawable = ContextCompat.getDrawable(requireContext(), R.drawable.unicorn)
-		val drawableShape = drawable?.let { Shape.DrawableShape(it, true) }
+		if (drawable == null) {
+			Snackbar.make(listView, "Failed to load unicorn drawable", Snackbar.LENGTH_SHORT).show()
+			return
+		}
+
+		val coreImage = DrawableImage(drawable, drawable.intrinsicWidth, drawable.intrinsicHeight)
+		val drawableShape = Shape.DrawableShape(coreImage, tint = false, applyAlpha = true)
 
 		val presets = listOf(
 			Presets.festive(drawableShape),

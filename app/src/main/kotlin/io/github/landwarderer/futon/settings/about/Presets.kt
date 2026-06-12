@@ -20,10 +20,10 @@ class Presets {
                 damping = 0.9f,
                 angle = Angle.TOP,
                 spread = 45,
-                size = listOf(Size.SMALL, Size.LARGE, Size.LARGE),
-                shapes = listOf(Shape.Square, Shape.Circle, drawable).filterNotNull(),
+                size = if (drawable != null) listOf(Size(24), Size(32)) else listOf(Size.SMALL, Size.MEDIUM),
+                shapes = if (drawable != null) listOf(drawable) else listOf(Shape.Square, Shape.Circle),
                 timeToLive = 3000L,
-                rotation = Rotation(),
+                rotation = Rotation(multiplier3D = 0f),
                 colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
                 emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(30),
                 position = Position.Relative(0.5, 1.0)
@@ -59,9 +59,11 @@ class Presets {
                     maxSpeed = 30f,
                     damping = 0.9f,
                     spread = 360,
-                    shapes = listOf(Shape.Square, Shape.Circle, drawable).filterNotNull(),
+                    size = if (drawable != null) listOf(Size(24), Size(32)) else listOf(Size.SMALL, Size.MEDIUM),
+                    shapes = if (drawable != null) listOf(drawable) else listOf(Shape.Square, Shape.Circle),
                     colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
                     emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(100),
+                    rotation = Rotation(multiplier3D = 0f),
                     position = Position.Relative(0.5, 0.3)
                 )
             )
@@ -74,9 +76,11 @@ class Presets {
                 damping = 0.9f,
                 angle = Angle.RIGHT - 45,
                 spread = Spread.SMALL,
-                shapes = listOf(Shape.Square, Shape.Circle, drawable).filterNotNull(),
+                size = if (drawable != null) listOf(Size(24), Size(32)) else listOf(Size.SMALL, Size.MEDIUM),
+                shapes = if (drawable != null) listOf(drawable) else listOf(Shape.Square, Shape.Circle),
                 colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
                 emitter = Emitter(duration = 5, TimeUnit.SECONDS).perSecond(30),
+                rotation = Rotation(multiplier3D = 0f),
                 position = Position.Relative(0.0, 0.5)
             )
 
@@ -97,9 +101,11 @@ class Presets {
                     damping = 0.9f,
                     angle = Angle.BOTTOM,
                     spread = Spread.ROUND,
-                    shapes = listOf(Shape.Square, Shape.Circle, drawable).filterNotNull(),
+                    size = if (drawable != null) listOf(Size(24), Size(32)) else listOf(Size.SMALL, Size.MEDIUM),
+                    shapes = if (drawable != null) listOf(drawable) else listOf(Shape.Square, Shape.Circle),
                     colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
                     emitter = Emitter(duration = 5, TimeUnit.SECONDS).perSecond(100),
+                    rotation = Rotation(multiplier3D = 0f),
                     position = Position.Relative(0.0, 0.0).between(Position.Relative(1.0, 0.0))
                 )
             )
