@@ -308,9 +308,6 @@
 			android:name="io.github.landwarderer.futon.alternatives.ui.AlternativesActivity"
 			android:label="@string/alternatives" />
 		<activity
-			android:name="io.github.landwarderer.futon.settings.about.AppUpdateActivity"
-			android:label="@string/app_update_available" />
-		<activity
 			android:name="io.github.landwarderer.futon.tracker.ui.debug.TrackerDebugActivity"
 			android:label="@string/tracker_debug_info" />
 		<activity

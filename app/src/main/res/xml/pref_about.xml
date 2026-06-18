@@ -6,14 +6,7 @@
 
 	<Preference
 		android:key="app_version"
-		android:persistent="false"
-		android:summary="@string/check_for_updates" />
-
-	<SwitchPreferenceCompat
-		android:defaultValue="false"
-		android:key="updates_unstable"
-		android:summary="@string/allow_unstable_updates_summary"
-		android:title="@string/allow_unstable_updates" />
+		android:persistent="false" />
 
 	<Preference
 		android:fragment="io.github.landwarderer.futon.settings.about.changelog.ChangelogFragment"
