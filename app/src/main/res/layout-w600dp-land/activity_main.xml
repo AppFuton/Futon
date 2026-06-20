@@ -103,6 +103,14 @@
 
 		</com.google.android.material.search.SearchView>
 
-	</androidx.coordinatorlayout.widget.CoordinatorLayout>
+		<io.github.landwarderer.futon.core.ui.widgets.PillNavigationView
+		android:id="@+id/pillNav"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom"
+		android:fitsSystemWindows="false"
+		android:visibility="gone" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </LinearLayout>

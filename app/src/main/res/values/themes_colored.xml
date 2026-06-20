@@ -442,4 +442,53 @@
 		<item name="colorSurfaceContainerHigh">@color/sakura_surfaceContainerHigh</item>
 		<item name="colorSurfaceContainerHighest">@color/sakura_surfaceContainerHighest</item>
 	</style>
+	<!-- Onyx Gold -->
+	<style name="ThemeOverlay.Futon.OnyxGold">
+		<item name="colorPrimary">@color/onyxgold_primary</item>
+		<item name="colorOnPrimary">@color/onyxgold_onPrimary</item>
+		<item name="colorPrimaryContainer">@color/onyxgold_primaryContainer</item>
+		<item name="colorOnPrimaryContainer">@color/onyxgold_onPrimaryContainer</item>
+		<item name="colorSecondary">@color/onyxgold_secondary</item>
+		<item name="colorOnSecondary">@color/onyxgold_onSecondary</item>
+		<item name="colorSecondaryContainer">@color/onyxgold_secondaryContainer</item>
+		<item name="colorOnSecondaryContainer">@color/onyxgold_onSecondaryContainer</item>
+		<item name="colorTertiary">@color/onyxgold_tertiary</item>
+		<item name="colorOnTertiary">@color/onyxgold_onTertiary</item>
+		<item name="colorTertiaryContainer">@color/onyxgold_tertiaryContainer</item>
+		<item name="colorOnTertiaryContainer">@color/onyxgold_onTertiaryContainer</item>
+		<item name="colorError">@color/onyxgold_error</item>
+		<item name="colorOnError">@color/onyxgold_onError</item>
+		<item name="colorErrorContainer">@color/onyxgold_errorContainer</item>
+		<item name="colorOnErrorContainer">@color/onyxgold_onErrorContainer</item>
+		<item name="android:colorBackground">@color/onyxgold_background</item>
+		<item name="colorOnBackground">@color/onyxgold_onBackground</item>
+		<item name="colorSurface">@color/onyxgold_surface</item>
+		<item name="colorOnSurface">@color/onyxgold_onSurface</item>
+		<item name="colorSurfaceVariant">@color/onyxgold_surfaceVariant</item>
+		<item name="colorOnSurfaceVariant">@color/onyxgold_onSurfaceVariant</item>
+		<item name="colorOutline">@color/onyxgold_outline</item>
+		<item name="colorOutlineVariant">@color/onyxgold_outlineVariant</item>
+		<item name="colorSurfaceInverse">@color/onyxgold_inverseSurface</item>
+		<item name="colorOnSurfaceInverse">@color/onyxgold_inverseOnSurface</item>
+		<item name="colorPrimaryInverse">@color/onyxgold_inversePrimary</item>
+		<item name="colorPrimaryFixed">@color/onyxgold_primaryFixed</item>
+		<item name="colorOnPrimaryFixed">@color/onyxgold_onPrimaryFixed</item>
+		<item name="colorPrimaryFixedDim">@color/onyxgold_primaryFixedDim</item>
+		<item name="colorOnPrimaryFixedVariant">@color/onyxgold_onPrimaryFixedVariant</item>
+		<item name="colorSecondaryFixed">@color/onyxgold_secondaryFixed</item>
+		<item name="colorOnSecondaryFixed">@color/onyxgold_onSecondaryFixed</item>
+		<item name="colorSecondaryFixedDim">@color/onyxgold_secondaryFixedDim</item>
+		<item name="colorOnSecondaryFixedVariant">@color/onyxgold_onSecondaryFixedVariant</item>
+		<item name="colorTertiaryFixed">@color/onyxgold_tertiaryFixed</item>
+		<item name="colorOnTertiaryFixed">@color/onyxgold_onTertiaryFixed</item>
+		<item name="colorTertiaryFixedDim">@color/onyxgold_tertiaryFixedDim</item>
+		<item name="colorOnTertiaryFixedVariant">@color/onyxgold_onTertiaryFixedVariant</item>
+		<item name="colorSurfaceDim">@color/onyxgold_surfaceDim</item>
+		<item name="colorSurfaceBright">@color/onyxgold_surfaceBright</item>
+		<item name="colorSurfaceContainerLowest">@color/onyxgold_surfaceContainerLowest</item>
+		<item name="colorSurfaceContainerLow">@color/onyxgold_surfaceContainerLow</item>
+		<item name="colorSurfaceContainer">@color/onyxgold_surfaceContainer</item>
+		<item name="colorSurfaceContainerHigh">@color/onyxgold_surfaceContainerHigh</item>
+		<item name="colorSurfaceContainerHighest">@color/onyxgold_surfaceContainerHighest</item>
+	</style>
 </resources>

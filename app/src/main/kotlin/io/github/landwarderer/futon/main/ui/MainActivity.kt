@@ -103,7 +103,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		get() = viewBinding.appbar
 
 	override val bottomNav: SlidingBottomNavigationView?
-		get() = viewBinding.bottomNav
+		get() = if (settings.usePillNavigation) null else viewBinding.bottomNav
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -115,8 +115,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		fadingAppbarMediator =
 			FadingAppbarMediator(viewBinding.appbar, viewBinding.layoutSearch ?: viewBinding.searchBar)
 
+		if (settings.usePillNavigation) {
+			viewBinding.pillNav?.isVisible = true
+			viewBinding.bottomNav?.isVisible = false
+			viewBinding.fab?.isVisible = false
+			viewBinding.pillNav?.fab?.setOnClickListener(this)
+		} else {
+			viewBinding.pillNav?.isVisible = false
+			viewBinding.bottomNav?.isVisible = true
+		}
+
 		navigationDelegate = MainNavigationDelegate(
-			navBar = checkNotNull(bottomNav ?: viewBinding.navRail),
+			navBar = checkNotNull(if (settings.usePillNavigation) viewBinding.pillNav?.bottomNav else bottomNav ?: viewBinding.navRail),
 			fragmentManager = supportFragmentManager,
 			settings = settings,
 		)
@@ -142,7 +152,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			onFirstStart()
 		}
 
-		viewBinding.bottomNav?.addOnLayoutChangeListener(this)
+		if (settings.usePillNavigation) {
+			viewBinding.pillNav?.addOnLayoutChangeListener(this)
+		} else {
+			viewBinding.bottomNav?.addOnLayoutChangeListener(this)
+		}
 		viewBinding.searchView.addTransitionListener(this)
 		viewBinding.searchView.addTransitionListener(exitCallback)
 
@@ -186,7 +200,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	override fun onClick(v: View) {
 		when (v.id) {
-			R.id.fab, R.id.railFab -> viewModel.openLastReader()
+			R.id.fab, R.id.railFab, R.id.pill_fab -> viewModel.openLastReader()
 		}
 	}
 
@@ -202,11 +216,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				searchBarDefaultMargin + barsInsets.start(v)
 			}
 		}
-		viewBinding.bottomNav?.updatePadding(
-			left = barsInsets.left,
-			right = barsInsets.right,
-			bottom = barsInsets.bottom,
-		)
+		if (settings.usePillNavigation) {
+			viewBinding.pillNav?.updatePadding(
+				left = barsInsets.left,
+				right = barsInsets.right,
+				bottom = barsInsets.bottom,
+			)
+		} else {
+			viewBinding.bottomNav?.updatePadding(
+				left = barsInsets.left,
+				right = barsInsets.right,
+				bottom = barsInsets.bottom,
+			)
+		}
 		viewBinding.navRail?.updateLayoutParams<MarginLayoutParams> {
 			marginStart = barsInsets.start(v)
 			topMargin = barsInsets.top
@@ -253,7 +275,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	override fun onSupportActionModeStarted(mode: ActionMode) {
 		super.onSupportActionModeStarted(mode)
 		adjustFabVisibility()
-		bottomNav?.hide()
+		if (settings.usePillNavigation) { viewBinding.pillNav?.hide() } else { bottomNav?.hide() }
 		(viewBinding.layoutSearch ?: viewBinding.searchBar).isInvisible = true
 		updateContainerBottomMargin()
 	}
@@ -261,7 +283,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	override fun onSupportActionModeFinished(mode: ActionMode) {
 		super.onSupportActionModeFinished(mode)
 		adjustFabVisibility()
-		bottomNav?.show()
+		if (settings.usePillNavigation) { viewBinding.pillNav?.show() } else { bottomNav?.show() }
 		(viewBinding.layoutSearch ?: viewBinding.searchBar).isInvisible = false
 		updateContainerBottomMargin()
 	}
@@ -287,7 +309,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 
 	private fun onLoadingStateChanged(isLoading: Boolean) {
-		val fab = viewBinding.fab ?: viewBinding.navRail?.headerView ?: return
+		val fab = if (settings.usePillNavigation) viewBinding.pillNav?.fab ?: viewBinding.navRail?.headerView ?: return else viewBinding.fab ?: viewBinding.navRail?.headerView ?: return
 		fab.isEnabled = !isLoading
 	}
 
@@ -330,14 +352,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		isSearchOpened: Boolean = viewBinding.searchView.isShowing,
 	) {
 		navigationDelegate.navRailHeader?.railFab?.isVisible = isResumeEnabled
-		val fab = viewBinding.fab ?: return
+		val fab = if (settings.usePillNavigation) viewBinding.pillNav?.fab ?: return else viewBinding.fab ?: return
 		if (isResumeEnabled && !actionModeDelegate.isActionModeStarted && !isSearchOpened && topFragment is HistoryListFragment) {
 			if (!fab.isVisible) {
-				fab.show()
+				if (fab is com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton) { fab.show() } else { fab.isVisible = true }
 			}
 		} else {
 			if (fab.isVisible) {
-				fab.hide()
+				if (fab is com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton) { fab.hide() } else { fab.isVisible = false }
 			}
 		}
 	}
@@ -352,7 +374,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			scrollFlags = appBarScrollFlags
 		}
 		adjustFabVisibility(isSearchOpened = isOpened)
-		bottomNav?.showOrHide(!isOpened)
+		if (settings.usePillNavigation) { viewBinding.pillNav?.showOrHide(!isOpened) } else { bottomNav?.showOrHide(!isOpened) }
 		updateContainerBottomMargin()
 	}
 
@@ -405,8 +427,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 
 	private fun setNavbarPinned(isPinned: Boolean) {
-		val bottomNavBar = viewBinding.bottomNav
-		bottomNavBar?.isPinned = isPinned
+		if (settings.usePillNavigation) {
+			viewBinding.pillNav?.isPinned = isPinned
+		} else {
+			val bottomNavBar = viewBinding.bottomNav
+			bottomNavBar?.isPinned = isPinned
+		}
 		for (view in viewBinding.appbar.children) {
 			val lp = view.layoutParams as? AppBarLayout.LayoutParams ?: continue
 			val scrollFlags = if (isPinned) {
@@ -423,8 +449,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 
 	private fun updateContainerBottomMargin() {
-		val bottomNavBar = viewBinding.bottomNav ?: return
-		val newMargin = if (bottomNavBar.isPinned && bottomNavBar.isShownOrShowing) bottomNavBar.height else 0
+		val newMargin: Int
+		if (settings.usePillNavigation) {
+			val pillNav = viewBinding.pillNav ?: return
+			newMargin = if (pillNav.isPinned && pillNav.isShownOrShowing) pillNav.height else 0
+		} else {
+			val bottomNavBar = viewBinding.bottomNav ?: return
+			newMargin = if (bottomNavBar.isPinned && bottomNavBar.isShownOrShowing) bottomNavBar.height else 0
+		}
 		with(viewBinding.container) {
 			val params = layoutParams as MarginLayoutParams
 			if (params.bottomMargin != newMargin) {

@@ -179,6 +179,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_ALL_FAVOURITES_VISIBLE, true)
 		set(value) = prefs.edit { putBoolean(KEY_ALL_FAVOURITES_VISIBLE, value) }
 
+	val usePillNavigation: Boolean
+		get() = prefs.getBoolean("use_pill_navigation", true)
+
 	val isTrackerEnabled: Boolean
 		get() = prefs.getBoolean(KEY_TRACKER_ENABLED, true)
 
