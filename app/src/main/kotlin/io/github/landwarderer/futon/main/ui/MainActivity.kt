@@ -2,6 +2,7 @@ package io.github.landwarderer.futon.main.ui
 
 import android.Manifest
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
 import android.os.Bundle
@@ -24,6 +25,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.withResumed
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
@@ -84,7 +86,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	SearchSuggestionItemCallback.SuggestionItemListener,
 	MainNavigationDelegate.OnFragmentChangedListener,
 	View.OnLayoutChangeListener,
-	SearchView.TransitionListener {
+	SearchView.TransitionListener,
+	SharedPreferences.OnSharedPreferenceChangeListener {
 
 	@Inject
 	lateinit var settings: AppSettings
@@ -107,6 +110,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this)
 		setContentView(ActivityMainBinding.inflate(layoutInflater))
 		setSupportActionBar(viewBinding.searchBar)
 
@@ -174,6 +178,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				searchSuggestionViewModel.isIncognitoModeEnabled.observe(this@MainActivity, this@MainActivity::onIncognitoModeChanged)
 				initSearch()
 			}
+		}
+	}
+
+	override fun onDestroy() {
+		PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this)
+		super.onDestroy()
+	}
+
+	override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+		if (key == "use_pill_navigation") {
+			recreate()
 		}
 	}
 
@@ -353,9 +368,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	) {
 		navigationDelegate.navRailHeader?.railFab?.isVisible = isResumeEnabled
 		val fab = if (settings.usePillNavigation) viewBinding.pillNav?.fab ?: return else viewBinding.fab ?: return
-		if (isResumeEnabled && !actionModeDelegate.isActionModeStarted && !isSearchOpened && topFragment is HistoryListFragment) {
+		val isDefaultVisible = if (settings.usePillNavigation) true else topFragment is HistoryListFragment
+		
+		val shouldShow = if (settings.usePillNavigation) {
+			!actionModeDelegate.isActionModeStarted && !isSearchOpened
+		} else {
+			isResumeEnabled && !actionModeDelegate.isActionModeStarted && !isSearchOpened && isDefaultVisible
+		}
+
+		if (shouldShow) {
 			if (!fab.isVisible) {
 				if (fab is com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton) { fab.show() } else { fab.isVisible = true }
+			}
+			if (settings.usePillNavigation) {
+				fab.isEnabled = isResumeEnabled
+				fab.alpha = if (isResumeEnabled) 1.0f else 0.5f
 			}
 		} else {
 			if (fab.isVisible) {

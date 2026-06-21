@@ -4,11 +4,15 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.TimeInterpolator
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.ViewGroup
 import android.view.ViewPropertyAnimator
+import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -37,13 +41,62 @@ class PillNavigationView @JvmOverloads constructor(
 	private var currentState = STATE_UP
 	private var behavior = HideBottomNavigationOnScrollBehavior()
 
+	private val indicator: android.view.View
 	val bottomNav: BottomNavigationView
 	val fab: ImageButton
 
+	private var lastSelectedId = -1
+
 	init {
 		LayoutInflater.from(context).inflate(R.layout.layout_pill_navigation, this, true)
+		indicator = findViewById(R.id.pill_indicator)
 		bottomNav = findViewById(R.id.pill_bottom_nav)
 		fab = findViewById(R.id.pill_fab)
+
+		bottomNav.itemActiveIndicatorColor = ColorStateList.valueOf(Color.TRANSPARENT)
+		bottomNav.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+			override fun onPreDraw(): Boolean {
+				val selectedId = bottomNav.selectedItemId
+				if (selectedId != lastSelectedId) {
+					if (updateIndicatorPosition(selectedId, animate = lastSelectedId != -1)) {
+						lastSelectedId = selectedId
+					}
+				}
+				return true
+			}
+		})
+		
+		bottomNav.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+			if (lastSelectedId != -1) {
+				updateIndicatorPosition(lastSelectedId, animate = false)
+			}
+		}
+	}
+
+	private fun updateIndicatorPosition(itemId: Int, animate: Boolean): Boolean {
+		val menuView = bottomNav.getChildAt(0) as? ViewGroup ?: return false
+		val itemsCount = bottomNav.menu.size()
+		for (i in 0 until itemsCount) {
+			if (bottomNav.menu.getItem(i).itemId == itemId) {
+				val itemView = menuView.getChildAt(i) ?: return false
+				if (itemView.width == 0) return false
+
+				val targetX = menuView.left + itemView.left + (itemView.width - indicator.width) / 2f
+				if (animate && indicator.isVisible) {
+					indicator.animate()
+						.translationX(targetX)
+						.setInterpolator(FastOutLinearInInterpolator())
+						.setDuration(225L)
+						.start()
+				} else {
+					indicator.animate().cancel()
+					indicator.translationX = targetX
+					indicator.isVisible = true
+				}
+				return true
+			}
+		}
+		return false
 	}
 
 	var isPinned: Boolean
@@ -51,7 +104,7 @@ class PillNavigationView @JvmOverloads constructor(
 		set(value) {
 			behavior.isPinned = value
 			if (value) {
-				translationX = 0f
+				translationY = 0f
 			}
 		}
 
