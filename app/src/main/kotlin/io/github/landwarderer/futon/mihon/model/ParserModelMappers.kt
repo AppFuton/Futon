@@ -105,7 +105,7 @@ fun ContentPage.toMangaPage(): MangaPage {
         source = source.toMangaSource()
     )
 }
-
+// TODO: Remove this function
 fun MangaPage.toContentPage(source: ContentSource): ContentPage {
     return ContentPage(
         id = id,
