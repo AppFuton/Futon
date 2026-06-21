@@ -174,9 +174,6 @@ fun MangaTag.toContentTag(): ContentTag {
 }
 
 fun ContentSource.toMangaSource(): MangaSource {
-    val src = this
-    return object : MangaSource {
-        override val name = src.name
-    }
+    return this
 }
 
