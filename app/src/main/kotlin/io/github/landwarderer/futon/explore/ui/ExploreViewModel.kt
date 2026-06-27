@@ -3,15 +3,6 @@ package io.github.landwarderer.futon.explore.ui
 import androidx.collection.LongSet
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.plus
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.MangaSourceInfo
 import io.github.landwarderer.futon.core.os.AppShortcutManager
@@ -33,10 +24,19 @@ import io.github.landwarderer.futon.list.ui.model.ListHeader
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.list.ui.model.MangaCompactListModel
+import io.github.landwarderer.futon.suggestions.domain.SuggestionRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import io.github.landwarderer.futon.suggestions.domain.SuggestionRepository
 import javax.inject.Inject
 
 @HiltViewModel
@@ -196,13 +196,23 @@ class ExploreViewModel @Inject constructor(
 		}
 	}
 
-	private fun List<Manga>.toRecommendationList() = map { manga ->
+	private fun List<Manga>.toRecommendationList() = skipBlacklistedTags().map { manga ->
 		MangaCompactListModel(
 			manga = manga,
 			override = null,
 			subtitle = manga.tags.joinToString { it.title },
 			counter = 0,
 		)
+	}
+
+	private fun List<Manga>.skipBlacklistedTags(): List<Manga> {
+		val blacklist = settings.tagsBlacklist
+		if (blacklist.isEmpty()) {
+			return this
+		}
+		return filterNot { manga ->
+			manga.tags.any { it.title in blacklist }
+		}
 	}
 
 	companion object {

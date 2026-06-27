@@ -50,6 +50,11 @@
         android:title="@string/incognito_for_nsfw"
         app:useSimpleSummaryProvider="true" />
 
+    <Preference
+        android:key="tags_blacklist"
+        android:title="@string/tags_blacklist"
+        android:summary="@string/tags_blacklist_summary"
+        app:allowDividerAbove="true" />
 
     <SwitchPreferenceCompat
         android:defaultValue="false"

@@ -98,6 +98,7 @@
     <string name="vibration">Vibration</string>
     <string name="favourites_categories">Favorite categories</string>
     <string name="remove_category">Remove</string>
+    <string name="queue_all_unread_from_favorites">Download unread from favorites</string>
     <string name="text_empty_holder_primary">It\'s kind of empty here…</string>
     <string name="text_search_holder_secondary">Try to reformulate the query.</string>
     <string name="text_history_holder_primary">What you read will be displayed here</string>
@@ -304,6 +305,8 @@
     <string name="random">Random</string>
     <string name="categories_delete_confirm">Are you sure you want to delete the selected favorite categories?\nAll manga in it will be lost and this cannot be undone.</string>
     <string name="reorder">Reorder</string>
+    <string name="download_queue">Download queue</string>
+    <string name="clear_queue">Clear queue</string>
     <string name="empty">Empty</string>
     <string name="explore">Explore</string>
     <string name="confirm_exit">Press "Back" again to exit</string>
@@ -400,6 +403,8 @@
     <string name="cancel_all">Cancel all</string>
     <string name="downloads_wifi_only">Download only via Wi-Fi</string>
     <string name="downloads_wifi_only_summary">Stop downloading when switching to a mobile network</string>
+    <string name="downloads_charging_only">Download only when charging</string>
+    <string name="downloads_charging_only_summary">Items will only be downloaded when the device is charging</string>
     <string name="suggestion_manga">Suggestion: %s</string>
     <string name="suggestions_notifications_summary">Sometimes show notifications with suggested manga</string>
     <string name="more">More</string>
@@ -925,4 +930,22 @@
     <string name="installed">Installed</string>
     <string name="install">Install</string>
     <string name="uninstall">Uninstall</string>
+    <string name="tags_blacklist">Blacklisted tags</string>
+    <string name="tags_blacklist_summary">Exclude manga containing these tags from lists and search results</string>
+    <string name="download_scheduling_and_limits">Download scheduling and limits</string>
+    <string name="download_off_peak">Off-peak downloads</string>
+    <string name="download_off_peak_summary">Download only during specified hours</string>
+    <string name="download_off_peak_start">Start time</string>
+    <string name="download_off_peak_end">End time</string>
+    <string name="download_storage_quota">Storage quota (MB)</string>
+    <string name="download_storage_quota_summary">Limit total download size. 0 for unlimited. Current oldest chapters will be deleted if exceeded.</string>
+    <string name="smart_downloads">Smart Downloads</string>
+    <string name="smart_downloads_summary">Automatically download next chapters and delete read ones</string>
+    <string name="download_off_peak_start_description">When downloads can start</string>
+    <string name="download_off_peak_end_description">When downloads must stop</string>
+    <string name="rescan">Rescan</string>
+    <string name="rescan_completed">Rescan completed</string>
+    <string name="rescan_started">Rescan started</string>
+    <string name="directory_inaccessible">This directory is inaccessible. Please check permissions or re-add it.</string>
+    <string name="download_only_on_charging_summary">Connect to a power source to start downloads</string>
 </resources>

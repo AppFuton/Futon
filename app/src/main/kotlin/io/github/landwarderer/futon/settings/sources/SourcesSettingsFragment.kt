@@ -88,6 +88,11 @@ class SourcesSettingsFragment : BasePreferenceFragment(R.string.remote_sources),
 			true
 		}
 
+		AppSettings.KEY_TAGS_BLACKLIST -> {
+			router.openTagsBlacklist()
+			true
+		}
+
 		else -> super.onPreferenceTreeClick(preference)
 	}
 

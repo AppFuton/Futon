@@ -61,6 +61,9 @@ abstract class TagsDao {
 	)
 	abstract suspend fun findTags(query: String, limit: Int): List<TagEntity>
 
+	@Query("SELECT * FROM tags WHERE title LIKE :query GROUP BY title LIMIT :limit")
+	abstract suspend fun searchAllTags(query: String, limit: Int): List<TagEntity>
+
 	@Query(
 		"""
 		SELECT tags.* FROM manga_tags 

@@ -9,6 +9,8 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.LocalMangaSource
 import io.github.landwarderer.futon.core.model.UnknownMangaSource
 import io.github.landwarderer.futon.core.nav.AppRouter
+import io.github.landwarderer.futon.core.parser.MangaDataRepository
+import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.ListMode
 import io.github.landwarderer.futon.core.ui.BaseViewModel
 import io.github.landwarderer.futon.core.util.ext.append
@@ -23,10 +25,6 @@ import io.github.landwarderer.futon.list.ui.model.EmptyState
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingFooter
 import io.github.landwarderer.futon.list.ui.model.LoadingState
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.search.domain.SearchKind
 import io.github.landwarderer.futon.search.domain.SearchV2Helper
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +41,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.util.Locale
 import javax.inject.Inject
 
@@ -51,11 +53,13 @@ private const val MAX_PARALLELISM = 4
 @HiltViewModel
 class SearchViewModel @Inject constructor(
 	savedStateHandle: SavedStateHandle,
+	private val settings: AppSettings,
 	private val mangaListMapper: MangaListMapper,
 	private val searchHelperFactory: SearchV2Helper.Factory,
 	private val sourcesRepository: MangaSourcesRepository,
 	private val historyRepository: HistoryRepository,
 	private val favouritesRepository: FavouritesRepository,
+	private val dataRepository: MangaDataRepository,
 ) : BaseViewModel() {
 
 	val query = savedStateHandle.get<String>(AppRouter.KEY_QUERY).orEmpty()
@@ -188,11 +192,12 @@ class SearchViewModel @Inject constructor(
 		searchHelper(query, kind)
 	}.fold(
 		onSuccess = { result ->
-			if (result == null || result.manga.isEmpty()) {
+			val filteredManga = result?.manga?.filterBlacklistedTags()
+			if (filteredManga.isNullOrEmpty()) {
 				null
 			} else {
 				val list = mangaListMapper.toListModelList(
-					manga = result.manga,
+					manga = filteredManga,
 					mode = ListMode.GRID,
 				)
 				SearchResultsListModel(
@@ -219,11 +224,12 @@ class SearchViewModel @Inject constructor(
 		historyRepository.search(query, kind, Int.MAX_VALUE)
 	}.fold(
 		onSuccess = { result ->
-			if (result.isNotEmpty()) {
+			val filteredManga = result.filterBlacklistedTags()
+			if (filteredManga.isNotEmpty()) {
 				SearchResultsListModel(
 					titleResId = R.string.history,
 					source = UnknownMangaSource,
-					list = mangaListMapper.toListModelList(manga = result, mode = ListMode.GRID),
+					list = mangaListMapper.toListModelList(manga = filteredManga, mode = ListMode.GRID),
 					error = null,
 					listFilter = null,
 					sortOrder = null,
@@ -248,12 +254,13 @@ class SearchViewModel @Inject constructor(
 		favouritesRepository.search(query, kind, Int.MAX_VALUE)
 	}.fold(
 		onSuccess = { result ->
-			if (result.isNotEmpty()) {
+			val filteredManga = result.filterBlacklistedTags()
+			if (filteredManga.isNotEmpty()) {
 				SearchResultsListModel(
 					titleResId = R.string.favourites,
 					source = UnknownMangaSource,
 					list = mangaListMapper.toListModelList(
-						manga = result,
+						manga = filteredManga,
 						mode = ListMode.GRID,
 						flags = MangaListMapper.NO_FAVORITE,
 					),
@@ -281,12 +288,13 @@ class SearchViewModel @Inject constructor(
 		searchHelperFactory.create(LocalMangaSource).invoke(query, kind)
 	}.fold(
 		onSuccess = { result ->
-			if (!result?.manga.isNullOrEmpty()) {
+			val filteredManga = result?.manga?.filterBlacklistedTags()
+			if (!filteredManga.isNullOrEmpty()) {
 				SearchResultsListModel(
 					titleResId = 0,
 					source = LocalMangaSource,
 					list = mangaListMapper.toListModelList(
-						manga = result.manga,
+						manga = filteredManga,
 						mode = ListMode.GRID,
 						flags = MangaListMapper.NO_SAVED,
 					),
@@ -322,5 +330,25 @@ class SearchViewModel @Inject constructor(
 			if (locale.toLocale() == Locale.getDefault()) res += 2
 		}
 		return res
+	}
+
+	private suspend fun List<Manga>.filterBlacklistedTags(): List<Manga> {
+		val blacklist = settings.tagsBlacklist.map { it.lowercase() }.toSet()
+		if (blacklist.isEmpty()) {
+			return this
+		}
+		val result = mutableListOf<Manga>()
+		for (manga in this) {
+			val hasBlacklistedTag = if (manga.tags.isNotEmpty()) {
+				manga.tags.any { it.title.lowercase() in blacklist }
+			} else {
+				val cached = dataRepository.findMangaById(manga.id, withChapters = false)
+				cached?.tags?.any { it.title.lowercase() in blacklist } == true
+			}
+			if (!hasBlacklistedTag) {
+				result.add(manga)
+			}
+		}
+		return result
 	}
 }

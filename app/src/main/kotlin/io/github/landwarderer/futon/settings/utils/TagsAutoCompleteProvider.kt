@@ -1,7 +1,7 @@
 package io.github.landwarderer.futon.settings.utils
 
-import javax.inject.Inject
 import io.github.landwarderer.futon.core.db.MangaDatabase
+import javax.inject.Inject
 
 class TagsAutoCompleteProvider @Inject constructor(
 	private val db: MangaDatabase,
@@ -11,7 +11,7 @@ class TagsAutoCompleteProvider @Inject constructor(
 		if (query.isEmpty()) {
 			return emptyList()
 		}
-		val tags = db.getTagsDao().findTags(query = "$query%", limit = 6)
+		val tags = db.getTagsDao().searchAllTags(query = "$query%", limit = 10)
 		val set = HashSet<String>()
 		val result = ArrayList<String>(tags.size)
 		for (tag in tags) {

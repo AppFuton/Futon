@@ -242,6 +242,9 @@
 			android:name="io.github.landwarderer.futon.search.ui.multi.SearchActivity"
 			android:label="@string/search" />
 		<activity
+			android:name="io.github.landwarderer.futon.settings.sources.TagsBlacklistActivity"
+			android:label="@string/tags_blacklist" />
+		<activity
 			android:name="io.github.landwarderer.futon.main.ui.protect.ProtectActivity"
 			android:noHistory="true"
 			android:windowSoftInputMode="adjustResize" />
@@ -252,6 +255,9 @@
 			android:name="io.github.landwarderer.futon.download.ui.list.DownloadsActivity"
 			android:label="@string/downloads"
 			android:launchMode="singleTop" />
+		<activity
+			android:name="io.github.landwarderer.futon.download.ui.DownloadQueueActivity"
+			android:label="@string/download_queue" />
 		<activity android:name="io.github.landwarderer.futon.image.ui.ImageActivity" />
 		<activity android:name="io.github.landwarderer.futon.favourites.ui.categories.edit.FavouritesCategoryEditActivity" />
 		<activity

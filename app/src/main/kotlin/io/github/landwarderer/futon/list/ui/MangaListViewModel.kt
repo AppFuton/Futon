@@ -1,17 +1,6 @@
 package io.github.landwarderer.futon.list.ui
 
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.plus
 import io.github.landwarderer.futon.core.model.isNsfw
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
@@ -23,9 +12,20 @@ import io.github.landwarderer.futon.core.ui.util.ReversibleAction
 import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.list.domain.ListFilterOption
 import io.github.landwarderer.futon.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
 import io.github.landwarderer.futon.local.domain.model.LocalManga
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.plus
+import org.koitharu.kotatsu.parsers.model.Manga
 
 abstract class MangaListViewModel(
 	private val settings: AppSettings,
@@ -54,6 +54,16 @@ abstract class MangaListViewModel(
 		filterNot { it.isNsfw() }
 	} else {
 		this
+	}.filterBlacklistedTags()
+
+	protected fun List<Manga>.filterBlacklistedTags(): List<Manga> {
+		val blacklist = settings.tagsBlacklist
+		if (blacklist.isEmpty()) {
+			return this
+		}
+		return filterNot { manga ->
+			manga.tags.any { it.title.lowercase() in blacklist }
+		}
 	}
 
 	protected fun Flow<Set<ListFilterOption>>.combineWithSettings(): Flow<Set<ListFilterOption>> = combine(

@@ -60,6 +60,7 @@ import io.github.landwarderer.futon.details.ui.DetailsActivity
 import io.github.landwarderer.futon.details.ui.pager.ChaptersPagesSheet
 import io.github.landwarderer.futon.details.ui.related.RelatedMangaActivity
 import io.github.landwarderer.futon.details.ui.scrobbling.ScrobblingInfoSheet
+import io.github.landwarderer.futon.download.ui.DownloadQueueActivity
 import io.github.landwarderer.futon.download.ui.dialog.DownloadDialogFragment
 import io.github.landwarderer.futon.download.ui.list.DownloadsActivity
 import io.github.landwarderer.futon.favourites.ui.FavouritesActivity
@@ -89,6 +90,7 @@ import io.github.landwarderer.futon.settings.SettingsActivity
 import io.github.landwarderer.futon.settings.about.AppUpdateActivity
 import io.github.landwarderer.futon.settings.override.OverrideConfigActivity
 import io.github.landwarderer.futon.settings.reader.ReaderTapGridConfigActivity
+import io.github.landwarderer.futon.settings.sources.TagsBlacklistActivity
 import io.github.landwarderer.futon.settings.sources.auth.SourceAuthActivity
 import io.github.landwarderer.futon.settings.sources.catalog.SourcesCatalogActivity
 import io.github.landwarderer.futon.settings.sources.extension.ExtensionDownloaderActivity
@@ -212,6 +214,8 @@ class AppRouter private constructor(
 
     fun openDownloads() = startActivity(DownloadsActivity::class.java)
 
+    fun openDownloadQueue() = startActivity(DownloadQueueActivity::class.java)
+
     fun openDirectoriesSettings() = startActivity(MangaDirectoriesActivity::class.java)
 
     fun openBrowser(url: String, source: MangaSource?, title: String?) {
@@ -312,6 +316,8 @@ class AppRouter private constructor(
             manageSourcesIntent(contextOrNull() ?: return),
         )
     }
+
+    fun openTagsBlacklist() = startActivity(TagsBlacklistActivity::class.java)
 
     fun openStatistic() = startActivity(StatsActivity::class.java)
 

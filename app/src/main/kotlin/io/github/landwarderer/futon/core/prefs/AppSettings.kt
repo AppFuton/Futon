@@ -405,6 +405,16 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			return string.split(',').mapToSet { it.trim() }
 		}
 
+	var tagsBlacklist: Set<String>
+		get() {
+			val string = prefs.getString(KEY_TAGS_BLACKLIST, null)?.trimEnd(' ', ',')
+			if (string.isNullOrEmpty()) {
+				return emptySet()
+			}
+			return string.split(',').mapToSet { it.trim() }
+		}
+		set(value) = prefs.edit { putString(KEY_TAGS_BLACKLIST, value.joinToString(", ")) }
+
 	val isReaderBarEnabled: Boolean
 		get() = prefs.getBoolean(KEY_READER_BAR, true)
 
@@ -591,6 +601,34 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isAutoLocalChaptersCleanupEnabled: Boolean
 		get() = prefs.getBoolean(KEY_CHAPTERS_CLEAR_AUTO, false)
 
+	var downloadOffPeakStart: String
+		get() = prefs.getString(KEY_DOWNLOAD_OFF_PEAK_START, "00:00") ?: "00:00"
+		set(value) = prefs.edit { putString(KEY_DOWNLOAD_OFF_PEAK_START, value) }
+
+	var downloadOffPeakEnd: String
+		get() = prefs.getString(KEY_DOWNLOAD_OFF_PEAK_END, "06:00") ?: "06:00"
+		set(value) = prefs.edit { putString(KEY_DOWNLOAD_OFF_PEAK_END, value) }
+
+	var isDownloadOffPeakEnabled: Boolean
+		get() = prefs.getBoolean(KEY_DOWNLOAD_OFF_PEAK_ENABLED, false)
+		set(value) = prefs.edit { putBoolean(KEY_DOWNLOAD_OFF_PEAK_ENABLED, value) }
+
+	var downloadStorageQuota: Long
+		get() = prefs.getString(KEY_DOWNLOAD_STORAGE_QUOTA, null)?.toLongOrNull() ?: 0L
+		set(value) = prefs.edit { putString(KEY_DOWNLOAD_STORAGE_QUOTA, value.toString()) }
+
+	var isAutoDownloadNextChapterEnabled: Boolean
+		get() = prefs.getBoolean(KEY_AUTO_DOWNLOAD_NEXT, false)
+		set(value) = prefs.edit { putBoolean(KEY_AUTO_DOWNLOAD_NEXT, value) }
+
+	var isDownloadOnlyOnChargingEnabled: Boolean
+		get() = prefs.getBoolean(KEY_DOWNLOAD_ONLY_ON_CHARGING, false)
+		set(value) = prefs.edit { putBoolean(KEY_DOWNLOAD_ONLY_ON_CHARGING, value) }
+
+	var downloadBandwidthLimit: Int
+		get() = prefs.getInt(KEY_DOWNLOAD_BANDWIDTH_LIMIT, 0) // in KB/s, 0 = unlimited
+		set(value) = prefs.edit { putInt(KEY_DOWNLOAD_BANDWIDTH_LIMIT, value) }
+
 	fun isPagesCropEnabled(mode: ReaderMode): Boolean {
 		val rawValue = prefs.getStringSet(KEY_READER_CROP, emptySet())
 		if (rawValue.isNullOrEmpty()) {
@@ -746,6 +784,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SUGGESTIONS_WIFI_ONLY = "suggestions_wifi"
 		const val KEY_SUGGESTIONS_EXCLUDE_NSFW = "suggestions_exclude_nsfw"
 		const val KEY_SUGGESTIONS_EXCLUDE_TAGS = "suggestions_exclude_tags"
+		const val KEY_TAGS_BLACKLIST = "tags_blacklist"
 		const val KEY_SUGGESTIONS_DISABLED_SOURCES = "suggestions_disabled_sources"
 		const val KEY_SUGGESTIONS_NOTIFICATIONS = "suggestions_notifications"
 		const val KEY_SHIKIMORI = "shikimori"
@@ -830,6 +869,14 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_DISCORD_TOKEN = "discord_token"
 		const val KEY_CRASH_ANALYTICS_ENABLED = "crash_analytics_enabled"
 		const val KEY_GITHUB_MIRROR = "github_mirror"
+
+		const val KEY_DOWNLOAD_OFF_PEAK_START = "download_off_peak_start"
+		const val KEY_DOWNLOAD_OFF_PEAK_END = "download_off_peak_end"
+		const val KEY_DOWNLOAD_OFF_PEAK_ENABLED = "download_off_peak_enabled"
+		const val KEY_DOWNLOAD_STORAGE_QUOTA = "download_storage_quota"
+		const val KEY_AUTO_DOWNLOAD_NEXT = "auto_download_next"
+		const val KEY_DOWNLOAD_BANDWIDTH_LIMIT = "download_bandwidth_limit"
+		const val KEY_DOWNLOAD_ONLY_ON_CHARGING = "download_only_on_charging"
 
 		// keys for non-persistent preferences
 		const val KEY_APP_VERSION = "app_version"
