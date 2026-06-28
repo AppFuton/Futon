@@ -77,6 +77,7 @@ class ExploreFragment :
 		with(binding.recyclerView) {
 			adapter = exploreAdapter
 			setHasFixedSize(true)
+			setItemViewCacheSize(20)
 			SpanSizeResolver(this, resources.getDimensionPixelSize(R.dimen.explore_grid_width)).attach()
 			addItemDecoration(TypedListSpacingDecoration(context, false))
 			checkNotNull(sourceSelectionController).attachToRecyclerView(this)
