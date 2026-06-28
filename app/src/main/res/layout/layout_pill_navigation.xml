@@ -16,16 +16,14 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="0dp"
-        android:paddingTop="4dp"
-        android:paddingEnd="4dp"
-        android:paddingBottom="4dp">
+        android:paddingTop="8dp"
+        android:paddingEnd="0dp"
+        android:paddingBottom="8dp">
 
         <FrameLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginHorizontal="0dp"
-            android:paddingHorizontal="0dp">
+            android:layout_weight="1">
 
             <View
                 android:id="@+id/pill_indicator"
@@ -51,7 +49,7 @@
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:layout_marginStart="8dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginEnd="10dp"
             android:background="@drawable/shape_circle"
             android:backgroundTint="?attr/colorPrimary"
             android:contentDescription="@string/_continue"
