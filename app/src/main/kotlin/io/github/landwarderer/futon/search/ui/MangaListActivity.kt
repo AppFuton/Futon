@@ -85,7 +85,12 @@ class MangaListActivity :
 			viewBinding.appbar.addOnOffsetChangedListener(this)
 		}
 		viewBinding.buttonOrder?.setOnClickListener(this)
-		title = source.getTitle(this)
+		val sourceTitle = source.getTitle(this)
+		title = if (sourceTitle == getString(R.string.unknown)) {
+			intent.getStringExtra(AppRouter.KEY_SOURCE_TITLE) ?: sourceTitle
+		} else {
+			sourceTitle
+		}
 		initList(source, filter, sortOrder)
 	}
 

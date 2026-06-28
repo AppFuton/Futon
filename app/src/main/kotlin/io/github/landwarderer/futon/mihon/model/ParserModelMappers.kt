@@ -105,7 +105,7 @@ fun ContentPage.toMangaPage(): MangaPage {
         source = source.toMangaSource()
     )
 }
-
+// TODO: Remove this function
 fun MangaPage.toContentPage(source: ContentSource): ContentPage {
     return ContentPage(
         id = id,
@@ -174,9 +174,6 @@ fun MangaTag.toContentTag(): ContentTag {
 }
 
 fun ContentSource.toMangaSource(): MangaSource {
-    val src = this
-    return object : MangaSource {
-        override val name = src.name
-    }
+    return this
 }
 

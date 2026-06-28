@@ -157,7 +157,7 @@ abstract class MangaListFragment :
 		if (selectionController?.onItemClick(item.id) != true) {
 			val manga = item.toMangaWithOverride()
 			if ((activity as? MangaListActivity)?.showPreview(manga) != true) {
-				router.openDetails(manga)
+				router.openDetails(manga, (activity as? MangaListActivity)?.title?.toString())
 			}
 		}
 	}

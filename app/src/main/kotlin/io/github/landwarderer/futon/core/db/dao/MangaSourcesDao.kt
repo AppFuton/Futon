@@ -52,8 +52,28 @@ abstract class MangaSourcesDao {
 	@Query("UPDATE sources SET used_at = :value WHERE source = :source")
 	abstract suspend fun setLastUsed(source: String, value: Long)
 
+	@Query("UPDATE sources SET title = :title WHERE source = :source")
+	abstract suspend fun setTitle(source: String, title: String?)
+
+	@Transaction
+	open suspend fun setPinned(source: String, isPinned: Boolean) {
+		if (updateIsPinned(source, isPinned) == 0) {
+			val entity = MangaSourceEntity(
+				source = source,
+				isEnabled = false,
+				sortKey = getMaxSortKey() + 1,
+				addedIn = BuildConfig.VERSION_CODE,
+				lastUsedAt = 0,
+				isPinned = isPinned,
+				cfState = CloudFlareHelper.PROTECTION_NOT_DETECTED,
+				title = null,
+			)
+			upsert(entity)
+		}
+	}
+
 	@Query("UPDATE sources SET pinned = :isPinned WHERE source = :source")
-	abstract suspend fun setPinned(source: String, isPinned: Boolean)
+	protected abstract suspend fun updateIsPinned(source: String, isPinned: Boolean): Int
 
 	@Query("UPDATE sources SET cf_state = :state WHERE source = :source")
 	abstract suspend fun setCfState(source: String, state: Int)
@@ -88,6 +108,7 @@ abstract class MangaSourcesDao {
 				lastUsedAt = 0,
 				isPinned = false,
 				cfState = CloudFlareHelper.PROTECTION_NOT_DETECTED,
+				title = null,
 			)
 			upsert(entity)
 		}

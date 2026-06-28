@@ -118,7 +118,11 @@ class SearchActivity :
 
 	override fun onItemClick(item: MangaListModel, view: View) {
 		if (!selectionController.onItemClick(item.id)) {
-			router.openDetails(item.toMangaWithOverride())
+			val manga = item.toMangaWithOverride()
+			val sourceTitle = viewModel.list.value.filterIsInstance<SearchResultsListModel>()
+				.find { it.source == manga.source }
+				?.getTitle(this)
+			router.openDetails(manga, sourceTitle)
 		}
 	}
 

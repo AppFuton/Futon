@@ -41,6 +41,7 @@ class ExternalExtensionManagerFacade<ResultT, SuccessT, ErrorT, SourceT, Catalog
 
 	val installedExtensions: StateFlow<List<SuccessT>> = runtime.installedExtensions
 	val failedExtensions: StateFlow<List<ErrorT>> = runtime.failedExtensions
+	val wrappedSources: StateFlow<List<WrappedSourceT>> = runtime.wrappedSources
 	val isLoading: StateFlow<Boolean> = runtime.isLoading
 
 	fun initialize() {

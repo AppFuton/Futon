@@ -11,8 +11,10 @@ import io.github.landwarderer.futon.core.LocalizedAppContext
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.db.dao.MangaSourcesDao
 import io.github.landwarderer.futon.core.db.entity.MangaSourceEntity
+import io.github.landwarderer.futon.core.model.AnonymousMangaSource
 import io.github.landwarderer.futon.core.model.MangaSourceInfo
 import io.github.landwarderer.futon.core.model.getTitle
+import io.github.landwarderer.futon.core.model.updateMihonTitle
 import io.github.landwarderer.futon.core.model.isBroken
 import io.github.landwarderer.futon.core.model.isNsfw
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
@@ -21,6 +23,7 @@ import io.github.landwarderer.futon.core.prefs.observeAsFlow
 import io.github.landwarderer.futon.core.ui.util.ReversibleHandle
 import io.github.landwarderer.futon.core.util.ext.flattenLatest
 import io.github.landwarderer.futon.mihon.MihonExtensionManager
+import io.github.landwarderer.futon.mihon.model.MihonMangaSource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
@@ -78,7 +81,7 @@ class MangaSourcesRepository @Inject constructor(
 		assimilateNewSources()
 		val skipNsfw = settings.isNsfwContentDisabled
 		return dao.findAllPinned().mapNotNullToSet {
-			it.source.toMangaSourceOrNull()?.takeUnless { x -> skipNsfw && x.isNsfw() }
+			it.toMangaSource()?.takeUnless { x -> skipNsfw && x.isNsfw() }
 		}
 	}
 
@@ -192,7 +195,7 @@ class MangaSourcesRepository @Inject constructor(
 			},
 		) { skipNsfw, sources ->
 			sources.count {
-				it.source.toMangaSourceOrNull()?.let { s -> !skipNsfw || !s.isNsfw() } == true
+				it.toMangaSource()?.let { s -> !skipNsfw || !s.isNsfw() } == true
 			}
 		}.distinctUntilChanged().onStart { assimilateNewSources() }
 	}
@@ -231,8 +234,8 @@ class MangaSourcesRepository @Inject constructor(
 	fun observeAll(): Flow<List<Pair<MangaSource, Boolean>>> = dao.observeAll().map { entities ->
 		val result = ArrayList<Pair<MangaSource, Boolean>>(entities.size)
 		for (entity in entities) {
-			val source = entity.source.toMangaSourceOrNull() ?: continue
-			if (source in allMangaSources) {
+			val source = entity.toMangaSource() ?: continue
+			if (source in allMangaSources || source is AnonymousMangaSource || source is MihonMangaSource) {
 				result.add(source to entity.isEnabled)
 			}
 		}
@@ -293,12 +296,18 @@ class MangaSourcesRepository @Inject constructor(
 
 	private suspend fun assimilateNewSources(): Boolean {
 		if (isNewSourcesAssimilated.getAndSet(true)) {
+			updateMihonTitles()
 			return false
 		}
+		
+		// Initial cache population from database
+		dao.findAll().forEach { entity ->
+			if ((entity.source.startsWith("mihon:") || entity.source.startsWith("MIHON_")) && entity.title != null) {
+				updateMihonTitle(entity.source, entity.title)
+			}
+		}
+
 		val new = getNewSources()
-		if (new.isEmpty()) {
-			return false
-		}
 		var maxSortKey = dao.getMaxSortKey()
 		val isAllEnabled = settings.isAllSourcesEnabled
 		val entities = new.map { x ->
@@ -310,10 +319,19 @@ class MangaSourcesRepository @Inject constructor(
 				lastUsedAt = 0,
 				isPinned = false,
 				cfState = CloudFlareHelper.PROTECTION_NOT_DETECTED,
+				title = x.getTitle(context),
 			)
 		}
 		dao.insertIfAbsent(entities)
-		return true
+		updateMihonTitles()
+		return new.isNotEmpty()
+	}
+
+	private suspend fun updateMihonTitles() {
+		val mihonSources = mihonExtensionManager.getMihonMangaSources()
+		for (source in mihonSources) {
+			dao.setTitle(source.name, source.displayName)
+		}
 	}
 
 	suspend fun isSetupRequired(): Boolean {
@@ -323,7 +341,7 @@ class MangaSourcesRepository @Inject constructor(
 	suspend fun setIsPinned(sources: Collection<MangaSource>, isPinned: Boolean): ReversibleHandle {
 		setSourcesPinnedImpl(sources, isPinned)
 		return ReversibleHandle {
-			setSourcesEnabledImpl(sources, !isPinned)
+			setSourcesPinnedImpl(sources, !isPinned)
 		}
 	}
 
@@ -351,7 +369,7 @@ class MangaSourcesRepository @Inject constructor(
         result.addAll(MangaParserSource.entries)
         result.addAll(mihonExtensionManager.getMihonMangaSources())
 		for (e in entities) {
-			result.remove(e.source.toMangaSourceOrNull() ?: continue)
+			result.remove(e.toMangaSource() ?: continue)
 		}
 		return result
 	}
@@ -423,7 +441,7 @@ class MangaSourcesRepository @Inject constructor(
 		val isAllEnabled = settings.isAllSourcesEnabled
 		val result = ArrayList<MangaSourceInfo>(size)
 		for (entity in this) {
-			val source = entity.source.toMangaSourceOrNull() ?: continue
+			val source = entity.toMangaSource() ?: continue
 			if (skipNsfwSources && source.isNsfw()) {
 				continue
 			}
@@ -458,10 +476,19 @@ class MangaSourcesRepository @Inject constructor(
 		isAllSourcesEnabled
 	}
 
+	private fun MangaSourceEntity.toMangaSource(): MangaSource? {
+		if (source.startsWith("mihon:") || source.startsWith("MIHON_")) {
+			return mihonExtensionManager.getMihonMangaSourceByName(source)
+				?: io.github.landwarderer.futon.core.model.MangaSource(source, title)
+		}
+		return MangaParserSource.entries.find { it.name == source }
+	}
+
 	private fun String.toMangaSourceOrNull(): MangaSource? {
 		if (startsWith("mihon:") || startsWith("MIHON_")) {
-            return mihonExtensionManager.getMihonMangaSourceByName(this) ?: io.github.landwarderer.futon.core.model.MangaSource(this)
-        }
+			return mihonExtensionManager.getMihonMangaSourceByName(this)
+				?: io.github.landwarderer.futon.core.model.MangaSource(this)
+		}
 		return MangaParserSource.entries.find { it.name == this }
 	}
 }

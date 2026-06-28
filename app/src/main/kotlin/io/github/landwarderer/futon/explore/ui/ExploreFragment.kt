@@ -21,6 +21,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.exceptions.resolve.SnackbarErrorObserver
 import io.github.landwarderer.futon.core.model.LocalMangaSource
+import io.github.landwarderer.futon.core.model.getTitle
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
 import io.github.landwarderer.futon.core.ui.BaseFragment
@@ -134,7 +135,7 @@ class ExploreFragment :
 		if (sourceSelectionController?.onItemClick(item.id) == true) {
 			return
 		}
-		router.openList(item.source, null, null)
+		router.openList(item.source, null, null, item.source.getTitle(view.context))
 	}
 
 	override fun onItemLongClick(item: MangaSourceItem, view: View): Boolean {
