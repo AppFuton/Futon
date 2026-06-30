@@ -250,6 +250,7 @@ class SuggestionsWorker @AssistedInject constructor(
 		if (appSettings.isSuggestionsIncludeDisabledSources) {
 			val result = sourcesRepository.allMangaSources.toMutableList<MangaSource>()
 			result.addAll(sourcesRepository.getExternalSources())
+			result.addAll(sourcesRepository.getMihonSources())
 			result.shuffle()
 			result.sortWith(compareBy(nullsLast(LocaleComparator())) { it.getLocale() })
 			return result
