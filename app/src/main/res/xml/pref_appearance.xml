@@ -123,6 +123,11 @@
 
         <SwitchPreferenceCompat
             android:defaultValue="true"
+            android:key="use_pill_navigation"
+            android:summary="@string/use_pill_navigation_summary"
+            android:title="@string/use_pill_navigation" />
+
+            android:defaultValue="true"
             android:key="dynamic_shortcuts"
             android:summary="@string/history_shortcuts_summary"
             android:title="@string/history_shortcuts" />

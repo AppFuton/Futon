@@ -28,6 +28,7 @@ import io.github.landwarderer.futon.list.ui.adapter.ListItemType
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.MangaCompactListModel
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 fun exploreButtonsAD(
 	clickListener: View.OnClickListener,
@@ -99,12 +100,16 @@ fun exploreSourceListItemAD(
 
 	AdapterDelegateClickListenerAdapter(this, listener).attach(itemView)
 	val iconPinned = ContextCompat.getDrawable(context, R.drawable.ic_pin_small)
+	var boundSource: MangaSource? = null
 
-	bind {
+	bind { payloads ->
 		binding.textViewTitle.text = item.source.getTitle(context)
 		binding.textViewTitle.drawableStart = if (item.source.isPinned) iconPinned else null
 		binding.textViewSubtitle.text = item.source.getSummary(context)
-		binding.imageViewIcon.setImageAsync(item.source)
+		if (payloads.isEmpty() || boundSource?.name != item.source.name) {
+			binding.imageViewIcon.setImageAsync(item.source)
+			boundSource = item.source.mangaSource
+		}
 	}
 }
 
@@ -123,8 +128,9 @@ fun exploreSourceGridItemAD(
 
 	AdapterDelegateClickListenerAdapter(this, listener).attach(itemView)
 	val iconPinned = ContextCompat.getDrawable(context, R.drawable.ic_pin_small)
+	var boundSource: MangaSource? = null
 
-	bind {
+	bind { payloads ->
 		val title = item.source.getTitle(context)
 		val summary = item.source.getSummary(context)
 		itemView.setTooltipCompat(
@@ -140,6 +146,9 @@ fun exploreSourceGridItemAD(
 		)
 		binding.textViewTitle.text = title
 		binding.textViewTitle.drawableStart = if (item.source.isPinned) iconPinned else null
-		binding.imageViewIcon.setImageAsync(item.source)
+		if (payloads.isEmpty() || boundSource?.name != item.source.name) {
+			binding.imageViewIcon.setImageAsync(item.source)
+			boundSource = item.source.mangaSource
+		}
 	}
 }

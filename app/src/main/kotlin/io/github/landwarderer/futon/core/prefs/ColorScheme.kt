@@ -13,6 +13,7 @@ enum class ColorScheme(
 	@StringRes val titleResId: Int,
 ) {
 
+	ONYX_GOLD(R.style.ThemeOverlay_Futon_OnyxGold, R.string.theme_name_onyx_gold),
 	DEFAULT(R.style.ThemeOverlay_Futon_Totoro, R.string.theme_name_totoro),
 	MONET(R.style.ThemeOverlay_Futon_Monet, R.string.theme_name_dynamic),
 	EXPRESSIVE(R.style.ThemeOverlay_Futon_Expressive, R.string.theme_name_expressive),
@@ -32,7 +33,7 @@ enum class ColorScheme(
 			get() = if (DynamicColors.isDynamicColorAvailable()) {
 				MONET
 			} else {
-				DEFAULT
+				ONYX_GOLD
 			}
 
 		fun getAvailableList(): List<ColorScheme> {

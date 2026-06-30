@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/m3_comp_bottom_navigation_bar_margin_horizontal"
+    android:layout_marginBottom="16dp"
+    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+    app:cardCornerRadius="100dp"
+    app:cardElevation="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="0dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="0dp"
+        android:paddingBottom="8dp">
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <View
+                android:id="@+id/pill_indicator"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/shape_circle"
+                android:backgroundTint="?attr/colorSecondaryContainer"
+                android:visibility="invisible" />
+
+            <com.google.android.material.bottomnavigation.BottomNavigationView
+                android:id="@+id/pill_bottom_nav"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@android:color/transparent"
+                app:elevation="0dp"
+                app:itemActiveIndicatorStyle="@style/Widget.Material3.BottomNavigationView.ActiveIndicator"
+                app:labelVisibilityMode="unlabeled" />
+        </FrameLayout>
+
+        <ImageButton
+            android:id="@+id/pill_fab"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/shape_circle"
+            android:backgroundTint="?attr/colorPrimary"
+            android:contentDescription="@string/_continue"
+            android:src="@drawable/ic_play"
+            app:tint="?attr/colorOnPrimary" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -21,8 +21,15 @@ import com.google.android.material.bottomnavigation.BottomNavigationMenuView
 import com.google.android.material.navigation.NavigationBarView
 import io.github.landwarderer.futon.core.util.ext.applySystemAnimatorScale
 import io.github.landwarderer.futon.core.util.ext.measureHeight
+import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import android.widget.FrameLayout
 import kotlin.math.max
 import com.google.android.material.R as materialR
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.view.Gravity
+import io.github.landwarderer.futon.core.util.ext.resolveDp
 
 private const val STATE_DOWN = 1
 private const val STATE_UP = 2
@@ -41,16 +48,77 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 	CoordinatorLayout.AttachedBehavior {
 
 	private var currentAnimator: ViewPropertyAnimator? = null
-
 	private var currentState = STATE_UP
 	private var behavior = HideBottomNavigationOnScrollBehavior()
+
+	private val indicator = android.view.View(context).apply {
+		layoutParams = FrameLayout.LayoutParams(
+			resources.resolveDp(64),
+			resources.resolveDp(32)
+		).apply {
+			gravity = Gravity.CENTER_VERTICAL or Gravity.START
+		}
+		setBackgroundResource(io.github.landwarderer.futon.R.drawable.shape_pill_indicator)
+		isVisible = false
+	}
+
+	private var lastSelectedId = -1
+
+	init {
+		itemActiveIndicatorColor = ColorStateList.valueOf(Color.TRANSPARENT)
+		addView(indicator, 0)
+		
+		viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+			override fun onPreDraw(): Boolean {
+				val selectedId = selectedItemId
+				if (selectedId != lastSelectedId) {
+					if (updateIndicatorPosition(selectedId, animate = lastSelectedId != -1)) {
+						lastSelectedId = selectedId
+					}
+				}
+				return true
+			}
+		})
+		
+		addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+			if (lastSelectedId != -1) {
+				updateIndicatorPosition(lastSelectedId, animate = false)
+			}
+		}
+	}
+
+	private fun updateIndicatorPosition(itemId: Int, animate: Boolean): Boolean {
+		val menuView = getChildAt(1) as? ViewGroup ?: return false
+		val itemsCount = menu.size()
+		for (i in 0 until itemsCount) {
+			if (menu.getItem(i).itemId == itemId) {
+				val itemView = menuView.getChildAt(i) ?: return false
+				if (itemView.width == 0) return false
+
+				val targetX = menuView.left + itemView.left + (itemView.width - indicator.layoutParams.width) / 2f
+				if (animate && indicator.isVisible) {
+					indicator.animate()
+						.translationX(targetX)
+						.setInterpolator(FastOutLinearInInterpolator())
+						.setDuration(225L)
+						.start()
+				} else {
+					indicator.animate().cancel()
+					indicator.translationX = targetX
+					indicator.isVisible = true
+				}
+				return true
+			}
+		}
+		return false
+	}
 
 	var isPinned: Boolean
 		get() = behavior.isPinned
 		set(value) {
 			behavior.isPinned = value
 			if (value) {
-				translationX = 0f
+				translationY = 0f
 			}
 		}
 
