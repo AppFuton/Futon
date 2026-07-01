@@ -17,28 +17,30 @@ import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.core.util.ext.call
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.require
+import io.github.landwarderer.futon.download.data.repository.DownloadQueueRepository
 import io.github.landwarderer.futon.download.ui.worker.DownloadTask
 import io.github.landwarderer.futon.download.ui.worker.DownloadWorker
 import io.github.landwarderer.futon.history.data.HistoryRepository
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.LocalStorageManager
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.util.mapToSet
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.parsers.util.sizeOrZero
-import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import io.github.landwarderer.futon.settings.storage.DirectoryModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.koitharu.kotatsu.parsers.util.sizeOrZero
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import javax.inject.Inject
 
 @HiltViewModel
 class DownloadDialogViewModel @Inject constructor(
 	savedStateHandle: SavedStateHandle,
 	private val scheduler: DownloadWorker.Scheduler,
+	private val downloadQueueRepository: DownloadQueueRepository,
 	private val localStorageManager: LocalStorageManager,
 	private val localMangaRepository: LocalMangaRepository,
 	private val mangaRepositoryFactory: MangaRepository.Factory,
@@ -91,19 +93,41 @@ class DownloadDialogViewModel @Inject constructor(
 		allowMetered: Boolean,
 	) {
 		launchLoadingJob(Dispatchers.IO) {
+			val requiresCharging = settings.isDownloadOnlyOnChargingEnabled
 			val tasks = mangaDetails.get().map { m ->
 				val chapters = checkNotNull(m.chapters) { "Manga \"${m.title}\" cannot be loaded" }
-				m to DownloadTask(
-					mangaId = m.id,
-					isPaused = !startNow,
-					isSilent = false,
-					chaptersIds = chaptersMacro.getChaptersIds(m.id, chapters)?.toLongArray(),
-					destination = destination?.file,
-					format = format,
-					allowMeteredNetwork = allowMetered,
-				)
+				val chaptersIds = chaptersMacro.getChaptersIds(m.id, chapters)?.toLongArray() ?: longArrayOf()
+				m to chaptersIds
 			}
-			scheduler.schedule(tasks)
+
+			if (startNow) {
+				android.util.Log.d("DownloadDialog", "Starting downloads immediately for ${tasks.size} manga")
+				val downloadTasks = tasks.map { (m, chaptersIds) ->
+					m to DownloadTask(
+						mangaId = m.id,
+						isPaused = false,
+						isSilent = false,
+						chaptersIds = chaptersIds,
+						destination = destination?.file,
+						format = format,
+						allowMeteredNetwork = allowMetered,
+						requiresCharging = requiresCharging,
+					)
+				}
+				scheduler.schedule(downloadTasks)
+			} else {
+				android.util.Log.d("DownloadDialog", "Adding ${tasks.size} manga to download queue as paused")
+				tasks.forEach { (m, chaptersIds) ->
+					downloadQueueRepository.addToQueue(
+						manga = m,
+						chaptersIds = chaptersIds,
+						wifiOnly = !allowMetered,
+						chargingOnly = requiresCharging,
+						offPeakOnly = settings.isDownloadOffPeakEnabled,
+						isPaused = true
+					)
+				}
+			}
 			onScheduled.call(startNow)
 		}
 	}

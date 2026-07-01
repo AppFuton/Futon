@@ -21,4 +21,10 @@
 		android:title="@string/directories"
 		app:showAsAction="never" />
 
+	<item
+		android:id="@+id/action_rescan"
+		android:orderInCategory="90"
+		android:title="@string/rescan"
+		app:showAsAction="never" />
+
 </menu>

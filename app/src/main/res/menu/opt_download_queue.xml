@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_queue_favorites"
+        android:icon="@drawable/ic_favourites_selector"
+        android:title="@string/queue_all_unread_from_favorites"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_clear_queue"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/clear_queue"
+        app:showAsAction="ifRoom" />
+</menu>

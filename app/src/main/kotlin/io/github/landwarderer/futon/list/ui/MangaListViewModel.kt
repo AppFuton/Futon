@@ -57,13 +57,13 @@ abstract class MangaListViewModel(
 	}.filterBlacklistedTags()
 
 	protected fun List<Manga>.filterBlacklistedTags(): List<Manga> {
-		val blacklist = settings.tagsBlacklist
-		if (blacklist.isEmpty()) {
-			return this
-		}
-		return filterNot { manga ->
-			manga.tags.any { it.title.lowercase() in blacklist }
-		}
+        val blacklist = settings.tagsBlacklist
+        if (blacklist.isEmpty()) {
+            return this
+        }
+        return filterNot { manga ->
+            manga.tags.any { it.title.lowercase() in blacklist }
+        }
 	}
 
 	protected fun Flow<Set<ListFilterOption>>.combineWithSettings(): Flow<Set<ListFilterOption>> = combine(

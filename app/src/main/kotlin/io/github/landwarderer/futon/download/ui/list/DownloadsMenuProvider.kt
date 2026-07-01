@@ -24,6 +24,7 @@ class DownloadsMenuProvider(
 			R.id.action_resume -> viewModel.resumeAll()
 			R.id.action_cancel_all -> confirmCancelAll()
 			R.id.action_remove_completed -> confirmRemoveCompleted()
+			R.id.action_queue -> activity.router.openDownloadQueue()
 			R.id.action_settings -> activity.router.openDownloadsSetting()
 			else -> return false
 		}

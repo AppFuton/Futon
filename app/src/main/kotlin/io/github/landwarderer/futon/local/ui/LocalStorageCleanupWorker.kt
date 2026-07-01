@@ -27,6 +27,7 @@ import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.domain.DeleteReadChaptersUseCase
+import io.github.landwarderer.futon.local.domain.EnforceStorageQuotaUseCase
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
@@ -37,12 +38,14 @@ class LocalStorageCleanupWorker @AssistedInject constructor(
 	private val localMangaRepository: LocalMangaRepository,
 	private val dataRepository: MangaDataRepository,
 	private val deleteReadChaptersUseCase: DeleteReadChaptersUseCase,
+	private val enforceStorageQuotaUseCase: EnforceStorageQuotaUseCase,
 ) : CoroutineWorker(appContext, params) {
 
 	override suspend fun doWork(): Result {
 		if (settings.isAutoLocalChaptersCleanupEnabled) {
 			deleteReadChaptersUseCase.invoke()
 		}
+		enforceStorageQuotaUseCase.invoke()
 		return if (localMangaRepository.cleanup()) {
 			dataRepository.cleanupLocalManga()
 			Result.success()

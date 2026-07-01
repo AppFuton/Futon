@@ -23,6 +23,7 @@ import io.github.landwarderer.futon.core.util.ext.resolveFile
 import io.github.landwarderer.futon.core.util.ext.setDefaultValueCompat
 import io.github.landwarderer.futon.core.util.ext.tryLaunch
 import io.github.landwarderer.futon.core.util.ext.viewLifecycleScope
+import io.github.landwarderer.futon.download.ui.worker.DownloadSchedulerWorker
 import io.github.landwarderer.futon.download.ui.worker.DownloadWorker
 import io.github.landwarderer.futon.local.data.LocalStorageManager
 import org.koitharu.kotatsu.parsers.util.names
@@ -91,6 +92,12 @@ class DownloadsSettingsFragment :
 
 			AppSettings.KEY_PAGES_SAVE_DIR -> {
 				findPreference<Preference>(AppSettings.KEY_PAGES_SAVE_DIR)?.bindPagesDirectory()
+			}
+
+			AppSettings.KEY_DOWNLOAD_OFF_PEAK_ENABLED,
+			AppSettings.KEY_DOWNLOAD_OFF_PEAK_START,
+			AppSettings.KEY_DOWNLOAD_OFF_PEAK_END -> {
+				DownloadSchedulerWorker.enqueue(downloadsScheduler.workManager)
 			}
 		}
 	}

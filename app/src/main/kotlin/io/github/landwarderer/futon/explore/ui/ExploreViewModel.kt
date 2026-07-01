@@ -211,7 +211,7 @@ class ExploreViewModel @Inject constructor(
 			return this
 		}
 		return filterNot { manga ->
-			manga.tags.any { it.title in blacklist }
+			manga.tags.any { it.title.lowercase() in blacklist }
 		}
 	}
 

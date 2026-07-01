@@ -13,7 +13,6 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.launch
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.LocalMangaSource
 import io.github.landwarderer.futon.core.nav.AppRouter
@@ -21,6 +20,7 @@ import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.os.AppShortcutManager
 import io.github.landwarderer.futon.core.ui.dialog.buildAlertDialog
 import io.github.landwarderer.futon.core.util.ext.isHttpUrl
+import kotlinx.coroutines.launch
 
 class DetailsMenuProvider(
 	private val activity: FragmentActivity,
@@ -42,10 +42,11 @@ class DetailsMenuProvider(
 	}
 
 	override fun onPrepareMenu(menu: Menu) {
-		val manga = viewModel.manga.value
+		val mangaDetails = viewModel.mangaDetails.value
+		val manga = mangaDetails?.toManga()
 		menu.findItem(R.id.action_share).isVisible = manga != null && AppRouter.isShareSupported(manga)
 		menu.findItem(R.id.action_save).isVisible = manga?.source != null && manga.source != LocalMangaSource
-		menu.findItem(R.id.action_delete).isVisible = manga?.source == LocalMangaSource
+		menu.findItem(R.id.action_delete).isVisible = mangaDetails?.local != null
 		menu.findItem(R.id.action_browser).isVisible = manga?.publicUrl?.isHttpUrl() == true
 		menu.findItem(R.id.action_alternatives).isVisible = manga?.source != LocalMangaSource
 		menu.findItem(R.id.action_shortcut).isVisible = ShortcutManagerCompat.isRequestPinShortcutSupported(activity)

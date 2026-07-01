@@ -18,6 +18,14 @@ import io.github.landwarderer.futon.local.data.output.LocalMangaOutput
 import io.github.landwarderer.futon.local.data.output.LocalMangaUtil
 import io.github.landwarderer.futon.local.domain.MangaLock
 import io.github.landwarderer.futon.local.domain.model.LocalManga
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.toCollection
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import org.koitharu.kotatsu.parsers.model.ContentRating
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
@@ -30,14 +38,6 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.levenshteinDistance
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.toCollection
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runInterruptible
 import java.io.File
 import java.util.EnumSet
 import javax.inject.Inject
@@ -251,9 +251,9 @@ class LocalMangaRepository @Inject constructor(
 		}
 	}
 
-	private suspend fun getRawList(): ArrayList<LocalManga> = getRawListAsFlow().toCollection(ArrayList())
+	suspend fun getRawList(): ArrayList<LocalManga> = getRawListAsFlow().toCollection(ArrayList())
 
-	private suspend fun getAllFiles() = storageManager.getReadableDirs()
+	suspend fun getAllFiles() = storageManager.getReadableDirs()
 		.asSequence()
 		.flatMap { dir ->
 			dir.withChildren { children -> children.filterNot { it.isHidden || it.shouldSkip() }.toList() }

@@ -25,11 +25,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.ElementsIntoSet
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import okhttp3.OkHttpClient
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.backups.domain.BackupObserver
 import io.github.landwarderer.futon.core.db.MangaDatabase
@@ -46,7 +41,6 @@ import io.github.landwarderer.futon.core.parser.favicon.FaviconFetcher
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.ui.image.CoilImageGetter
 import io.github.landwarderer.futon.core.ui.util.ActivityRecreationHandle
-
 import io.github.landwarderer.futon.core.util.FileSize
 import io.github.landwarderer.futon.core.util.ext.connectivityManager
 import io.github.landwarderer.futon.core.util.ext.isLowRamDevice
@@ -61,10 +55,15 @@ import io.github.landwarderer.futon.local.domain.model.LocalManga
 import io.github.landwarderer.futon.main.domain.CoverRestoreInterceptor
 import io.github.landwarderer.futon.main.ui.protect.AppProtectHelper
 import io.github.landwarderer.futon.main.ui.protect.ScreenshotPolicyHelper
-import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import io.github.landwarderer.futon.search.ui.MangaSuggestionsProvider
 import io.github.landwarderer.futon.sync.domain.SyncController
 import io.github.landwarderer.futon.widget.WidgetUpdater
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import okhttp3.OkHttpClient
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import javax.inject.Provider
 import javax.inject.Singleton
 
@@ -196,6 +195,16 @@ interface AppModule {
 		fun provideWorkManager(
 			@ApplicationContext context: Context,
 		): WorkManager = WorkManager.getInstance(context)
+
+		@Provides
+		fun provideDownloadQueueDao(
+			database: MangaDatabase,
+		): io.github.landwarderer.futon.download.data.dao.DownloadQueueDao = database.getDownloadQueueDao()
+
+		@Provides
+		fun provideMangaDao(
+			database: MangaDatabase,
+		): io.github.landwarderer.futon.core.db.dao.MangaDao = database.getMangaDao()
 
 		@Provides
 		@Singleton

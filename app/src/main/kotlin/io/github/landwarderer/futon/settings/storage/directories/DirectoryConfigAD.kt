@@ -48,7 +48,7 @@ fun directoryConfigAD(
                         ContextCompat.getColor(context, R.color.common_red),
                     ),
                 ) {
-                    append(getString(R.string.no_write_permission_to_file))
+                    append(getString(R.string.directory_inaccessible))
                 }
             }
             if (item.isAppPrivate) {

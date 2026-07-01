@@ -262,6 +262,7 @@ class TrackWorker @AssistedInject constructor(
 						destination = null,
 						format = null,
 						allowMeteredNetwork = settings.allowDownloadOnMeteredNetwork != TriStateOption.DISABLED,
+						requiresCharging = false,
 					)
 					downloadSchedulerLazy.get().schedule(setOf(mangaUpdates.manga to task))
 				}

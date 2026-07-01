@@ -10,10 +10,10 @@ import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.input.LocalMangaParser
 import io.github.landwarderer.futon.local.domain.model.LocalManga
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Provider
@@ -41,14 +41,23 @@ class LocalMangaIndex @Inject constructor(
 	}
 
 	suspend fun update() = mutex.withLock {
-		db.withTransaction {
-			val dao = db.getLocalMangaIndexDao()
-			dao.clear()
-			localMangaRepositoryProvider.get()
-				.getRawListAsFlow()
-				.collect { upsert(it) }
+		println("LocalMangaIndex: Starting update")
+		runCatchingCancellable {
+			db.withTransaction {
+				val dao = db.getLocalMangaIndexDao()
+				dao.clear()
+				localMangaRepositoryProvider.get()
+					.getRawListAsFlow()
+					.collect { 
+						println("LocalMangaIndex: Found manga ${it.manga.title} at ${it.file.path}")
+						upsert(it) 
+					}
+			}
+			currentVersion = VERSION
+			println("LocalMangaIndex: Update completed")
+		}.onFailure {
+			it.printStackTraceDebug("LocalMangaIndex::update")
 		}
-		currentVersion = VERSION
 	}
 
 	suspend fun updateIfRequired() {

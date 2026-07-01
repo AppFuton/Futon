@@ -55,4 +55,47 @@
 
 	</PreferenceCategory>
 
+	<PreferenceCategory android:title="@string/download_scheduling_and_limits">
+
+		<SwitchPreferenceCompat
+			android:defaultValue="false"
+			android:key="download_only_on_charging"
+            android:summary="@string/download_only_on_charging_summary"
+			android:title="@string/downloads_charging_only" />
+
+		<SwitchPreferenceCompat
+			android:defaultValue="false"
+			android:key="auto_download_next"
+			android:summary="@string/smart_downloads_summary"
+			android:title="@string/smart_downloads" />
+
+		<SwitchPreferenceCompat
+			android:defaultValue="false"
+			android:key="download_off_peak_enabled"
+			android:summary="@string/download_off_peak_summary"
+			android:title="@string/download_off_peak" />
+
+		<io.github.landwarderer.futon.settings.utils.TimePreference
+			android:defaultValue="00:00"
+			android:dependency="download_off_peak_enabled"
+			android:key="download_off_peak_start"
+            android:summary="@string/download_off_peak_start_description"
+			android:title="@string/download_off_peak_start" />
+
+		<io.github.landwarderer.futon.settings.utils.TimePreference
+			android:defaultValue="06:00"
+			android:dependency="download_off_peak_enabled"
+			android:key="download_off_peak_end"
+            android:summary="@string/download_off_peak_end_description"
+			android:title="@string/download_off_peak_end" />
+
+		<EditTextPreference
+			android:defaultValue="0"
+			android:inputType="number"
+			android:key="download_storage_quota"
+			android:summary="@string/download_storage_quota_summary"
+			android:title="@string/download_storage_quota" />
+
+	</PreferenceCategory>
+
 </PreferenceScreen>

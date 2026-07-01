@@ -28,6 +28,11 @@
 		app:showAsAction="never" />
 
 	<item
+		android:id="@+id/action_queue"
+		android:title="@string/download_queue"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_settings"
 		android:title="@string/settings"
 		app:showAsAction="never" />

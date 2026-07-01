@@ -3,6 +3,10 @@ package io.github.landwarderer.futon.core.util.ext
 import android.content.ContentResolver
 import android.net.Uri
 import androidx.annotation.CheckResult
+import io.github.landwarderer.futon.core.util.BandwidthLimitedSource
+import io.github.landwarderer.futon.core.util.BandwidthLimiter
+import io.github.landwarderer.futon.core.util.CancellableSource
+import io.github.landwarderer.futon.core.util.progress.ProgressResponseBody
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
@@ -16,8 +20,6 @@ import okio.IOException
 import okio.Path
 import okio.Source
 import okio.source
-import io.github.landwarderer.futon.core.util.CancellableSource
-import io.github.landwarderer.futon.core.util.progress.ProgressResponseBody
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -31,8 +33,13 @@ suspend fun Source.cancellable(): Source {
 	return CancellableSource(job, this)
 }
 
-suspend fun BufferedSink.writeAllCancellable(source: Source) = withContext(Dispatchers.IO) {
-	writeAll(source.cancellable())
+suspend fun BufferedSink.writeAllCancellable(
+    source: Source,
+    bandwidthLimiter: BandwidthLimiter? = null
+) = withContext(Dispatchers.IO) {
+    val cancellable = source.cancellable()
+    val limited = bandwidthLimiter?.let { BandwidthLimitedSource(cancellable, it) } ?: cancellable
+    writeAll(limited)
 }
 
 fun BufferedSource.readByteBuffer(): ByteBuffer {

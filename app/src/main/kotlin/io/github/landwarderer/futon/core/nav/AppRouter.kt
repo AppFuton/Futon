@@ -60,7 +60,6 @@ import io.github.landwarderer.futon.details.ui.DetailsActivity
 import io.github.landwarderer.futon.details.ui.pager.ChaptersPagesSheet
 import io.github.landwarderer.futon.details.ui.related.RelatedMangaActivity
 import io.github.landwarderer.futon.details.ui.scrobbling.ScrobblingInfoSheet
-import io.github.landwarderer.futon.download.ui.DownloadQueueActivity
 import io.github.landwarderer.futon.download.ui.dialog.DownloadDialogFragment
 import io.github.landwarderer.futon.download.ui.list.DownloadsActivity
 import io.github.landwarderer.futon.favourites.ui.FavouritesActivity
@@ -214,7 +213,9 @@ class AppRouter private constructor(
 
     fun openDownloads() = startActivity(DownloadsActivity::class.java)
 
-    fun openDownloadQueue() = startActivity(DownloadQueueActivity::class.java)
+    fun openDownloadQueue() {
+        startActivity(Intent(contextOrNull() ?: return, Class.forName("io.github.landwarderer.futon.download.ui.DownloadQueueActivity")))
+    }
 
     fun openDirectoriesSettings() = startActivity(MangaDirectoriesActivity::class.java)
 

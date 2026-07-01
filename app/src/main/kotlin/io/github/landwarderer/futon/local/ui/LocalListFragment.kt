@@ -75,7 +75,9 @@ class LocalListFragment : MangaListFragment(), FilterCoordinator.Owner {
 	}
 
 	override fun onPrimaryButtonClick(tipView: TipView) {
-		if (!permissionRequestLauncher.tryLaunch(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			permissionRequestLauncher.launch("")
+		} else if (!permissionRequestLauncher.tryLaunch(Manifest.permission.READ_EXTERNAL_STORAGE)) {
 			Snackbar.make(tipView, R.string.operation_not_supported, Snackbar.LENGTH_SHORT).show()
 		}
 	}

@@ -2,8 +2,8 @@ package io.github.landwarderer.futon.download.ui.worker
 
 import android.os.Parcelable
 import androidx.work.Data
-import kotlinx.parcelize.Parcelize
 import io.github.landwarderer.futon.core.prefs.DownloadFormat
+import kotlinx.parcelize.Parcelize
 import org.koitharu.kotatsu.parsers.util.find
 import java.io.File
 
@@ -16,6 +16,7 @@ class DownloadTask(
 	val destination: File?,
 	val format: DownloadFormat?,
 	val allowMeteredNetwork: Boolean,
+	val requiresCharging: Boolean,
 ) : Parcelable {
 
 	constructor(data: Data) : this(
@@ -26,6 +27,7 @@ class DownloadTask(
 		destination = data.getString(DESTINATION)?.let { File(it) },
 		format = data.getString(FORMAT)?.let { DownloadFormat.entries.find(it) },
 		allowMeteredNetwork = data.getBoolean(ALLOW_METERED, true),
+		requiresCharging = data.getBoolean(REQUIRES_CHARGING, false),
 	)
 
 	fun toData(): Data = Data.Builder()
@@ -35,6 +37,8 @@ class DownloadTask(
 		.putLongArray(CHAPTERS, chaptersIds ?: LongArray(0))
 		.putString(DESTINATION, destination?.path)
 		.putString(FORMAT, format?.name)
+		.putBoolean(ALLOW_METERED, allowMeteredNetwork)
+		.putBoolean(REQUIRES_CHARGING, requiresCharging)
 		.build()
 
 	override fun equals(other: Any?): Boolean {
@@ -50,6 +54,7 @@ class DownloadTask(
 		if (destination != other.destination) return false
 		if (format != other.format) return false
 		if (allowMeteredNetwork != other.allowMeteredNetwork) return false
+		if (requiresCharging != other.requiresCharging) return false
 
 		return true
 	}
@@ -62,6 +67,7 @@ class DownloadTask(
 		result = 31 * result + (destination?.hashCode() ?: 0)
 		result = 31 * result + (format?.hashCode() ?: 0)
 		result = 31 * result + allowMeteredNetwork.hashCode()
+		result = 31 * result + requiresCharging.hashCode()
 		return result
 	}
 
@@ -74,5 +80,6 @@ class DownloadTask(
 		const val DESTINATION = "dest"
 		const val FORMAT = "format"
 		const val ALLOW_METERED = "metered"
+		const val REQUIRES_CHARGING = "charging"
 	}
 }

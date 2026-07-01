@@ -333,22 +333,24 @@ class SearchViewModel @Inject constructor(
 	}
 
 	private suspend fun List<Manga>.filterBlacklistedTags(): List<Manga> {
-		val blacklist = settings.tagsBlacklist.map { it.lowercase() }.toSet()
-		if (blacklist.isEmpty()) {
-			return this
-		}
-		val result = mutableListOf<Manga>()
-		for (manga in this) {
-			val hasBlacklistedTag = if (manga.tags.isNotEmpty()) {
-				manga.tags.any { it.title.lowercase() in blacklist }
-			} else {
-				val cached = dataRepository.findMangaById(manga.id, withChapters = false)
-				cached?.tags?.any { it.title.lowercase() in blacklist } == true
-			}
-			if (!hasBlacklistedTag) {
-				result.add(manga)
-			}
-		}
-		return result
+        val blacklist = settings.tagsBlacklist
+        val filled = map { manga ->
+            if (manga.tags.isEmpty()) {
+                val dbManga = dataRepository.findMangaById(manga.id, false)
+                if (dbManga != null && dbManga.tags.isNotEmpty()) {
+                    manga.copy(tags = dbManga.tags)
+                } else {
+                    manga
+                }
+            } else {
+                manga
+            }
+        }
+        if (blacklist.isEmpty()) {
+            return filled
+        }
+        return filled.filterNot { manga ->
+            manga.tags.any { it.title.lowercase() in blacklist }
+        }
 	}
 }

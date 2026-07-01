@@ -34,6 +34,13 @@ class LocalListMenuProvider(
 				true
 			}
 
+			R.id.action_rescan -> {
+				fragment.requireContext().startService(
+					android.content.Intent(fragment.requireContext(), LocalIndexUpdateService::class.java)
+				)
+				true
+			}
+
 			R.id.action_filter -> {
 				fragment.router.showFilterSheet()
 				true

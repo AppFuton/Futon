@@ -3,16 +3,15 @@ package io.github.landwarderer.futon.settings.storage.directories
 import android.net.Uri
 import android.os.StatFs
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.flow.MutableStateFlow
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.ui.BaseViewModel
 import io.github.landwarderer.futon.core.util.ext.computeSize
 import io.github.landwarderer.futon.core.util.ext.isReadable
-import io.github.landwarderer.futon.core.util.ext.isWriteable
 import io.github.landwarderer.futon.local.data.LocalStorageManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 import javax.inject.Inject
 
@@ -87,9 +86,9 @@ class MangaDirectoriesViewModel @Inject constructor(
         title = storageManager.getDirectoryDisplayName(this, isFullPath = false),
         path = this,
         isDefault = isDefault,
-        isAccessible = isReadable() && isWriteable(),
+        isAccessible = isReadable(),
         isAppPrivate = isAppPrivate,
         size = computeSize(),
-        available = StatFs(this.absolutePath).availableBytes,
+        available = try { StatFs(this.absolutePath).availableBytes } catch (e: Exception) { 0L },
     )
 }
