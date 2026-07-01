@@ -2,6 +2,8 @@ package io.github.landwarderer.futon.history.domain
 
 import android.util.Log
 import io.github.landwarderer.futon.core.db.MangaDatabase
+import io.github.landwarderer.futon.core.db.entity.ChapterEntity
+import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.TriStateOption
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
@@ -29,6 +31,7 @@ class HistoryUpdateUseCase @Inject constructor(
 	private val deleteReadChaptersUseCase: DeleteReadChaptersUseCase,
 	private val localMangaRepository: LocalMangaRepository,
 	private val downloadScheduler: DownloadWorker.Scheduler,
+	private val mangaRepositoryFactory: MangaRepository.Factory,
 ) {
 
 	private var lastCheckedChapterId: Long = -1L
@@ -52,6 +55,29 @@ class HistoryUpdateUseCase @Inject constructor(
 	private suspend fun autoDownloadNext(manga: Manga, currentChapterId: Long) {
 		runCatchingCancellable {
 			Log.d("SmartDownloads", "Checking auto-download for manga: ${manga.title}, chapter: $currentChapterId")
+			
+			// Ensure chapters are loaded in DB
+			if (manga.chapters.isNullOrEmpty()) {
+				Log.d("SmartDownloads", "Chapters missing in manga object, refreshing from repository")
+				val repo = mangaRepositoryFactory.create(manga.source)
+				val details = repo.getDetails(manga)
+				db.getChaptersDao().replaceAll(manga.id, details.chapters.orEmpty().withIndex().map { (index, chapter) ->
+					ChapterEntity(
+						mangaId = manga.id,
+						chapterId = chapter.id,
+						title = chapter.title.orEmpty(),
+						branch = chapter.branch,
+						index = index,
+						number = chapter.number,
+						volume = chapter.volume,
+						url = chapter.url,
+						scanlator = chapter.scanlator,
+						uploadDate = chapter.uploadDate,
+						source = chapter.source.name,
+					)
+				})
+			}
+
 			val chapters = db.getChaptersDao().findAll(manga.id)
 			val currentChapter = chapters.find { it.chapterId == currentChapterId } ?: return@runCatchingCancellable
 			val branch = currentChapter.branch

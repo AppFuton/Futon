@@ -9,6 +9,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import coil3.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,6 +20,7 @@ import io.github.landwarderer.futon.core.ui.list.ListSelectionController
 import io.github.landwarderer.futon.core.ui.list.RecyclerScrollKeeper
 import io.github.landwarderer.futon.core.ui.util.MenuInvalidator
 import io.github.landwarderer.futon.core.ui.util.ReversibleActionObserver
+import io.github.landwarderer.futon.core.util.FileSize
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.observeEvent
 import io.github.landwarderer.futon.databinding.ActivityDownloadsBinding
@@ -66,6 +68,35 @@ class DownloadsActivity : BaseActivity<ActivityDownloadsBinding>(),
 		viewModel.hasActiveWorks.observe(this, menuInvalidator)
 		viewModel.hasPausedWorks.observe(this, menuInvalidator)
 		viewModel.hasCancellableWorks.observe(this, menuInvalidator)
+
+		viewModel.storageUsage.observe(this) { usage ->
+			if (usage != null && usage.totalBytes > 0) {
+				viewBinding.cardStorage.isVisible = true
+				val progress = (usage.currentBytes * 100 / usage.totalBytes).toInt()
+				viewBinding.progressStorage.progress = progress
+				val isOverQuota = usage.currentBytes >= usage.totalBytes
+				if (viewBinding.cardQuotaReached.isVisible != isOverQuota) {
+					viewBinding.cardQuotaReached.isVisible = isOverQuota
+				}
+				if (progress >= 90) {
+					viewBinding.progressStorage.setIndicatorColor(getColor(R.color.common_red))
+				} else {
+					viewBinding.progressStorage.setIndicatorColor(getColor(R.color.blue_primary))
+				}
+				val currentStr = FileSize.BYTES.format(this, usage.currentBytes)
+				val totalStr = FileSize.BYTES.format(this, usage.totalBytes)
+				viewBinding.textViewStorageDetails.text = getString(R.string.memory_usage_pattern, currentStr, totalStr)
+			} else {
+				viewBinding.cardStorage.isVisible = false
+				viewBinding.cardQuotaReached.isVisible = false
+			}
+		}
+		viewModel.refreshStorageUsage()
+	}
+
+	override fun onResume() {
+		super.onResume()
+		viewModel.refreshStorageUsage()
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
@@ -73,7 +104,10 @@ class DownloadsActivity : BaseActivity<ActivityDownloadsBinding>(),
 		viewBinding.recyclerView.updatePadding(
 			left = bars.left,
 			right = bars.right,
-			bottom = bars.bottom,
+			bottom = bars.bottom + resources.getDimensionPixelSize(R.dimen.list_spacing_large),
+		)
+		viewBinding.cardStorage.updatePadding(
+			bottom = bars.bottom
 		)
 		viewBinding.appbar.updatePadding(
 			left = bars.left,

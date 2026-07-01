@@ -299,7 +299,11 @@ class DownloadWorker @AssistedInject constructor(
 							}
 							if (settings.downloadStorageQuota > 0) {
 								Log.d("DownloadWorker", "Enforcing storage quota")
-								enforceStorageQuotaUseCase()
+								if (!enforceStorageQuotaUseCase()) {
+									Log.w("DownloadWorker", "Storage quota reached and cannot be enforced further. Pausing.")
+									applicationContext.sendBroadcast(PausingReceiver.getPauseIntent(applicationContext, id))
+									return@runCatchingCancellable
+								}
 							}
 						}.onFailure(Throwable::printStackTraceDebug)
 					}

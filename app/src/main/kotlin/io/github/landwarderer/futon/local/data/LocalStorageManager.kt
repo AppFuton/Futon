@@ -13,10 +13,6 @@ import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
 import dagger.Reusable
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.withContext
-import okhttp3.Cache
 import io.github.landwarderer.futon.core.LocalizedAppContext
 import io.github.landwarderer.futon.core.exceptions.NonFileUriException
 import io.github.landwarderer.futon.core.prefs.AppSettings
@@ -27,6 +23,11 @@ import io.github.landwarderer.futon.core.util.ext.isReadable
 import io.github.landwarderer.futon.core.util.ext.isWriteable
 import io.github.landwarderer.futon.core.util.ext.resolveFile
 import io.github.landwarderer.futon.core.util.ext.takeIfWriteable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withContext
+import okhttp3.Cache
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import java.io.File
 import javax.inject.Inject
@@ -91,6 +92,13 @@ class LocalStorageManager @Inject constructor(
 
 	suspend fun getApplicationStorageDirs(): Set<File> = runInterruptible(Dispatchers.IO) {
 		getAvailableStorageDirs()
+	}
+
+	@WorkerThread
+	fun getTotalBytesUsedByDownloads(): Long {
+		return runBlocking {
+			getConfiguredStorageDirs().sumOf { it.computeSize() }
+		}
 	}
 
 	suspend fun resolveUri(uri: Uri): File = runInterruptible(Dispatchers.IO) {

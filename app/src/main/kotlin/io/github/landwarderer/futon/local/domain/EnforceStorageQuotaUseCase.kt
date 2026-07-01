@@ -13,15 +13,15 @@ class EnforceStorageQuotaUseCase @Inject constructor(
     private val localMangaRepository: LocalMangaRepository,
     private val db: MangaDatabase,
 ) {
-    suspend operator fun invoke() = withContext(Dispatchers.IO) {
+    suspend operator fun invoke(): Boolean = withContext(Dispatchers.IO) {
         val quotaMb = settings.downloadStorageQuota
-        if (quotaMb <= 0) return@withContext
+        if (quotaMb <= 0) return@withContext true
 
         val quotaBytes = quotaMb * 1024 * 1024
         val storageDirs = localMangaRepository.getAllFiles().toList()
         var currentSize = storageDirs.sumOf { getDirSize(it) }
 
-        if (currentSize <= quotaBytes) return@withContext
+        if (currentSize <= quotaBytes) return@withContext true
 
         // Get all downloaded chapters and sort by oldest accessed (approx by history or file time)
         // Here we use file last modified time as a proxy for "oldest"
@@ -41,6 +41,8 @@ class EnforceStorageQuotaUseCase @Inject constructor(
             localMangaRepository.deleteChapters(localManga.manga, setOf(chapterId))
             currentSize -= size
         }
+        
+        currentSize <= quotaBytes
     }
 
     suspend fun getUsage(): StorageUsage? = withContext(Dispatchers.IO) {

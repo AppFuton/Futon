@@ -948,4 +948,6 @@
     <string name="rescan_started">Rescan started</string>
     <string name="directory_inaccessible">This directory is inaccessible. Please check permissions or re-add it.</string>
     <string name="download_only_on_charging_summary">Connect to a power source to start downloads</string>
+    <string name="error_quota_too_low">Storage quota cannot be lower than current usage</string>
+    <string name="download_quota_reached">Storage quota reached. Downloads paused.</string>
 </resources>

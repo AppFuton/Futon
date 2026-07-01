@@ -7,14 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.ui.BaseActivity
-import io.github.landwarderer.futon.core.util.FileSize
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.databinding.ActivityDownloadQueueBinding
 
@@ -67,18 +65,6 @@ class DownloadQueueActivity : BaseActivity<ActivityDownloadQueueBinding>() {
 
         viewModel.queue.observe(this, adapter::submitList)
 
-        viewModel.storageUsage.observe(this) { usage ->
-            if (usage != null) {
-                viewBinding.cardStorage.isVisible = true
-                viewBinding.progressStorage.progress = (usage.currentBytes * 100 / usage.totalBytes).toInt()
-                val currentStr = FileSize.BYTES.format(this, usage.currentBytes)
-                val totalStr = FileSize.BYTES.format(this, usage.totalBytes)
-                viewBinding.textViewStorageDetails.text = getString(R.string.memory_usage_pattern, currentStr, totalStr)
-            } else {
-                viewBinding.cardStorage.isVisible = false
-            }
-        }
-
         viewBinding.fabStart.setOnClickListener {
             viewModel.triggerScheduler()
         }
@@ -111,9 +97,6 @@ class DownloadQueueActivity : BaseActivity<ActivityDownloadQueueBinding>() {
             left = bars.left,
             right = bars.right,
             bottom = bars.bottom + fabMargin,
-        )
-        viewBinding.cardStorage.updatePadding(
-            bottom = bars.bottom
         )
         viewBinding.fabStart.apply {
             val params = layoutParams as ViewGroup.MarginLayoutParams

@@ -41,4 +41,85 @@
 		app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
 		tools:listitem="@layout/item_download" />
 
+	<com.google.android.material.card.MaterialCardView
+		android:id="@+id/card_quota_reached"
+		style="?materialCardViewElevatedStyle"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom"
+		android:layout_marginBottom="112dp"
+		android:layout_marginHorizontal="16dp"
+		android:visibility="gone"
+		app:cardBackgroundColor="?attr/colorErrorContainer"
+		tools:visibility="visible">
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:gravity="center_vertical"
+			android:orientation="horizontal"
+			android:padding="12dp">
+
+			<ImageView
+				android:layout_width="24dp"
+				android:layout_height="24dp"
+				android:src="@drawable/ic_alert_outline"
+				app:tint="?attr/colorError" />
+
+			<TextView
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_marginStart="12dp"
+				android:layout_weight="1"
+				android:text="@string/download_quota_reached"
+				android:textAppearance="?attr/textAppearanceBodyMedium"
+				android:textColor="?attr/colorOnErrorContainer" />
+
+		</LinearLayout>
+
+	</com.google.android.material.card.MaterialCardView>
+
+	<com.google.android.material.card.MaterialCardView
+		android:id="@+id/card_storage"
+		style="?materialCardViewElevatedStyle"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom"
+		android:layout_margin="16dp"
+		android:visibility="gone"
+		tools:visibility="visible">
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:padding="12dp">
+
+			<TextView
+				android:id="@+id/textView_storage_title"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/storage_usage"
+				android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+			<com.google.android.material.progressindicator.LinearProgressIndicator
+				android:id="@+id/progress_storage"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="8dp"
+				app:trackCornerRadius="4dp"
+				tools:progress="60" />
+
+			<TextView
+				android:id="@+id/textView_storage_details"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="4dp"
+				android:textAppearance="?attr/textAppearanceBodySmall"
+				tools:text="1.2 GB / 2.0 GB" />
+
+		</LinearLayout>
+
+	</com.google.android.material.card.MaterialCardView>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

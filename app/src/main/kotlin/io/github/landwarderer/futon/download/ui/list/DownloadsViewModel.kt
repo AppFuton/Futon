@@ -8,19 +8,6 @@ import androidx.collection.set
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.plus
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.parser.MangaRepository
@@ -40,7 +27,21 @@ import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
+import io.github.landwarderer.futon.local.domain.EnforceStorageQuotaUseCase
 import io.github.landwarderer.futon.local.domain.model.LocalManga
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.plus
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
@@ -55,7 +56,10 @@ class DownloadsViewModel @Inject constructor(
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 	@LocalStorageChanges private val localStorageChanges: MutableSharedFlow<LocalManga?>,
 	private val localMangaRepository: LocalMangaRepository,
+	private val enforceStorageQuotaUseCase: EnforceStorageQuotaUseCase,
 ) : BaseViewModel() {
+
+	val storageUsage = MutableStateFlow<EnforceStorageQuotaUseCase.StorageUsage?>(null)
 
 	private val mangaCache = LongSparseArray<Manga>()
 	private val cacheMutex = Mutex()
@@ -179,6 +183,12 @@ class DownloadsViewModel @Inject constructor(
 		launchJob(Dispatchers.IO) {
 			workScheduler.removeCompleted()
 			onActionDone.call(ReversibleAction(R.string.downloads_removed, null))
+		}
+	}
+
+	fun refreshStorageUsage() {
+		launchJob(Dispatchers.IO) {
+			storageUsage.value = enforceStorageQuotaUseCase.getUsage()
 		}
 	}
 

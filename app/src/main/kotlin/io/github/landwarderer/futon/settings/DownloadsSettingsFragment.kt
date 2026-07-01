@@ -26,11 +26,11 @@ import io.github.landwarderer.futon.core.util.ext.viewLifecycleScope
 import io.github.landwarderer.futon.download.ui.worker.DownloadSchedulerWorker
 import io.github.landwarderer.futon.download.ui.worker.DownloadWorker
 import io.github.landwarderer.futon.local.data.LocalStorageManager
-import org.koitharu.kotatsu.parsers.util.names
 import io.github.landwarderer.futon.settings.utils.DozeHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koitharu.kotatsu.parsers.util.names
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -59,6 +59,17 @@ class DownloadsSettingsFragment :
 		findPreference<ListPreference>(AppSettings.KEY_DOWNLOADS_METERED_NETWORK)?.run {
 			entryValues = TriStateOption.entries.names()
 			setDefaultValueCompat(TriStateOption.ASK.name)
+		}
+		findPreference<Preference>(AppSettings.KEY_DOWNLOAD_STORAGE_QUOTA)?.setOnPreferenceChangeListener { _, newValue ->
+			val quotaMb = (newValue as? String)?.toLongOrNull() ?: 0L
+			if (quotaMb > 0) {
+				val currentUsage = storageManager.getTotalBytesUsedByDownloads()
+				if (quotaMb * 1024 * 1024 < currentUsage) {
+					Snackbar.make(requireView(), R.string.error_quota_too_low, Snackbar.LENGTH_LONG).show()
+					return@setOnPreferenceChangeListener false
+				}
+			}
+			true
 		}
 		dozeHelper.updatePreference()
 	}
