@@ -29,8 +29,8 @@ android {
 		applicationId 'io.github.landwarderer.futon'
 		minSdk = 23
 		targetSdk = 36
-		versionCode project.hasProperty('versionCode') ? project.property('versionCode').toInteger() : 90700
-        versionName project.hasProperty('versionName') ? project.property('versionName') : '9.7'
+		versionCode project.hasProperty('versionCode') ? project.property('versionCode').toInteger() : 90701
+        versionName project.hasProperty('versionName') ? project.property('versionName') : '9.7.1'
         generatedDensities = []
 		testInstrumentationRunner 'io.github.landwarderer.futon.HiltTestRunner'
 		ksp {
