@@ -412,6 +412,10 @@
     <string name="no_thanks">No thanks</string>
     <string name="cancel_all_downloads_confirm">All active downloads will be cancelled, partially downloaded data will be lost</string>
     <string name="remove_completed_downloads_confirm">Your downloads history will be permanently deleted. No downloaded files will be affected</string>
+    <string name="remove_downloads_confirm">Remove selected downloads?</string>
+    <string name="delete_downloaded_files">Also delete downloaded files from storage</string>
+    <string name="delete_chapter">Delete chapter</string>
+    <string name="delete_chapter_confirm">Delete chapter \"%1$s\" from local storage?</string>
     <string name="text_downloads_list_holder">You don\'t have any downloads</string>
     <string name="downloads_resumed">Downloads have been resumed</string>
     <string name="downloads_paused">Downloads have been paused</string>

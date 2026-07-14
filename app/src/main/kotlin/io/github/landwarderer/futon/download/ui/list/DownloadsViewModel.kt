@@ -18,6 +18,7 @@ import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.core.util.ext.calculateTimeAgo
 import io.github.landwarderer.futon.core.util.ext.call
 import io.github.landwarderer.futon.core.util.ext.isEmpty
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.download.domain.DownloadState
 import io.github.landwarderer.futon.download.ui.list.chapters.DownloadChapter
 import io.github.landwarderer.futon.download.ui.worker.DownloadWorker
@@ -27,6 +28,7 @@ import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
+import io.github.landwarderer.futon.local.domain.DeleteLocalMangaUseCase
 import io.github.landwarderer.futon.local.domain.EnforceStorageQuotaUseCase
 import io.github.landwarderer.futon.local.domain.model.LocalManga
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +59,7 @@ class DownloadsViewModel @Inject constructor(
 	@LocalStorageChanges private val localStorageChanges: MutableSharedFlow<LocalManga?>,
 	private val localMangaRepository: LocalMangaRepository,
 	private val enforceStorageQuotaUseCase: EnforceStorageQuotaUseCase,
+	private val deleteLocalMangaUseCase: DeleteLocalMangaUseCase,
 ) : BaseViewModel() {
 
 	val storageUsage = MutableStateFlow<EnforceStorageQuotaUseCase.StorageUsage?>(null)
@@ -165,24 +168,55 @@ class DownloadsViewModel @Inject constructor(
 		onActionDone.call(ReversibleAction(R.string.downloads_resumed, null))
 	}
 
-	fun remove(ids: Set<Long>) {
+	fun remove(ids: Set<Long>, deleteFiles: Boolean) {
 		launchJob(Dispatchers.IO) {
 			val snapshot = works.value ?: return@launchJob
 			val uuids = HashSet<UUID>(ids.size)
 			for (work in snapshot) {
 				if (work.id.mostSignificantBits in ids) {
 					uuids.add(work.id)
+					if (deleteFiles) {
+						val manga = work.manga ?: continue
+						runCatchingCancellable {
+							deleteLocalMangaUseCase(manga)
+						}.onFailure {
+							it.printStackTraceDebug("DownloadsViewModel::remove")
+						}
+					}
 				}
 			}
 			workScheduler.delete(uuids)
 			onActionDone.call(ReversibleAction(R.string.downloads_removed, null))
+			refreshStorageUsage()
 		}
 	}
 
-	fun removeCompleted() {
+	fun removeCompleted(deleteFiles: Boolean) {
 		launchJob(Dispatchers.IO) {
+			if (deleteFiles) {
+				val snapshot = works.value ?: return@launchJob
+				for (work in snapshot) {
+					if (work.workState.isFinished) {
+						val manga = work.manga ?: continue
+						runCatchingCancellable {
+							deleteLocalMangaUseCase(manga)
+						}.onFailure {
+							it.printStackTraceDebug("DownloadsViewModel::removeCompleted")
+						}
+					}
+				}
+			}
 			workScheduler.removeCompleted()
 			onActionDone.call(ReversibleAction(R.string.downloads_removed, null))
+			refreshStorageUsage()
+		}
+	}
+
+	fun deleteChapter(item: DownloadItemModel, chapter: DownloadChapter) {
+		val manga = item.manga ?: return
+		launchJob(Dispatchers.IO) {
+			localMangaRepository.deleteChapters(manga, setOf(chapter.id))
+			refreshStorageUsage()
 		}
 	}
 
@@ -322,6 +356,7 @@ class DownloadsViewModel @Inject constructor(
 			return chapters.mapNotNullTo(ArrayList(size)) {
 				if (chapterIds == null || it.id in chapterIds) {
 					DownloadChapter(
+						id = it.id,
 						number = it.numberString(),
 						name = it.name,
 						isDownloaded = it.id in localChapters,

@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentActivity
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.ui.dialog.buildAlertDialog
+import io.github.landwarderer.futon.core.ui.dialog.setCheckbox
 
 class DownloadsMenuProvider(
 	private val activity: FragmentActivity,
@@ -49,12 +50,16 @@ class DownloadsMenuProvider(
 	}
 
 	private fun confirmRemoveCompleted() {
+		var deleteFiles = false
 		buildAlertDialog(activity, isCentered = true) {
 			setTitle(R.string.remove_completed)
 			setMessage(R.string.remove_completed_downloads_confirm)
 			setIcon(R.drawable.ic_clear_all)
+			setCheckbox(R.string.delete_downloaded_files, false) { _, isChecked ->
+				deleteFiles = isChecked
+			}
 			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.clear) { _, _ -> viewModel.removeCompleted() }
+			setPositiveButton(R.string.clear) { _, _ -> viewModel.removeCompleted(deleteFiles) }
 		}.show()
 	}
 }

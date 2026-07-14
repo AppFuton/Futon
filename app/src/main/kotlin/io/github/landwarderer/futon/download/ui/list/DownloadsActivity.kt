@@ -18,9 +18,12 @@ import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.ui.BaseActivity
 import io.github.landwarderer.futon.core.ui.list.ListSelectionController
 import io.github.landwarderer.futon.core.ui.list.RecyclerScrollKeeper
+import io.github.landwarderer.futon.core.ui.dialog.buildAlertDialog
+import io.github.landwarderer.futon.core.ui.dialog.setCheckbox
 import io.github.landwarderer.futon.core.ui.util.MenuInvalidator
 import io.github.landwarderer.futon.core.ui.util.ReversibleActionObserver
 import io.github.landwarderer.futon.core.util.FileSize
+import io.github.landwarderer.futon.download.ui.list.chapters.DownloadChapter
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.observeEvent
 import io.github.landwarderer.futon.databinding.ActivityDownloadsBinding
@@ -194,8 +197,18 @@ class DownloadsActivity : BaseActivity<ActivityDownloadsBinding>(),
 			}
 
 			R.id.action_remove -> {
-				viewModel.remove(controller.snapshot())
-				mode?.finish()
+				var deleteFiles = false
+				buildAlertDialog(this) {
+					setTitle(R.string.remove_downloads_confirm)
+					setCheckbox(R.string.delete_downloaded_files, false) { _, isChecked ->
+						deleteFiles = isChecked
+					}
+					setPositiveButton(R.string.delete) { _, _ ->
+						viewModel.remove(controller.snapshot(), deleteFiles)
+						mode?.finish()
+					}
+					setNegativeButton(android.R.string.cancel, null)
+				}.show()
 				true
 			}
 
@@ -225,5 +238,16 @@ class DownloadsActivity : BaseActivity<ActivityDownloadsBinding>(),
 		menu.findItem(R.id.action_cancel)?.isVisible = canCancel
 		menu.findItem(R.id.action_remove)?.isVisible = canRemove
 		return super.onPrepareActionMode(controller, mode, menu)
+	}
+
+	override fun onDeleteChapterClick(item: DownloadItemModel, chapter: DownloadChapter) {
+		buildAlertDialog(this) {
+			setTitle(R.string.delete_chapter)
+			setMessage(getString(R.string.delete_chapter_confirm, chapter.name))
+			setPositiveButton(R.string.delete) { _, _ ->
+				viewModel.deleteChapter(item, chapter)
+			}
+			setNegativeButton(android.R.string.cancel, null)
+		}.show()
 	}
 }

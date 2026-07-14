@@ -52,7 +52,12 @@ fun downloadItemAD(
 		}
 	}
 	val chaptersAdapter = BaseListAdapter<DownloadChapter>()
-		.addDelegate(ListItemType.CHAPTER_LIST, downloadChapterAD())
+		.addDelegate(
+			ListItemType.CHAPTER_LIST,
+			downloadChapterAD { chapter ->
+				listener.onDeleteChapterClick(item, chapter)
+			},
+		)
 
 	binding.recyclerViewChapters.adapter = chaptersAdapter
 	binding.buttonCancel.setOnClickListener(clickListener)
