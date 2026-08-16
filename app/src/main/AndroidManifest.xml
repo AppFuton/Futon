@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
 	package="io.github.landwarderer.futon"
-	android:versionCode="90800"
-	android:versionName="9.8"
+	android:versionCode="90801"
+	android:versionName="9.8.1"
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools">
 
@@ -295,7 +295,21 @@
 			android:label="@string/sources_catalog" />
 		<activity
 			android:name="io.github.landwarderer.futon.settings.sources.extension.ExtensionDownloaderActivity"
-			android:label="@string/extensions_manager" />
+			android:exported="true"
+			android:label="@string/extensions_manager">
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="mihon" android:host="extension-store" />
+				<data android:scheme="mihon" android:host="add-repo" />
+				<data android:scheme="tachiyomi" android:host="extension-repo" />
+				<data android:scheme="tachiyomi" android:host="add-repo" />
+				<data android:scheme="futon" android:host="extension-repo" />
+				<data android:scheme="futon" android:host="extension-store" />
+				<data android:scheme="futon" android:host="add-repo" />
+			</intent-filter>
+		</activity>
 		<activity
 			android:name="io.github.landwarderer.futon.scrobbling.kitsu.ui.KitsuAuthActivity"
 			android:exported="false"

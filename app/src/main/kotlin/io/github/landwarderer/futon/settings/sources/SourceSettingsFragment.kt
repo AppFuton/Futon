@@ -24,6 +24,7 @@ import io.github.landwarderer.futon.core.ui.util.ReversibleActionObserver
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.observeEvent
 import io.github.landwarderer.futon.core.util.ext.withArgs
+import io.github.landwarderer.futon.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.io.File
 
@@ -41,7 +42,10 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 	}
 
 	override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-		preferenceManager.sharedPreferencesName = viewModel.source.name.replace(File.separatorChar, '$')
+		preferenceManager.sharedPreferencesName = when (val repo = viewModel.repository) {
+			is MihonMangaRepository -> "source_${repo.source.sourceId}"
+			else -> viewModel.source.name.replace(File.separatorChar, '$')
+		}
 		addPreferencesFromResource(R.xml.pref_source)
 		addPreferencesFromRepository(viewModel.repository)
 		val isValidSource = viewModel.repository !is EmptyMangaRepository

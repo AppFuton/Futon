@@ -2,7 +2,9 @@ package io.github.landwarderer.futon.mihon.compat
 
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
+import androidx.preference.PreferenceManager
 import eu.kanade.tachiyomi.network.NetworkHelper
 import io.github.landwarderer.futon.core.network.webview.WebViewExecutor
 import kotlinx.serialization.SerialFormat
@@ -58,6 +60,11 @@ class MihonInjektBridge(
                     addSingletonFactory<OkHttpClient> { httpClient }
                     addSingletonFactory<CookieJar> { cookieJar }
                     
+                    // SharedPreferences
+                    addSingletonFactory<SharedPreferences> {
+                        PreferenceManager.getDefaultSharedPreferences(context)
+                    }
+
                     // JSON - explicitly type it to ensure Injekt matches correctly
                     val json = Json {
                         ignoreUnknownKeys = true

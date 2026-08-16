@@ -43,7 +43,7 @@ class MihonExtensionLoader @Inject constructor(
         
         // Supported library version range
         const val LIB_VERSION_MIN = 1.2
-        const val LIB_VERSION_MAX = 1.9
+        const val LIB_VERSION_MAX = 2.5
         
     }
     

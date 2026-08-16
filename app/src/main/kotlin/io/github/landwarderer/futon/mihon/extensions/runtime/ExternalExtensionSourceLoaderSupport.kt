@@ -73,6 +73,25 @@ object ExternalExtensionSourceLoaderSupport {
 					return@flatMap instance.createSources() as List<SourceT>
 				}
 
+				// Reflective createSources fallback for extension factories
+				try {
+					val method = instance.javaClass.getMethod("createSources")
+					val result = method.invoke(instance)
+					if (result is List<*>) {
+						@Suppress("UNCHECKED_CAST")
+						val sources = result.mapNotNull { item ->
+							item?.let { asSource(it) ?: (it as? SourceT) }
+						}
+						if (sources.isNotEmpty()) {
+							return@flatMap sources
+						}
+					}
+				} catch (_: NoSuchMethodException) {
+					// not a factory
+				} catch (e: Throwable) {
+					Log.w("MihonExtensionLoader", "Failed to reflectively invoke createSources on $fullClassName", e)
+				}
+
 				onUnknownInstance(instance.javaClass.name)
 				emptyList()
 			} catch (e: Throwable) {

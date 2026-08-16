@@ -125,7 +125,7 @@
     <string name="clear_updates_feed">Clear updates feed</string>
     <string name="updates_feed_cleared">Cleared</string>
     <string name="rotate_screen">Rotate screen</string>
-    <string name="update">View Release</string>
+    <string name="update">Update</string>
     <string name="github_download_warning">Downloading from GitHub will bypass security checks performed by IzzyOnDroid and Fdroid.</string>
     <string name="feed_will_update_soon">Feed update will start soon</string>
     <string name="track_sources">Look for updates</string>
@@ -530,7 +530,18 @@
     <string name="source_summary_pattern" translatable="false">%1$s, %2$s</string>
     <string name="sources_catalog">Sources catalog</string>
     <string name="extensions_manager">Extensions manager</string>
-    <string name="extensions_manager_summary">Manage, install and uninstall Tachiyomi extensions from keiyoushi repository</string>
+    <string name="extensions_manager_summary">Manage, install and uninstall extensions from repositories</string>
+    <string name="extension_repos_header">Repositories</string>
+    <string name="add_extension_repo">Add</string>
+    <string name="add_extension_repo_hint">Repository URL</string>
+    <string name="extension_repo_add_success">Repository added</string>
+    <string name="extension_repo_remove_confirm">Remove %s?</string>
+    <string name="extension_repos_empty">No repositories added. Add a repository URL above to browse extensions.</string>
+    <string name="installed_extensions_header">Installed</string>
+    <string name="available_extensions_header">Available</string>
+    <string name="invalid_repo_url">Invalid repository URL</string>
+    <string name="repo_already_exists">Repository already exists</string>
+    <string name="failed_to_add_repo">Failed to add repository: %s</string>
     <string name="source_enabled">Source enabled</string>
     <string name="no_manga_sources_catalog_text">There are no sources available in this section, or all of it might have been already added.\nStay tuned</string>
     <string name="no_manga_sources_found">No available manga sources found by your query</string>

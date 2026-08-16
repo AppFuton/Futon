@@ -1,13 +1,16 @@
 package io.github.landwarderer.futon.mihon
 
-import android.util.Log
 import dalvik.system.PathClassLoader
+import java.io.IOException
+import java.io.InputStream
+import java.net.URL
+import java.util.Enumeration
 
 /**
- * A ClassLoader that loads classes from its own path before delegating to its parent.
- * 
- * This is necessary for Mihon extensions because they may bundle different versions
- * of libraries than App uses, and we need to isolate them.
+ * A parent-last class loader that will try in order:
+ * - the system class loader
+ * - the child class loader
+ * - the parent class loader.
  */
 class ChildFirstPathClassLoader(
     dexPath: String,
@@ -15,54 +18,69 @@ class ChildFirstPathClassLoader(
     parent: ClassLoader,
 ) : PathClassLoader(dexPath, librarySearchPath, parent) {
 
-    /**
-     * List of packages that should always be loaded from the parent ClassLoader.
-     * These are core Android/Kotlin classes and Mihon API classes that must be shared.
-     */
-    private val parentPackages = setOf(
-        "java.",
-        "javax.",
-        "kotlin.",
-        "kotlinx.",
-        "android.",
-        "androidx.",
-        "org.json.",
-        "org.jsoup.",
-        "okhttp3.",
-        "okio.",
-        "rx.",
-        "eu.kanade.tachiyomi.source.",
-        "eu.kanade.tachiyomi.network.",
-        "eu.kanade.tachiyomi.util.",
-        "uy.kohesive.injekt.",
-        "ireader.core.",
-        "io.ktor.",
-        "com.fleeksoft.",
-    )
+    private val systemClassLoader: ClassLoader? = getSystemClassLoader()
 
-    override fun loadClass(name: String, resolve: Boolean): Class<*> {
-        // Check if we should delegate to parent immediately
-        if (parentPackages.any { name.startsWith(it) }) {
+    override fun loadClass(name: String?, resolve: Boolean): Class<*> {
+        var c = findLoadedClass(name)
+
+        if (c == null && systemClassLoader != null) {
             try {
-                return parent.loadClass(name)
-            } catch (e: ClassNotFoundException) {
-                // fall through to child loading
+                c = systemClassLoader.loadClass(name)
+            } catch (_: ClassNotFoundException) {}
+        }
+
+        if (c == null) {
+            c = try {
+                findClass(name)
+            } catch (_: ClassNotFoundException) {
+                super.loadClass(name, resolve)
             }
         }
 
-        // Try to find the class in our own path first
-        return try {
-            findLoadedClass(name) ?: findClass(name)
-        } catch (e: ClassNotFoundException) {
-            // Fall back to parent ClassLoader
-            try {
-                parent.loadClass(name)
-            } catch (e2: ClassNotFoundException) {
-                if (name.contains("tachiyomi")) {
-                    Log.w("ChildFirstLoader", "Class not found: $name")
-                }
-                throw e2
+        if (resolve) {
+            resolveClass(c)
+        }
+
+        return c
+    }
+
+    override fun getResource(name: String?): URL? {
+        return systemClassLoader?.getResource(name)
+            ?: findResource(name)
+            ?: super.getResource(name)
+    }
+
+    override fun getResources(name: String?): Enumeration<URL> {
+        val systemUrls = systemClassLoader?.getResources(name)
+        val localUrls = findResources(name)
+        val parentUrls = parent?.getResources(name)
+        val urls = buildList {
+            while (systemUrls?.hasMoreElements() == true) {
+                add(systemUrls.nextElement())
             }
+
+            while (localUrls?.hasMoreElements() == true) {
+                add(localUrls.nextElement())
+            }
+
+            while (parentUrls?.hasMoreElements() == true) {
+                add(parentUrls.nextElement())
+            }
+        }
+
+        return object : Enumeration<URL> {
+            val iterator = urls.iterator()
+
+            override fun hasMoreElements() = iterator.hasNext()
+            override fun nextElement() = iterator.next()
+        }
+    }
+
+    override fun getResourceAsStream(name: String?): InputStream? {
+        return try {
+            getResource(name)?.openStream()
+        } catch (_: IOException) {
+            return null
         }
     }
 }

@@ -6,23 +6,36 @@ import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
+import eu.kanade.tachiyomi.source.ConfigurableSource
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.parser.EmptyMangaRepository
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.parser.ParserMangaRepository
-import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.network.UserAgents
-import org.koitharu.kotatsu.parsers.util.mapToArray
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
+import io.github.landwarderer.futon.mihon.MihonMangaRepository
 import io.github.landwarderer.futon.settings.utils.AutoCompleteTextViewPreference
 import io.github.landwarderer.futon.settings.utils.EditTextBindListener
 import io.github.landwarderer.futon.settings.utils.EditTextDefaultSummaryProvider
 import io.github.landwarderer.futon.settings.utils.validation.DomainValidator
 import io.github.landwarderer.futon.settings.utils.validation.HeaderValidator
+import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.network.UserAgents
+import org.koitharu.kotatsu.parsers.util.mapToArray
 
 fun PreferenceFragmentCompat.addPreferencesFromRepository(repository: MangaRepository) = when (repository) {
 	is ParserMangaRepository -> addPreferencesFromParserRepository(repository)
+	is MihonMangaRepository -> addPreferencesFromMihonRepository(repository)
 	is EmptyMangaRepository -> addPreferencesFromEmptyRepository()
 	else -> Unit
+}
+
+private fun PreferenceFragmentCompat.addPreferencesFromMihonRepository(repository: MihonMangaRepository) {
+	val configurableSource = repository.mihonSource as? ConfigurableSource ?: return
+	runCatching {
+		configurableSource.setupPreferenceScreen(preferenceScreen)
+	}.onFailure {
+		it.printStackTraceDebug()
+	}
 }
 
 private fun PreferenceFragmentCompat.addPreferencesFromParserRepository(repository: ParserMangaRepository) {

@@ -43,7 +43,16 @@ class ExtensionInstallService @Inject constructor(
 				GitHubMirror.KKGITHUB -> url.replace("raw.githubusercontent.com", "raw.kkgithub.com")
 				GitHubMirror.GHPROXY -> "https://mirror.ghproxy.com/$url"
 				GitHubMirror.GHPROXY_NET -> "https://ghproxy.net/$url"
-                GitHubMirror.KEIYOUSHI -> url.replace("raw.githubusercontent.com", "raw.github.com")
+				GitHubMirror.KEIYOUSHI -> url.replace("raw.githubusercontent.com", "raw.github.com")
+			}
+		}
+		if (url.startsWith("https://github.com/")) {
+			return when (settings.gitHubMirror) {
+				GitHubMirror.NATIVE -> url
+				GitHubMirror.KKGITHUB -> url.replace("github.com", "kkgithub.com")
+				GitHubMirror.GHPROXY -> "https://mirror.ghproxy.com/$url"
+				GitHubMirror.GHPROXY_NET -> "https://ghproxy.net/$url"
+				GitHubMirror.KEIYOUSHI -> url
 			}
 		}
 		return url
@@ -55,7 +64,11 @@ class ExtensionInstallService @Inject constructor(
 	val downloadStates: StateFlow<Map<String, ExtensionInstallDownloadState>> = _downloadStates.asStateFlow()
 
 	suspend fun createInstallIntent(extension: RepoAvailableExtension): Intent? = withContext(Dispatchers.IO) {
-		val apkUrl = applyMirror("${extension.repoUrl}/apk/${extension.apkName}")
+		val apkUrl = if (extension.apkName.startsWith("http://") || extension.apkName.startsWith("https://")) {
+			applyMirror(extension.apkName)
+		} else {
+			applyMirror("${extension.repoUrl}/apk/${extension.apkName}")
+		}
 		val outputDir = File(context.cacheDir, "extension-installs").apply { mkdirs() }
 		val outputFile = File(outputDir, "${extension.pkgName}-${extension.versionCode}.apk")
 		val call = httpClient.newCachelessCallWithProgress(GET(apkUrl), ExtensionInstallProgressListener(extension.pkgName))

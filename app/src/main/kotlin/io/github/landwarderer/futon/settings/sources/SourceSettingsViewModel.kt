@@ -1,8 +1,11 @@
 package io.github.landwarderer.futon.settings.sources
 
+import android.app.Application
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import eu.kanade.tachiyomi.source.online.HttpSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +23,7 @@ import io.github.landwarderer.futon.core.ui.util.ReversibleAction
 import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.core.util.ext.call
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
+import io.github.landwarderer.futon.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import javax.inject.Inject
@@ -28,6 +32,7 @@ import javax.inject.Inject
 class SourceSettingsViewModel @Inject constructor(
 	savedStateHandle: SavedStateHandle,
 	mangaRepositoryFactory: MangaRepository.Factory,
+	private val app: Application,
 	private val cookieJar: MutableCookieJar,
 	private val mangaSourcesRepository: MangaSourcesRepository,
 ) : BaseViewModel(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -41,6 +46,7 @@ class SourceSettingsViewModel @Inject constructor(
 	val browserUrl = MutableStateFlow<String?>(null)
 	val isEnabled = mangaSourcesRepository.observeIsEnabled(source)
 	private var usernameLoadJob: Job? = null
+	private var mihonPrefs: SharedPreferences? = null
 
 	init {
 		when (repository) {
@@ -49,6 +55,13 @@ class SourceSettingsViewModel @Inject constructor(
 				repository.getConfig().subscribe(this)
 				loadUsername(repository.getAuthProvider())
 			}
+			is MihonMangaRepository -> {
+				val httpSource = repository.mihonSource as? HttpSource
+				browserUrl.value = httpSource?.baseUrl
+				val prefs = app.getSharedPreferences("source_${repository.source.sourceId}", Context.MODE_PRIVATE)
+				mihonPrefs = prefs
+				prefs.registerOnSharedPreferenceChangeListener(this)
+			}
 		}
 	}
 
@@ -56,6 +69,9 @@ class SourceSettingsViewModel @Inject constructor(
 		when (repository) {
 			is ParserMangaRepository -> {
 				repository.getConfig().unsubscribe(this)
+			}
+			is MihonMangaRepository -> {
+				mihonPrefs?.unregisterOnSharedPreferenceChangeListener(this)
 			}
 		}
 		super.onCleared()
@@ -71,6 +87,10 @@ class SourceSettingsViewModel @Inject constructor(
 			if (key == SourceSettings.KEY_DOMAIN) {
 				browserUrl.value = "https://${repository.domain}"
 			}
+		}
+		if (repository is MihonMangaRepository) {
+			val httpSource = repository.mihonSource as? HttpSource
+			browserUrl.value = httpSource?.baseUrl
 		}
 	}
 

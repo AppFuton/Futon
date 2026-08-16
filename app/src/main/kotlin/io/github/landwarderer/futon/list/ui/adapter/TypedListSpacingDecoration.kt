@@ -36,6 +36,8 @@ class TypedListSpacingDecoration(
 				-> outRect.set(0)
 
 			ListItemType.HEADER,
+			ListItemType.EXTENSION_REPO_HEADER,
+			ListItemType.EXTENSION_REPO_ITEM,
 			ListItemType.FEED,
 			ListItemType.EXPLORE_SOURCE_LIST,
 			ListItemType.MANGA_SCROBBLING,

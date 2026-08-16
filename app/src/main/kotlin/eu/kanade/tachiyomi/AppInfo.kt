@@ -18,7 +18,7 @@ object AppInfo {
     /**
      * Version name of the host application.
      */
-    fun getVersionName(): String = BuildConfig.VERSION_NAME
+    fun getVersionName(): String = "0.20.1"
 
     /**
      * Supported image MIME types by the reader.
