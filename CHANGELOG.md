@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 The format is based on "Keep a Changelog" and follows semantic versioning where possible.
 
+## 9.8.1
+Date: 2026-08-16
+
+### Highlights
+- New mihon source settings feature
+- Support for multiple extension repo
+- Support for .pb files in extension manager
+
+### Fixes
+- Fixed extension manager updates error
+
+### Maintenance
+- Updated parsers and dependencies
+
 ## 9.8
 Date: 2026-07-18
 
