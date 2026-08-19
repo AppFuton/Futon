@@ -28,6 +28,16 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Run Paparazzi Verification
+        run: ./gradlew verifyPaparazziDebug
+
+      - name: Upload Failure Diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paparazzi-failures
+          path: "**/build/paparazzi/failures/"
+
       - name: Build debug APK
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
