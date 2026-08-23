@@ -6,7 +6,9 @@ import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
+import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.ConfigurableSource
+import eu.kanade.tachiyomi.source.PreferenceScreen
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.parser.EmptyMangaRepository
 import io.github.landwarderer.futon.core.parser.MangaRepository
@@ -30,12 +32,28 @@ fun PreferenceFragmentCompat.addPreferencesFromRepository(repository: MangaRepos
 }
 
 private fun PreferenceFragmentCompat.addPreferencesFromMihonRepository(repository: MihonMangaRepository) {
-	val configurableSource = repository.mihonSource as? ConfigurableSource ?: return
 	runCatching {
-		configurableSource.setupPreferenceScreen(preferenceScreen)
+		setupMihonPreferenceScreen(repository.mihonSource, preferenceScreen)
 	}.onFailure {
 		it.printStackTraceDebug()
 	}
+}
+
+/**
+ * Extension APKs ship their own copy of [ConfigurableSource], so a direct cast from an
+ * extension [CatalogueSource] usually fails even when the source implements the interface.
+ */
+private fun setupMihonPreferenceScreen(source: CatalogueSource, screen: PreferenceScreen) {
+	if (source is ConfigurableSource) {
+		source.setupPreferenceScreen(screen)
+		return
+	}
+	val method = source.javaClass.methods.firstOrNull { candidate ->
+		candidate.name == "setupPreferenceScreen" &&
+			candidate.parameterCount == 1 &&
+			PreferenceScreen::class.java.isAssignableFrom(candidate.parameterTypes[0])
+	} ?: return
+	method.invoke(source, screen)
 }
 
 private fun PreferenceFragmentCompat.addPreferencesFromParserRepository(repository: ParserMangaRepository) {
