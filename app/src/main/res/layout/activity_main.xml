@@ -79,11 +79,10 @@
 		tools:ignore="InconsistentLayout"
 		tools:visibility="visible" />
 
-	<io.github.landwarderer.futon.core.ui.widgets.SlidingBottomNavigationView
+	<androidx.compose.ui.platform.ComposeView
 		android:id="@+id/bottomNav"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:layout_gravity="bottom"
-		android:fitsSystemWindows="false" />
+		android:layout_gravity="bottom" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

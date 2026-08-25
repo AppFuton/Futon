@@ -20,19 +20,13 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.navigationrail.NavigationRailView
 import com.google.android.material.transition.MaterialFadeThrough
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.trySendBlocking
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.bookmarks.ui.AllBookmarksFragment
 import io.github.landwarderer.futon.core.nav.AppRouter
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.NavItem
+import io.github.landwarderer.futon.core.ui.components.BottomNavBarState
 import io.github.landwarderer.futon.core.ui.util.RecyclerViewOwner
-import io.github.landwarderer.futon.core.ui.widgets.SlidingBottomNavigationView
 import io.github.landwarderer.futon.core.util.ext.buildBundle
 import io.github.landwarderer.futon.core.util.ext.setContentDescriptionAndTooltip
 import io.github.landwarderer.futon.core.util.ext.smoothScrollToTop
@@ -44,18 +38,40 @@ import io.github.landwarderer.futon.local.ui.LocalListFragment
 import io.github.landwarderer.futon.suggestions.ui.SuggestionsFragment
 import io.github.landwarderer.futon.tracker.ui.feed.FeedFragment
 import io.github.landwarderer.futon.tracker.ui.updates.UpdatesFragment
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import java.util.LinkedList
-import com.google.android.material.R as materialR
 
 private const val TAG_PRIMARY = "primary"
 
+/**
+ * Drives main navigation — fragment switching and (for wide layouts) the [NavigationRailView].
+ *
+ * For phone layouts the bottom bar is now a Compose [BottomNavBar]; pass [composeNavState] and
+ * leave [navBar] as null.  For wide layouts pass [navBar] (the rail) as before.
+ *
+ * Exactly one of [navBar] / [composeNavState] must be non-null.
+ */
 class MainNavigationDelegate(
-	private val navBar: NavigationBarView,
+	private val navBar: NavigationBarView?,
 	private val fragmentManager: FragmentManager,
 	private val settings: AppSettings,
+	private val composeNavState: BottomNavBarState? = null,
+	private val context: android.content.Context,
 ) : OnBackPressedCallback(false),
 	NavigationBarView.OnItemSelectedListener,
-	NavigationBarView.OnItemReselectedListener, View.OnClickListener {
+	NavigationBarView.OnItemReselectedListener,
+	View.OnClickListener {
+
+	init {
+		require((navBar != null) xor (composeNavState != null)) {
+			"Exactly one of navBar or composeNavState must be non-null"
+		}
+	}
 
 	private val listeners = LinkedList<OnFragmentChangedListener>()
 	val navRailHeader = (navBar as? NavigationRailView)?.headerView?.let {
@@ -66,8 +82,8 @@ class MainNavigationDelegate(
 		get() = fragmentManager.findFragmentByTag(TAG_PRIMARY)
 
 	init {
-		navBar.setOnItemSelectedListener(this)
-		navBar.setOnItemReselectedListener(this)
+		navBar?.setOnItemSelectedListener(this)
+		navBar?.setOnItemReselectedListener(this)
 		navRailHeader?.run {
 			root.updateLayoutParams<FrameLayout.LayoutParams> {
 				gravity = Gravity.TOP or Gravity.CENTER
@@ -80,6 +96,10 @@ class MainNavigationDelegate(
 			railFab.isAnimationEnabled = false
 		}
 	}
+
+	// ---------------------------------------------------------------------------
+	// NavigationBarView.OnItemSelectedListener (rail only)
+	// ---------------------------------------------------------------------------
 
 	override fun onNavigationItemSelected(item: MenuItem): Boolean {
 		return if (onNavigationItemSelected(item.itemId)) {
@@ -94,6 +114,27 @@ class MainNavigationDelegate(
 		onNavigationItemReselected()
 	}
 
+	// ---------------------------------------------------------------------------
+	// Compose nav bar callback — called from MainActivity when an item is tapped
+	// ---------------------------------------------------------------------------
+
+	/**
+	 * Handle a tap on a Compose [BottomNavBar] item.
+	 * Activity-launcher items (e.g. Settings) are handled here too.
+	 */
+	fun onComposeItemClick(item: NavItem, openSettings: () -> Unit) {
+		if (item.isActivityLauncher) {
+			// e.g. SETTINGS — open the corresponding activity, do not change fragment selection
+			openSettings()
+			return
+		}
+		onNavigationItemSelected(item.id)
+	}
+
+	// ---------------------------------------------------------------------------
+	// View.OnClickListener (nav rail expand button)
+	// ---------------------------------------------------------------------------
+
 	override fun onClick(v: View) {
 		when (v.id) {
 			R.id.button_expand -> {
@@ -105,28 +146,42 @@ class MainNavigationDelegate(
 	}
 
 	override fun handleOnBackPressed() {
-		navBar.selectedItemId = firstItem()?.itemId ?: return
+		val firstId = firstItemId() ?: return
+		navBar?.selectedItemId = firstId
+		composeNavState?.let { state ->
+			onNavigationItemSelected(firstId)
+			state.selectedItemId = firstId
+		}
 	}
 
+	// ---------------------------------------------------------------------------
+	// Lifecycle
+	// ---------------------------------------------------------------------------
+
 	fun onCreate(lifecycleOwner: LifecycleOwner, savedInstanceState: Bundle?) {
-		if (navBar.menu.isEmpty()) {
-			createMenu(settings.mainNavItems, navBar.menu)
+		if (navBar != null && navBar.menu.isEmpty()) {
+			// Wide layout: populate the rail menu from settings (excluding activity-launchers)
+			createMenu(settings.mainNavItems.filter { !it.isActivityLauncher }, navBar.menu)
 		}
 		observeSettings(lifecycleOwner)
 		val fragment = primaryFragment
 		if (fragment != null) {
 			onFragmentChanged(fragment, fromUser = false)
 			val itemId = getItemId(fragment)
-			if (navBar.selectedItemId != itemId) {
-				navBar.selectedItemId = itemId
+			navBar?.let { bar ->
+				if (bar.selectedItemId != itemId) bar.selectedItemId = itemId
+			}
+			composeNavState?.let { state ->
+				if (state.selectedItemId != itemId) state.selectedItemId = itemId
 			}
 		} else {
 			val itemId = if (savedInstanceState == null) {
-				firstItem()?.itemId ?: navBar.selectedItemId
+				firstItemId() ?: (navBar?.selectedItemId ?: composeNavState?.selectedItemId ?: 0)
 			} else {
-				navBar.selectedItemId
+				navBar?.selectedItemId ?: composeNavState?.selectedItemId ?: 0
 			}
 			onNavigationItemSelected(itemId)
+			composeNavState?.selectedItemId = itemId
 		}
 	}
 
@@ -136,8 +191,11 @@ class MainNavigationDelegate(
 		}
 		addOnFragmentChangedListener(listener)
 		awaitClose { removeOnFragmentChangedListener(listener) }
-	}.map {
-		navBar.menu.findItem(it)?.title
+	}.map { id ->
+		// Rail: look up title from menu; Compose: look up from NavItem list
+		navBar?.menu?.findItem(id)?.title
+			?: settings.mainNavItems.firstOrNull { it.id == id }
+				?.let { navBar?.context?.getString(it.title) }
 	}
 
 	fun setCounter(item: NavItem, counter: Int) {
@@ -148,30 +206,30 @@ class MainNavigationDelegate(
 		val fragment = primaryFragment ?: return
 		onFragmentChanged(fragment, fromUser = false)
 		val itemId = getItemId(fragment)
-		if (navBar.selectedItemId != itemId) {
-			navBar.selectedItemId = itemId
-		}
+		navBar?.let { if (it.selectedItemId != itemId) it.selectedItemId = itemId }
+		composeNavState?.let { if (it.selectedItemId != itemId) it.selectedItemId = itemId }
 	}
 
 	private fun setCounter(@IdRes id: Int, counter: Int) {
-		if (counter == 0) {
-			navBar.getBadge(id)?.isVisible = false
-		} else {
-			val badge = navBar.getOrCreateBadge(id)
-			if (counter < 0) {
-				badge.clearNumber()
+		// Rail path
+		if (navBar != null) {
+			if (counter == 0) {
+				navBar.getBadge(id)?.isVisible = false
 			} else {
-				badge.number = counter
+				val badge = navBar.getOrCreateBadge(id)
+				if (counter < 0) badge.clearNumber() else badge.number = counter
+				badge.isVisible = true
 			}
-			badge.isVisible = true
 		}
+		// Compose path
+		composeNavState?.setBadge(id, counter)
 	}
 
 	fun setItemVisibility(@IdRes itemId: Int, isVisible: Boolean) {
-		val item = navBar.menu.findItem(itemId) ?: return
+		val item = navBar?.menu?.findItem(itemId) ?: return
 		item.isVisible = isVisible
 		if (item.isChecked && !isVisible) {
-			navBar.selectedItemId = firstItem()?.itemId ?: return
+			navBar?.selectedItemId = firstItemId() ?: return
 		}
 	}
 
@@ -183,7 +241,13 @@ class MainNavigationDelegate(
 		listeners.remove(listener)
 	}
 
+	// ---------------------------------------------------------------------------
+	// Internal navigation routing
+	// ---------------------------------------------------------------------------
+
 	private fun onNavigationItemSelected(@IdRes itemId: Int): Boolean {
+		if (itemId == R.id.nav_settings) return false // handled by onComposeItemClick
+
 		val newFragment = when (itemId) {
 			R.id.nav_history -> HistoryListFragment::class.java
 			R.id.nav_favorites -> FavouritesContainerFragment::class.java
@@ -196,7 +260,6 @@ class MainNavigationDelegate(
 			else -> return false
 		}
 		if (!setPrimaryFragment(newFragment)) {
-			// probably already selected
 			onNavigationItemReselected()
 		}
 		return true
@@ -237,57 +300,50 @@ class MainNavigationDelegate(
 	}
 
 	private fun onFragmentChanged(fragment: Fragment, fromUser: Boolean) {
-		isEnabled = getItemId(fragment) != firstItem()?.itemId
+		isEnabled = getItemId(fragment) != firstItemId()
 		listeners.forEach { it.onFragmentChanged(fragment, fromUser) }
 	}
 
 	private fun createMenu(items: List<NavItem>, menu: Menu) {
+		val bar = navBar ?: return
 		for (item in items) {
 			menu.add(Menu.NONE, item.id, Menu.NONE, item.title)
 				.setIcon(item.icon)
-			if (menu.size >= navBar.maxItemCount) {
-				break
-			}
+			if (menu.size >= bar.maxItemCount) break
 		}
 	}
 
 	private fun instantiateFragment(fragmentClass: Class<out Fragment>): Fragment {
-		val classLoader = navBar.context.classLoader
-		return fragmentManager.fragmentFactory.instantiate(classLoader, fragmentClass.name)
+		val ctx = navBar?.context ?: context
+		return fragmentManager.fragmentFactory.instantiate(ctx.classLoader, fragmentClass.name)
 	}
 
 	private fun observeSettings(lifecycleOwner: LifecycleOwner) {
 		settings.observe(AppSettings.KEY_TRACKER_ENABLED, AppSettings.KEY_SUGGESTIONS, AppSettings.KEY_NAV_LABELS)
 			.onEach {
+				// Rail only: hide items that are disabled by settings
 				setItemVisibility(R.id.nav_suggestions, settings.isSuggestionsEnabled)
 				setItemVisibility(R.id.nav_feed, settings.isTrackerEnabled)
 				setNavbarIsLabeled(settings.isNavLabelsVisible)
+				// Compose path: update the items list so disabled items disappear
+				composeNavState?.navItems = settings.mainNavItems.filter { it.isAvailable(settings) }
 			}.launchIn(lifecycleOwner.lifecycleScope)
 	}
 
-	private fun firstItem(): MenuItem? {
-		val menu = navBar.menu
-		for (item in menu) {
-			if (item.isVisible) return item
+	private fun firstItemId(): Int? {
+		navBar?.menu?.let { menu ->
+			for (item in menu) {
+				if (item.isVisible) return item.itemId
+			}
 		}
+		composeNavState?.navItems?.firstOrNull { !it.isActivityLauncher }?.let { return it.id }
 		return null
 	}
 
 	private fun setNavbarIsLabeled(value: Boolean) {
-		if (navBar is SlidingBottomNavigationView) {
-			navBar.minimumHeight = navBar.resources.getDimensionPixelSize(
-				if (value) {
-					materialR.dimen.m3_bottom_nav_min_height
-				} else {
-					R.dimen.nav_bar_height_compact
-				},
-			)
-		}
 		navRailHeader?.buttonExpand?.isVisible = value
-		if (!value) {
-			setNavbarIsExpanded(false)
-		}
-		navBar.labelVisibilityMode = if (value) {
+		if (!value) setNavbarIsExpanded(false)
+		navBar?.labelVisibilityMode = if (value) {
 			NavigationBarView.LABEL_VISIBILITY_LABELED
 		} else {
 			NavigationBarView.LABEL_VISIBILITY_UNLABELED
@@ -295,11 +351,9 @@ class MainNavigationDelegate(
 	}
 
 	private fun setNavbarIsExpanded(value: Boolean) {
-		if (navBar !is NavigationRailView) {
-			return
-		}
+		val rail = navBar as? NavigationRailView ?: return
 		if (value) {
-			navBar.expand()
+			rail.expand()
 			navRailHeader?.run {
 				root.updateLayoutParams<FrameLayout.LayoutParams> {
 					gravity = Gravity.TOP or Gravity.START
@@ -307,11 +361,11 @@ class MainNavigationDelegate(
 				railFab.extend()
 				buttonExpand.setImageResource(R.drawable.ic_drawer_menu_open)
 				buttonExpand.setContentDescriptionAndTooltip(R.string.collapse)
-				val horizontalPadding = navBar.itemActiveIndicatorExpandedMarginHorizontal
+				val horizontalPadding = rail.itemActiveIndicatorExpandedMarginHorizontal
 				root.setPadding(horizontalPadding, 0, horizontalPadding, 0)
 			}
 		} else {
-			navBar.collapse()
+			rail.collapse()
 			navRailHeader?.run {
 				root.updateLayoutParams<FrameLayout.LayoutParams> {
 					gravity = Gravity.TOP or Gravity.CENTER
@@ -319,7 +373,7 @@ class MainNavigationDelegate(
 				railFab.shrink()
 				buttonExpand.setImageResource(R.drawable.ic_drawer_menu)
 				buttonExpand.setContentDescriptionAndTooltip(R.string.expand)
-				val horizontalPadding = navBar.itemActiveIndicatorMarginHorizontal
+				val horizontalPadding = rail.itemActiveIndicatorMarginHorizontal
 				root.setPadding(horizontalPadding, 0, horizontalPadding, 0)
 			}
 		}
@@ -331,7 +385,6 @@ class MainNavigationDelegate(
 	}
 
 	companion object {
-
 		const val MAX_ITEM_COUNT = 6
 	}
 }

@@ -5,6 +5,10 @@ import androidx.activity.OnBackPressedCallback
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.search.SearchView
 import com.google.android.material.snackbar.Snackbar
+import io.github.landwarderer.futon.R
+import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.prefs.observeAsFlow
+import io.github.landwarderer.futon.main.ui.owners.BottomNavOwner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -13,10 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import io.github.landwarderer.futon.R
-import io.github.landwarderer.futon.core.prefs.AppSettings
-import io.github.landwarderer.futon.core.prefs.observeAsFlow
-import io.github.landwarderer.futon.main.ui.owners.BottomNavOwner
 
 class ExitCallback(
 	private val activity: MainActivity,
@@ -59,7 +59,7 @@ class ExitCallback(
 	private suspend fun resetExitConfirmation() {
 		isDisabledByTimeout.value = true
 		val snackbar = Snackbar.make(snackbarHost, R.string.confirm_exit, Snackbar.LENGTH_INDEFINITE)
-		snackbar.anchorView = (activity as? BottomNavOwner)?.bottomNav
+		snackbar.anchorView = (activity as? BottomNavOwner)?.bottomNavView
 		snackbar.show()
 		delay(2000)
 		snackbar.dismiss()

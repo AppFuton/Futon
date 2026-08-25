@@ -70,7 +70,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() {
 			val raw = prefs.getString(KEY_NAV_MAIN, null)?.split(',')
 			return if (raw.isNullOrEmpty()) {
-				listOf(NavItem.HISTORY, NavItem.FAVORITES, NavItem.EXPLORE, NavItem.FEED)
+				FUTON_DEFAULT_NAV_ITEMS
 			} else {
 				raw.mapNotNull { x -> NavItem.entries.find(x) }.ifEmpty { listOf(NavItem.EXPLORE) }
 			}
@@ -80,6 +80,30 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 				putString(KEY_NAV_MAIN, value.joinToString(",") { it.name })
 			}
 		}
+
+	/** Returns true once the one-time Futon nav default migration has been applied. */
+	val isFutonNavDefaultApplied: Boolean
+		get() = prefs.getBoolean(KEY_NAV_FUTON_DEFAULT_APPLIED, false)
+
+	/**
+	 * Migrates users who still have the old Kotatsu 4-item default to the new Futon 5-item
+	 * default (History, Favourites, Local, Explore, Settings) and marks the migration as done
+	 * so the tutorial tip is shown exactly once.  No-op on subsequent calls.
+	 */
+	fun applyFutonNavDefaultIfNeeded() {
+		if (isFutonNavDefaultApplied) return
+		val raw = prefs.getString(KEY_NAV_MAIN, null)
+		// Migrate only when the pref is absent or still the old Kotatsu default ordering.
+		val isOldDefault = raw == null ||
+			raw == "HISTORY,FAVORITES,EXPLORE,FEED" ||
+			raw == "HISTORY,FAVORITES,FEED,EXPLORE"
+		prefs.edit {
+			if (isOldDefault) {
+				putString(KEY_NAV_MAIN, FUTON_DEFAULT_NAV_ITEMS.joinToString(",") { it.name })
+			}
+			putBoolean(KEY_NAV_FUTON_DEFAULT_APPLIED, true)
+		}
+	}
 
 	val isNavLabelsVisible: Boolean
 		get() = prefs.getBoolean(KEY_NAV_LABELS, false)
@@ -839,6 +863,19 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_NAV_LABELS = "nav_labels"
 		const val KEY_NAV_PINNED = "nav_pinned"
 		const val KEY_MAIN_FAB = "main_fab"
+		/** Marks that the one-time migration to Futon default nav items has been applied. */
+		const val KEY_NAV_FUTON_DEFAULT_APPLIED = "nav_futon_default_applied"
+		/** Tip key for the "new nav bar defaults" one-time tutorial banner. */
+		const val TIP_NEW_NAV_DEFAULT = "tip_new_nav_default"
+
+		/** The 5-item default introduced by Futon: History, Favourites, Local, Explore, Settings. */
+		val FUTON_DEFAULT_NAV_ITEMS: List<NavItem> = listOf(
+			NavItem.HISTORY,
+			NavItem.FAVORITES,
+			NavItem.LOCAL,
+			NavItem.EXPLORE,
+			NavItem.SETTINGS,
+		)
 		const val KEY_32BIT_COLOR = "enhanced_colors"
 		const val KEY_SOURCES_ORDER = "sources_sort_order"
 		const val KEY_SOURCES_CATALOG = "sources_catalog"

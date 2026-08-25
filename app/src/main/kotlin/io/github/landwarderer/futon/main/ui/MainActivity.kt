@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuProvider
@@ -41,9 +42,10 @@ import io.github.landwarderer.futon.core.os.VoiceInputContract
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.NavItem
 import io.github.landwarderer.futon.core.ui.BaseActivity
+import io.github.landwarderer.futon.core.ui.components.AppTheme
+import io.github.landwarderer.futon.core.ui.components.BottomNavBar
+import io.github.landwarderer.futon.core.ui.components.BottomNavBarState
 import io.github.landwarderer.futon.core.ui.util.FadingAppbarMediator
-import io.github.landwarderer.futon.core.ui.util.MenuInvalidator
-import io.github.landwarderer.futon.core.ui.widgets.SlidingBottomNavigationView
 import io.github.landwarderer.futon.core.util.ext.consume
 import io.github.landwarderer.futon.core.util.ext.end
 import io.github.landwarderer.futon.core.util.ext.observe
@@ -58,7 +60,6 @@ import io.github.landwarderer.futon.local.ui.LocalIndexUpdateService
 import io.github.landwarderer.futon.local.ui.LocalStorageCleanupWorker
 import io.github.landwarderer.futon.main.ui.owners.AppBarOwner
 import io.github.landwarderer.futon.main.ui.owners.BottomNavOwner
-import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.remotelist.ui.MangaSearchMenuProvider
 import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionItemCallback
 import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionListenerImpl
@@ -75,6 +76,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koitharu.kotatsu.parsers.model.Manga
 import javax.inject.Inject
 import com.google.android.material.R as materialR
 
@@ -83,7 +85,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	View.OnClickListener,
 	SearchSuggestionItemCallback.SuggestionItemListener,
 	MainNavigationDelegate.OnFragmentChangedListener,
-	View.OnLayoutChangeListener,
 	SearchView.TransitionListener {
 
 	@Inject
@@ -99,26 +100,67 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	private lateinit var navigationDelegate: MainNavigationDelegate
 	private lateinit var fadingAppbarMediator: FadingAppbarMediator
 
+	// Track pinned state locally so updateContainerBottomMargin can read it synchronously.
+	// Initialized lazily so it is read after Hilt injects `settings`.
+	private var isNavBarPinned: Boolean = false
+
+	// Compose state for the bottom nav bar (null on wide/landscape layouts that use navRail)
+	private var _bottomNavState: BottomNavBarState? = null
+
 	override val appBar: AppBarLayout
 		get() = viewBinding.appbar
 
-	override val bottomNav: SlidingBottomNavigationView?
+	/** The ComposeView hosting the Compose nav bar, or null on wide layouts. */
+	override val bottomNavView: ComposeView?
 		get() = viewBinding.bottomNav
+
+	/** The Compose state driving the nav bar, or null on wide layouts. */
+	override val bottomNavState: BottomNavBarState?
+		get() = _bottomNavState
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContentView(ActivityMainBinding.inflate(layoutInflater))
 		setSupportActionBar(viewBinding.searchBar)
 
+		// Read settings only after Hilt has injected `settings`
+		isNavBarPinned = settings.isNavBarPinned
+
 		viewBinding.fab?.setOnClickListener(this)
 		viewBinding.navRail?.headerView?.findViewById<View>(R.id.railFab)?.setOnClickListener(this)
 		fadingAppbarMediator =
 			FadingAppbarMediator(viewBinding.appbar, viewBinding.layoutSearch ?: viewBinding.searchBar)
 
+		// Run the one-time migration to Futon nav defaults (also enables the tutorial tip)
+		settings.applyFutonNavDefaultIfNeeded()
+
+		// Build nav state and wire Compose if we are on the phone (bottom nav) layout
+		val navRail = viewBinding.navRail
+		if (navRail == null && viewBinding.bottomNav != null) {
+			val state = BottomNavBarState(settings).also { _bottomNavState = it }
+			viewBinding.bottomNav!!.setContent {
+				AppTheme {
+					BottomNavBar(
+						navItems = state.navItems,
+						selectedItemId = state.selectedItemId,
+						badgeCounts = state.badgeCounts,
+						showTip = state.showTip,
+						onItemClick = { item -> onComposeNavItemClick(item) },
+						onTipDismiss = {
+							settings.closeTip(AppSettings.TIP_NEW_NAV_DEFAULT)
+							state.showTip = false
+						},
+					)
+				}
+			}
+		}
+
 		navigationDelegate = MainNavigationDelegate(
-			navBar = checkNotNull(bottomNav ?: viewBinding.navRail),
+			navBar = viewBinding.navRail,
 			fragmentManager = supportFragmentManager,
 			settings = settings,
+			composeNavState = _bottomNavState,
+			context = this,
 		)
 		navigationDelegate.addOnFragmentChangedListener(this)
 		navigationDelegate.onCreate(this, savedInstanceState)
@@ -142,11 +184,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			onFirstStart()
 		}
 
-		viewBinding.bottomNav?.addOnLayoutChangeListener(this)
 		viewBinding.searchView.addTransitionListener(this)
 		viewBinding.searchView.addTransitionListener(exitCallback)
 
-		// Defer heavy initialization to after window is shown to prevent ANR on slow devices
+		// Observe bottom nav height changes for container margin (Compose layout)
+		viewBinding.bottomNav?.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+			if (top != oldTop || bottom != oldBottom) updateContainerBottomMargin()
+		}
+
+		// Defer heavy initialisation to after the window is shown to prevent ANR on slow devices
 		lifecycleScope.launch {
 			lifecycle.withResumed {
 				viewModel.onOpenReader.observeEvent(this@MainActivity, this@MainActivity::onOpenReader)
@@ -178,7 +224,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 
 	override fun addMenuProvider(provider: MenuProvider, owner: LifecycleOwner, state: Lifecycle.State) {
-		if (provider !is MangaSearchMenuProvider) { // do not duplicate search menu item
+		if (provider !is MangaSearchMenuProvider) {
 			super.addMenuProvider(provider, owner, state)
 		}
 	}
@@ -201,10 +247,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				searchBarDefaultMargin + barsInsets.start(v)
 			}
 		}
+		// Pass only horizontal insets to the ComposeView — NavigationBar handles bottom insets
+		// internally via WindowInsets.navigationBars, so adding bottom here causes double padding.
 		viewBinding.bottomNav?.updatePadding(
 			left = barsInsets.left,
 			right = barsInsets.right,
-			bottom = barsInsets.bottom,
 		)
 		viewBinding.navRail?.updateLayoutParams<MarginLayoutParams> {
 			marginStart = barsInsets.start(v)
@@ -214,22 +261,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		updateContainerBottomMargin()
 		return insets.consume(v, typeMask, start = viewBinding.navRail != null).also {
 			handleSearchSuggestionsInsets(it)
-		}
-	}
-
-	override fun onLayoutChange(
-		v: View?,
-		left: Int,
-		top: Int,
-		right: Int,
-		bottom: Int,
-		oldLeft: Int,
-		oldTop: Int,
-		oldRight: Int,
-		oldBottom: Int
-	) {
-		if (top != oldTop || bottom != oldBottom) {
-			updateContainerBottomMargin()
 		}
 	}
 
@@ -252,7 +283,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	override fun onSupportActionModeStarted(mode: ActionMode) {
 		super.onSupportActionModeStarted(mode)
 		adjustFabVisibility()
-		bottomNav?.hide()
+		setBottomNavVisible(false)
 		(viewBinding.layoutSearch ?: viewBinding.searchBar).isInvisible = true
 		updateContainerBottomMargin()
 	}
@@ -260,10 +291,35 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	override fun onSupportActionModeFinished(mode: ActionMode) {
 		super.onSupportActionModeFinished(mode)
 		adjustFabVisibility()
-		bottomNav?.show()
+		setBottomNavVisible(true)
 		(viewBinding.layoutSearch ?: viewBinding.searchBar).isInvisible = false
 		updateContainerBottomMargin()
 	}
+
+	// ---------------------------------------------------------------------------
+	// Compose nav bar item click
+	// ---------------------------------------------------------------------------
+
+	private fun onComposeNavItemClick(item: NavItem) {
+		val state = _bottomNavState ?: return
+		val wasAlreadySelected = item.id == state.selectedItemId
+
+		if (!item.isActivityLauncher) {
+			// Update selection immediately so the bar responds on first tap
+			state.selectedItemId = item.id
+		}
+
+		navigationDelegate.onComposeItemClick(item) { router.openSettings() }
+
+		// Reselect → scroll to top
+		if (wasAlreadySelected && !item.isActivityLauncher) {
+			navigationDelegate.syncSelectedItem()
+		}
+	}
+
+	// ---------------------------------------------------------------------------
+	// Internal helpers
+	// ---------------------------------------------------------------------------
 
 	private fun onOpenReader(manga: Manga) {
 		val fab = viewBinding.fab ?: viewBinding.navRail?.headerView
@@ -295,7 +351,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 
 	private fun onFirstStart() = try {
-		lifecycleScope.launch(Dispatchers.Main) { // not a default `Main.immediate` dispatcher
+		lifecycleScope.launch(Dispatchers.Main) {
 			withContext(Dispatchers.IO) {
 				LocalStorageCleanupWorker.enqueue(applicationContext)
 			}
@@ -331,13 +387,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		navigationDelegate.navRailHeader?.railFab?.isVisible = isResumeEnabled
 		val fab = viewBinding.fab ?: return
 		if (isResumeEnabled && !actionModeDelegate.isActionModeStarted && !isSearchOpened && topFragment is HistoryListFragment) {
-			if (!fab.isVisible) {
-				fab.show()
-			}
+			if (!fab.isVisible) fab.show()
 		} else {
-			if (fab.isVisible) {
-				fab.hide()
-			}
+			if (fab.isVisible) fab.hide()
 		}
 	}
 
@@ -351,8 +403,46 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			scrollFlags = appBarScrollFlags
 		}
 		adjustFabVisibility(isSearchOpened = isOpened)
-		bottomNav?.showOrHide(!isOpened)
+		setBottomNavVisible(!isOpened)
 		updateContainerBottomMargin()
+	}
+
+	/** Show or hide the bottom nav bar (Compose state or View, whichever is present). */
+	private fun setBottomNavVisible(visible: Boolean) {
+		_bottomNavState?.isVisible = visible
+		// The ComposeView itself needs to be visible/gone so CoordinatorLayout knows the height
+		viewBinding.bottomNav?.let { composeView ->
+			composeView.isVisible = visible
+		}
+	}
+
+	private fun setNavbarPinned(isPinned: Boolean) {
+		isNavBarPinned = isPinned
+		for (view in viewBinding.appbar.children) {
+			val lp = view.layoutParams as? AppBarLayout.LayoutParams ?: continue
+			val scrollFlags = if (isPinned) {
+				lp.scrollFlags and SCROLL_FLAG_SCROLL.inv()
+			} else {
+				lp.scrollFlags or SCROLL_FLAG_SCROLL
+			}
+			if (scrollFlags != lp.scrollFlags) {
+				lp.scrollFlags = scrollFlags
+				view.layoutParams = lp
+			}
+		}
+		updateContainerBottomMargin()
+	}
+
+	private fun updateContainerBottomMargin() {
+		val composeView = viewBinding.bottomNav ?: return
+		val newMargin = if (isNavBarPinned && composeView.isVisible) composeView.height else 0
+		with(viewBinding.container) {
+			val params = layoutParams as MarginLayoutParams
+			if (params.bottomMargin != newMargin) {
+				params.bottomMargin = newMargin
+				layoutParams = params
+			}
+		}
 	}
 
 	private fun requestNotificationsPermission() {
@@ -389,11 +479,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			.map { it >= SearchView.TransitionState.SHOWING }
 			.distinctUntilChanged()
 			.flatMapLatest { isShowing ->
-				if (isShowing) {
-					searchSuggestionViewModel.suggestion
-				} else {
-					emptyFlow()
-				}
+				if (isShowing) searchSuggestionViewModel.suggestion else emptyFlow()
 			}.observe(this, adapter)
 		searchSuggestionViewModel.onError.observeEvent(
 			this,
@@ -401,36 +487,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		)
 		ItemTouchHelper(SearchSuggestionItemCallback(this))
 			.attachToRecyclerView(viewBinding.recyclerViewSearch)
-	}
-
-	private fun setNavbarPinned(isPinned: Boolean) {
-		val bottomNavBar = viewBinding.bottomNav
-		bottomNavBar?.isPinned = isPinned
-		for (view in viewBinding.appbar.children) {
-			val lp = view.layoutParams as? AppBarLayout.LayoutParams ?: continue
-			val scrollFlags = if (isPinned) {
-				lp.scrollFlags and SCROLL_FLAG_SCROLL.inv()
-			} else {
-				lp.scrollFlags or SCROLL_FLAG_SCROLL
-			}
-			if (scrollFlags != lp.scrollFlags) {
-				lp.scrollFlags = scrollFlags
-				view.layoutParams = lp
-			}
-		}
-		updateContainerBottomMargin()
-	}
-
-	private fun updateContainerBottomMargin() {
-		val bottomNavBar = viewBinding.bottomNav ?: return
-		val newMargin = if (bottomNavBar.isPinned && bottomNavBar.isShownOrShowing) bottomNavBar.height else 0
-		with(viewBinding.container) {
-			val params = layoutParams as MarginLayoutParams
-			if (params.bottomMargin != newMargin) {
-				params.bottomMargin = newMargin
-				layoutParams = params
-			}
-		}
 	}
 
 	private fun SearchView.observeState() = callbackFlow {
