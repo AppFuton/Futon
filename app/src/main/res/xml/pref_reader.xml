@@ -16,6 +16,45 @@
 		android:summary="@string/detect_reader_mode_summary"
 		android:title="@string/detect_reader_mode" />
 
+    <SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:key="reader_smart_resume"
+        android:title="@string/smart_resume"
+        android:summary="@string/smart_resume_summary"
+        app:allowDividerAbove="true" />
+
+    <ListPreference
+        android:defaultValue="PERCENTAGE"
+        android:dependency="reader_smart_resume"
+        android:entries="@array/smart_resume_modes"
+        android:entryValues="@array/smart_resume_mode_values"
+        android:key="reader_smart_resume_mode"
+        android:title="@string/smart_resume_rule"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        android:defaultValue="90"
+        android:dependency="reader_smart_resume"
+        android:key="reader_smart_resume_percentage"
+        android:dialogMessage="@string/smart_resume_percentage_help"
+        android:dialogTitle="@string/smart_resume_threshold"
+        android:title="@string/smart_resume_threshold" />
+
+    <EditTextPreference
+        android:defaultValue="1"
+        android:dependency="reader_smart_resume"
+        android:key="reader_smart_resume_pages"
+        android:dialogMessage="@string/smart_resume_pages_help"
+        android:dialogTitle="@string/smart_resume_threshold"
+        android:title="@string/smart_resume_threshold" />
+
+    <io.github.landwarderer.futon.settings.utils.HelpSwitchPreference
+        android:defaultValue="false"
+        android:dependency="reader_smart_resume"
+        android:key="reader_smart_resume_wait"
+        android:title="@string/smart_resume_wait"
+        android:summary="@string/smart_resume_wait_summary" />
+
 	<ListPreference
 		android:entries="@array/zoom_modes"
 		android:key="zoom_mode"

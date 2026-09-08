@@ -5,6 +5,9 @@ import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.View
 import androidx.preference.ListPreference
+import androidx.preference.EditTextPreference
+import androidx.core.os.bundleOf
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import dagger.hilt.android.AndroidEntryPoint
@@ -12,6 +15,9 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.ZoomMode
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.prefs.ChapterCompletionMode
+import io.github.landwarderer.futon.settings.reader.SmartResumeThresholdDialog
+import io.github.landwarderer.futon.settings.utils.HelpSwitchPreference
 import io.github.landwarderer.futon.core.prefs.ReaderAnimation
 import io.github.landwarderer.futon.core.prefs.ReaderBackground
 import io.github.landwarderer.futon.core.prefs.ReaderControl
@@ -66,7 +72,43 @@ class ReaderSettingsFragment :
 		}
 		findPreference<SliderPreference>(AppSettings.KEY_WEBTOON_ZOOM_OUT)?.summaryProvider = PercentSummaryProvider()
 		updateReaderModeDependency()
+        findPreference<EditTextPreference>(AppSettings.KEY_SMART_RESUME_PERCENTAGE)?.summaryProvider =
+            Preference.SummaryProvider<EditTextPreference> {
+                getString(R.string.smart_resume_percentage_summary, settings.smartResumePercentage)
+            }
+        findPreference<EditTextPreference>(AppSettings.KEY_SMART_RESUME_PAGES)?.summaryProvider =
+            Preference.SummaryProvider<EditTextPreference> {
+                val count = settings.smartResumePagesRemaining
+                resources.getQuantityString(R.plurals.smart_resume_pages_summary, count, count)
+            }
+        findPreference<HelpSwitchPreference>(AppSettings.KEY_SMART_RESUME_WAIT)?.run {
+            helpDescription = getString(R.string.smart_resume_wait_help_title)
+            onHelpClick = {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.smart_resume_wait_help_title)
+                    .setMessage(R.string.smart_resume_wait_help)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
+            }
+        }
+        updateSmartResumeRule()
 	}
+
+    @Suppress("DEPRECATION")
+    override fun onDisplayPreferenceDialog(preference: Preference) {
+        if (preference.key != AppSettings.KEY_SMART_RESUME_PERCENTAGE &&
+            preference.key != AppSettings.KEY_SMART_RESUME_PAGES
+        ) {
+            super.onDisplayPreferenceDialog(preference)
+            return
+        }
+        val tag = "androidx.preference.PreferenceFragment.DIALOG"
+        if (parentFragmentManager.findFragmentByTag(tag) != null) return
+        SmartResumeThresholdDialog().apply {
+            arguments = bundleOf("key" to preference.key)
+            setTargetFragment(this@ReaderSettingsFragment, 0)
+        }.show(parentFragmentManager, tag)
+    }
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
@@ -92,6 +134,7 @@ class ReaderSettingsFragment :
 	override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
 		when (key) {
 			AppSettings.KEY_READER_MODE -> updateReaderModeDependency()
+            AppSettings.KEY_SMART_RESUME_MODE -> updateSmartResumeRule()
 		}
 	}
 
@@ -100,4 +143,10 @@ class ReaderSettingsFragment :
 			isEnabled = settings.defaultReaderMode != ReaderMode.WEBTOON
 		}
 	}
+
+    private fun updateSmartResumeRule() {
+        val percentage = settings.smartResumeCompletionMode == ChapterCompletionMode.PERCENTAGE
+        findPreference<Preference>(AppSettings.KEY_SMART_RESUME_PERCENTAGE)?.isVisible = percentage
+        findPreference<Preference>(AppSettings.KEY_SMART_RESUME_PAGES)?.isVisible = !percentage
+    }
 }

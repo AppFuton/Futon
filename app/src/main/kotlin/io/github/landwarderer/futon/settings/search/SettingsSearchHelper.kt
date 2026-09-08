@@ -11,6 +11,7 @@ import dagger.Reusable
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.backups.ui.periodical.PeriodicalBackupSettingsFragment
 import io.github.landwarderer.futon.core.LocalizedAppContext
+import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.settings.AppearanceSettingsFragment
 import io.github.landwarderer.futon.settings.DownloadsSettingsFragment
 import io.github.landwarderer.futon.settings.ProxySettingsFragment
@@ -117,9 +118,15 @@ class SettingsSearchHelper @Inject constructor(
                 fragmentClass = fragmentClass,
             )
         } else {
+            // Both modes share one threshold row. Search should land on the always-visible parent.
+            if (pref.key == AppSettings.KEY_SMART_RESUME_PAGES) return@repeat
             result.add(
                 SettingsItem(
-                    key = pref.key ?: return@repeat,
+                    key = if (pref.key == AppSettings.KEY_SMART_RESUME_PERCENTAGE) {
+                        AppSettings.KEY_SMART_RESUME
+                    } else {
+                        pref.key ?: return@repeat
+                    },
                     title = pref.title ?: return@repeat,
                     breadcrumbs = breadcrumbs,
                     fragmentClass = fragmentClass,
