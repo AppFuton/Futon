@@ -1,5 +1,6 @@
 package io.github.landwarderer.futon.details.domain
 
+import androidx.room.withTransaction
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.model.isLocal
 import io.github.landwarderer.futon.core.os.NetworkState
@@ -52,12 +53,17 @@ class ProgressUpdateUseCase @Inject constructor(
 		val ppc = 1f / chaptersCount
 		val result = ppc * chapterIndex + ppc * pagePercent
 		if (result != history.percent) {
-			database.getHistoryDao().update(
-				history.copy(
-					chapterId = chapter.id,
-					percent = result,
-				),
-			)
+			database.withTransaction {
+				// Loading metadata may outlive a newer reader save. Never restore that stale snapshot.
+				if (database.getHistoryDao().find(manga.id) == history) {
+					database.getHistoryDao().update(
+						history.copy(
+							chapterId = chapter.id,
+							percent = result,
+						),
+					)
+				}
+			}
 		}
 		return result
 	}
