@@ -530,6 +530,23 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_READER_AUTOSCROLL_FAB, true)
 		set(value) = prefs.edit { putBoolean(KEY_READER_AUTOSCROLL_FAB, value) }
 
+    val isSmartResumeEnabled: Boolean
+        get() = prefs.getBoolean(KEY_SMART_RESUME, false)
+
+    val smartResumeCompletionMode: ChapterCompletionMode
+        get() = ChapterCompletionMode.from(prefs.getString(KEY_SMART_RESUME_MODE, null))
+
+    val smartResumePercentage: Int
+        get() = prefs.getString(KEY_SMART_RESUME_PERCENTAGE, null)?.toIntOrNull()
+            ?.takeIf { it in 1..100 } ?: 90
+
+    val smartResumePagesRemaining: Int
+        get() = prefs.getString(KEY_SMART_RESUME_PAGES, null)?.toIntOrNull()
+            ?.takeIf { it >= 0 } ?: 1
+
+    val isSmartResumeWaitForUpdates: Boolean
+        get() = prefs.getBoolean(KEY_SMART_RESUME_WAIT, false)
+
 	val isPagesPreloadEnabled: Boolean
 		get() {
 			if (isBackgroundNetworkRestricted()) {
@@ -780,6 +797,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_PAGES_NUMBERS = "pages_numbers"
 		const val KEY_SCREENSHOTS_POLICY = "screenshots_policy"
 		const val KEY_PAGES_PRELOAD = "pages_preload"
+        const val KEY_SMART_RESUME = "reader_smart_resume"
+        const val KEY_SMART_RESUME_MODE = "reader_smart_resume_mode"
+        const val KEY_SMART_RESUME_PERCENTAGE = "reader_smart_resume_percentage"
+        const val KEY_SMART_RESUME_PAGES = "reader_smart_resume_pages"
+        const val KEY_SMART_RESUME_WAIT = "reader_smart_resume_wait"
 		const val KEY_SUGGESTIONS = "suggestions"
 		const val KEY_SUGGESTIONS_WIFI_ONLY = "suggestions_wifi"
 		const val KEY_SUGGESTIONS_EXCLUDE_NSFW = "suggestions_exclude_nsfw"

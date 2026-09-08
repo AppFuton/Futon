@@ -1,6 +1,6 @@
 package io.github.landwarderer.futon.reader.domain
 
-import android.util.LongSparseArray
+import androidx.collection.LongSparseArray
 import androidx.annotation.CheckResult
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.sync.Mutex
@@ -60,8 +60,9 @@ class ChaptersLoader @Inject constructor(
 		return true
 	}
 
-	suspend fun loadSingleChapter(chapterId: Long): Boolean {
+	suspend fun loadSingleChapter(chapterId: Long, keepCurrentOnEmpty: Boolean = false): Boolean {
 		val pages = loadChapter(chapterId)
+		if (keepCurrentOnEmpty && pages.isEmpty()) return false
 		return mutex.withLock {
 			chapterPages.clear()
 			chapterPages.addLast(chapterId, pages)

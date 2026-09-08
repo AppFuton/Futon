@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="smart_resume">Smart resume</string>
+    <string name="smart_resume_summary">When new chapters arrive, continue with the next chapter if you nearly finished what was previously the latest chapter.</string>
+    <string name="smart_resume_rule">Consider a chapter finished based on</string>
+    <string name="smart_resume_percentage">Percentage</string>
+    <string name="smart_resume_pages_remaining">Pages remaining</string>
+    <string name="smart_resume_threshold">Completion threshold</string>
+    <string name="smart_resume_percentage_summary">At least %1$d%% of pages reached, including the current page.</string>
+    <plurals name="smart_resume_pages_summary">
+        <item quantity="one">%d page or fewer remaining.</item>
+        <item quantity="other">%d pages or fewer remaining.</item>
+    </plurals>
+    <string name="smart_resume_percentage_error">Enter a whole number from 1 to 100.</string>
+    <string name="smart_resume_pages_error">Enter a whole number from 0 to 2147483647.</string>
+    <string name="smart_resume_wait">Wait for chapter updates</string>
+    <string name="smart_resume_wait_summary">Wait for Futon to check for chapter updates before choosing where to continue.</string>
+    <string name="smart_resume_wait_help_title">About waiting for chapter updates</string>
+    <string name="smart_resume_wait_help">Off: Resume using the chapter list Futon already has. If more chapters appear afterward, your reading position won’t change.\n\nOn: Wait for Futon’s usual chapter update before resuming. This may take longer. Futon may reuse previously downloaded chapter information instead of fetching a fresh list. If the update fails, resume at your saved position.</string>
+    <string name="smart_resume_percentage_help">Count pages reached, including the page you’re on. At 90%, page 14 of 15 qualifies; page 13 does not. This does not measure how far you’ve scrolled within a long image.</string>
+    <string name="smart_resume_pages_help">Choose how many pages may remain after the page you’re on. Set this to 0 to require reaching the final page. This does not measure how far you’ve scrolled within a long image.</string>
+    <string-array name="smart_resume_modes">
+        <item>@string/smart_resume_percentage</item>
+        <item>@string/smart_resume_pages_remaining</item>
+    </string-array>
+    <string-array name="smart_resume_mode_values">
+        <item>PERCENTAGE</item>
+        <item>PAGES_REMAINING</item>
+    </string-array>
+</resources>
