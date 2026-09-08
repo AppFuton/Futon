@@ -1,6 +1,6 @@
 package io.github.landwarderer.futon.reader.domain
 
-import android.util.LongSparseArray
+import androidx.collection.LongSparseArray
 import androidx.annotation.CheckResult
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.sync.Mutex
@@ -39,8 +39,11 @@ class ChaptersLoader @Inject constructor(
 		val index = if (isNext) chapters.indexOfFirst(predicate) else chapters.indexOfLast(predicate)
 		if (index == -1) return false
 		val newChapter = chapters.getOrNull(if (isNext) index + 1 else index - 1) ?: return false
+		if (mutex.withLock { newChapter.id in chapterPages }) return false
 		val newPages = loadChapter(newChapter.id)
-		mutex.withLock {
+		if (newPages.isEmpty()) return false
+		return mutex.withLock {
+			if (newChapter.id in chapterPages) return@withLock false
 			if (chapterPages.chaptersSize > 1) {
 				// trim pages
 				if (chapterPages.size > PAGES_TRIM_THRESHOLD) {
@@ -57,7 +60,6 @@ class ChaptersLoader @Inject constructor(
 				chapterPages.addFirst(newChapter.id, newPages)
 			}
 		}
-		return true
 	}
 
 	suspend fun loadSingleChapter(chapterId: Long): Boolean {
