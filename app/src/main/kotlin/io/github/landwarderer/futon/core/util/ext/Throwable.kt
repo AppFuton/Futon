@@ -66,7 +66,13 @@ private val FNFE_MESSAGE_REGEX = Regex("^(/[^\\s:]+)?.+?\\s([A-Z]{2,6})?\\s.+$")
 fun Throwable.getDisplayMessage(resources: Resources): String = getDisplayMessageOrNull(resources)
     ?: resources.getString(R.string.error_occurred)
 
-private fun Throwable.getDisplayMessageOrNull(resources: Resources): String? = when (this) {
+private fun Throwable.getDisplayMessageOrNull(resources: Resources): String? {
+	ExceptionResolver.findResolvable(this)?.let { resolved ->
+		if (resolved !== this) {
+			return resolved.getDisplayMessageOrNull(resources)
+		}
+	}
+	return when (this) {
     is CancellationException -> cause?.getDisplayMessageOrNull(resources) ?: message
     is CaughtException -> cause.getDisplayMessageOrNull(resources)
     is WrapperIOException -> cause.getDisplayMessageOrNull(resources)
@@ -141,7 +147,8 @@ private fun Throwable.getDisplayMessageOrNull(resources: Resources): String? = w
     is HttpStatusException -> getHttpDisplayMessage(statusCode, resources)
 
     else -> mapDisplayMessage(message, resources) ?: message
-}.takeUnless { it.isNullOrBlank() }
+    }.takeUnless { it.isNullOrBlank() }
+}
 
 @DrawableRes
 fun Throwable.getDisplayIcon(): Int = when (this) {
