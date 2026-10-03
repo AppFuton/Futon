@@ -32,8 +32,8 @@ import io.github.landwarderer.futon.core.util.ext.parentView
 import io.github.landwarderer.futon.core.util.ext.showOrHide
 import io.github.landwarderer.futon.databinding.DialogDownloadBinding
 import io.github.landwarderer.futon.main.ui.owners.BottomNavOwner
-import org.koitharu.kotatsu.parsers.util.format
 import io.github.landwarderer.futon.settings.storage.DirectoryModel
+import org.koitharu.kotatsu.parsers.util.format
 
 @AndroidEntryPoint
 class DownloadDialogFragment : AlertDialogFragment<DialogDownloadBinding>(), View.OnClickListener {
@@ -324,7 +324,7 @@ class DownloadDialogFragment : AlertDialogFragment<DialogDownloadBinding>(), Vie
 				Snackbar.LENGTH_LONG,
 			)
 			(host.context.findActivity() as? BottomNavOwner)?.let {
-				snackbar.anchorView = it.bottomNav
+				snackbar.anchorView = it.bottomNavView
 			}
 			val router = AppRouter.from(host)
 			if (router != null) {

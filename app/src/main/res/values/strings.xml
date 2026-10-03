@@ -380,6 +380,7 @@
     <string name="allow_unstable_updates_summary">Check for nightly builds in addition to stable releases</string>
     <string name="download_started">Download started</string>
     <string name="got_it">Got it</string>
+    <string name="tip_new_nav_default">Futon has a new set of default navigation tabs — History, Favourites, Library, Explore and Settings. You can customise them in Settings → Appearance.</string>
     <string name="sources_reorder_tip">Tap and hold on an item to reorder them</string>
     <string name="user_agent">UserAgent header</string>
     <string name="settings_apply_restart_required">Please restart the application to apply these changes</string>
@@ -965,4 +966,6 @@
     <string name="download_only_on_charging_summary">Connect to a power source to start downloads</string>
     <string name="error_quota_too_low">Storage quota cannot be lower than current usage</string>
     <string name="download_quota_reached">Storage quota reached. Downloads paused.</string>
+    <string name="home">Home</string>
+    <string name="library">Library\n</string>
 </resources>

@@ -16,4 +16,5 @@
 	<item name="nav_updated" type="id" />
 	<item name="nav_suggestions" type="id" />
 	<item name="nav_bookmarks" type="id" />
+	<item name="nav_settings" type="id" />
 </resources>
