@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.bookmarks.domain.Bookmark
+import io.github.landwarderer.futon.core.model.isNovel
 import io.github.landwarderer.futon.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.reader.ui.ReaderActivity
@@ -14,7 +15,7 @@ value class ReaderIntent private constructor(
 	val intent: Intent,
 ) {
 
-	class Builder(context: Context) {
+	class Builder(private val context: Context) {
 
 		private val intent = Intent(context, ReaderActivity::class.java)
 			.setAction(ACTION_MANGA_READ)
@@ -22,6 +23,12 @@ value class ReaderIntent private constructor(
 		fun manga(manga: Manga) = apply {
 			intent.putExtra(AppRouter.KEY_MANGA, ParcelableManga(manga))
 			intent.setData(AppRouter.shortMangaUrl(manga.id))
+			if (manga.isNovel ||
+				manga.url.endsWith(".epub", ignoreCase = true) ||
+				manga.url.endsWith(".pdf", ignoreCase = true)
+			) {
+				intent.setClass(context, io.github.landwarderer.futon.novel.ui.reader.NovelReaderActivity::class.java)
+			}
 		}
 
 		fun mangaId(mangaId: Long) = apply {

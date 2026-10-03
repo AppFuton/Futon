@@ -52,6 +52,12 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	private val connectivityManager = context.connectivityManager
 	private val mangaListBadgesDefault = ArraySet(context.resources.getStringArray(R.array.values_list_badges))
 
+	var appMode: AppMode
+		get() = prefs.getEnumValue(KEY_APP_MODE, AppMode.MANGA)
+		set(value) = prefs.edit { putEnumValue(KEY_APP_MODE, value) }
+
+	fun observeAppMode(): Flow<AppMode> = observeAsFlow(KEY_APP_MODE) { appMode }
+
 	var listMode: ListMode
 		get() = prefs.getEnumValue(KEY_LIST_MODE, ListMode.GRID)
 		set(value) = prefs.edit { putEnumValue(KEY_LIST_MODE, value) }
@@ -857,6 +863,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_LOCAL_MANGA_DIRS = "local_manga_dirs"
 		const val KEY_DISABLE_NSFW = "no_nsfw"
 		const val KEY_RELATED_MANGA = "related_manga"
+		const val KEY_APP_MODE = "app_mode"
 		const val KEY_NAV_MAIN = "nav_main"
 		const val KEY_NAV_LABELS = "nav_labels"
 		const val KEY_NAV_PINNED = "nav_pinned"

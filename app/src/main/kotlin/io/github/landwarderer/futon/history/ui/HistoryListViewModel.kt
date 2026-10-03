@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.MangaHistory
+import io.github.landwarderer.futon.core.model.isNovel
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.ListMode
@@ -52,7 +53,7 @@ private const val PAGE_SIZE = 16
 @HiltViewModel
 class HistoryListViewModel @Inject constructor(
 	private val repository: HistoryRepository,
-	settings: AppSettings,
+	private val settings: AppSettings,
 	private val mangaListMapper: MangaListMapper,
 	private val markAsReadUseCase: MarkAsReadUseCase,
 	private val quickFilter: HistoryListQuickFilter,
@@ -88,9 +89,17 @@ class HistoryListViewModel @Inject constructor(
 		valueProducer = { isStatsEnabled },
 	)
 
+	private fun observeFilteredHistory() = combine(
+		observeHistory(),
+		settings.observeAppMode(),
+	) { list, appMode ->
+		val isNovel = appMode.isNovel
+		list.filter { it.manga.isNovel == isNovel }
+	}
+
 	override val content = combine(
 		quickFilter.appliedOptions,
-		observeHistory(),
+		observeFilteredHistory(),
 		isGroupingEnabled,
 		observeListModeWithTriggers(),
 		settings.observeAsFlow(AppSettings.KEY_INCOGNITO_MODE) { isIncognitoModeEnabled },

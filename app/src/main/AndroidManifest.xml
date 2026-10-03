@@ -138,6 +138,11 @@
 				android:resource="@xml/remote_action" />
 		</activity>
 		<activity
+			android:name="io.github.landwarderer.futon.novel.ui.reader.NovelReaderActivity"
+			android:configChanges="keyboardHidden|orientation|screenSize"
+			android:exported="false"
+			android:theme="@style/Theme.Futon" />
+		<activity
 			android:name="io.github.landwarderer.futon.search.ui.MangaListActivity"
 			android:exported="true"
 			android:label="@string/manga_list">

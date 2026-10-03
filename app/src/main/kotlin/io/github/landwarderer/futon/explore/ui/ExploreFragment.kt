@@ -21,6 +21,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.exceptions.resolve.SnackbarErrorObserver
 import io.github.landwarderer.futon.core.model.LocalMangaSource
+import io.github.landwarderer.futon.core.model.LocalNovelSource
 import io.github.landwarderer.futon.core.model.getTitle
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
@@ -123,7 +124,7 @@ class ExploreFragment :
 
 	override fun onClick(v: View) {
 		when (v.id) {
-			R.id.button_local -> router.openList(LocalMangaSource, null, null)
+			R.id.button_local -> router.openList(if (viewModel.appMode.value.isNovel) LocalNovelSource else LocalMangaSource, null, null)
 			R.id.button_bookmarks -> router.openBookmarks()
 			R.id.button_more -> router.openSuggestions()
 			R.id.button_downloads -> router.openDownloads()

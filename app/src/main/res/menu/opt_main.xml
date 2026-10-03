@@ -13,6 +13,13 @@
 		app:showAsAction="ifRoom" />
 
 	<item
+		android:id="@+id/action_app_mode"
+		android:icon="@drawable/ic_novel"
+		android:orderInCategory="5"
+		android:title="@string/content_type_novel"
+		app:showAsAction="always" />
+
+	<item
 		android:id="@+id/action_downloads"
 		android:icon="@drawable/ic_download"
 		android:orderInCategory="10"

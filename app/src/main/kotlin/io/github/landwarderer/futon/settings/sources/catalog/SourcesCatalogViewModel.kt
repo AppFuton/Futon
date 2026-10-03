@@ -41,6 +41,7 @@ class SourcesCatalogViewModel @Inject constructor(
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 	val locales: Set<String?> = buildSet {
 		repository.allMangaSources.forEach { add(it.locale) }
+		io.github.landwarderer.futon.novel.data.source.NovelParserSource.entries.forEach { add(it.locale) }
 		mihonExtensionManager.getMihonMangaSources().forEach { add(it.locale) }
 		add(null)
 	}
@@ -143,6 +144,7 @@ class SourcesCatalogViewModel @Inject constructor(
 	private fun getContentTypes(isNsfwDisabled: Boolean): List<ContentType> {
 		val result = buildSet {
 			repository.allMangaSources.forEach { add(it.contentType) }
+			add(ContentType.NOVEL)
 			mihonExtensionManager.getMihonMangaSources().forEach { 
 				when(it.contentType) {
 					io.github.landwarderer.futon.mihon.parsers.model.ContentType.MANGA -> add(ContentType.MANGA)

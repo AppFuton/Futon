@@ -157,6 +157,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				viewModel.onFirstStart.observeEvent(this@MainActivity) { router.showWelcomeSheet() }
 				viewModel.isBottomNavPinned.observe(this@MainActivity, ::setNavbarPinned)
 				searchSuggestionViewModel.isIncognitoModeEnabled.observe(this@MainActivity, this@MainActivity::onIncognitoModeChanged)
+				viewModel.appMode.observe(this@MainActivity) {
+					invalidateOptionsMenu()
+					navigationDelegate.reloadCurrentFragment()
+				}
 				initSearch()
 			}
 		}

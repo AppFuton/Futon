@@ -58,6 +58,12 @@ class MainViewModel @Inject constructor(
 		valueProducer = { isIncognitoModeEnabled },
 	)
 
+	val appMode = settings.observeAsStateFlow(
+		scope = viewModelScope + Dispatchers.IO,
+		key = AppSettings.KEY_APP_MODE,
+		valueProducer = { appMode },
+	)
+
 	init {
 		launchJob(Dispatchers.IO) {
 			if (sourcesRepository.isSetupRequired()) {
@@ -75,5 +81,13 @@ class MainViewModel @Inject constructor(
 
 	fun setIncognitoMode(isEnabled: Boolean) {
 		settings.isIncognitoModeEnabled = isEnabled
+	}
+
+	fun toggleAppMode() {
+		settings.appMode = if (settings.appMode == io.github.landwarderer.futon.core.prefs.AppMode.NOVEL) {
+			io.github.landwarderer.futon.core.prefs.AppMode.MANGA
+		} else {
+			io.github.landwarderer.futon.core.prefs.AppMode.NOVEL
+		}
 	}
 }
