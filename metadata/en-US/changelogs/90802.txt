@@ -1,0 +1,8 @@
+Date: 2026-10-03
+
+Highlights
+- Fix saved reading progress reverting to an earlier page.
+- Add opt-in smart resume for newly available chapters.
+- Fix loading pauses between chapters when preloading is enabled.
+Maintenance
+- Updated parsers
