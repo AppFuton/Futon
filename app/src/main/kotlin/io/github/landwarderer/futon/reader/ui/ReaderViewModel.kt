@@ -45,6 +45,7 @@ import io.github.landwarderer.futon.reader.domain.ChapterCompletionRule
 import io.github.landwarderer.futon.reader.domain.SmartResumeResolver
 import io.github.landwarderer.futon.reader.domain.DetectReaderModeUseCase
 import io.github.landwarderer.futon.reader.domain.PageLoader
+import io.github.landwarderer.futon.reader.domain.nextChapterPrefetchPages
 import io.github.landwarderer.futon.reader.ui.config.ReaderSettings
 import io.github.landwarderer.futon.reader.ui.pager.ReaderUiState
 import io.github.landwarderer.futon.scrobbling.discord.ui.DiscordRpc
@@ -596,8 +597,15 @@ class ReaderViewModel @Inject constructor(
         val prevJob = loadingJob
         loadingJob = launchLoadingJob(Dispatchers.IO) {
             prevJob?.join()
-            chaptersLoader.loadPrevNextChapter(mangaDetails.requireValue(), currentId, isNext)
-            content.value = ReaderContent(chaptersLoader.snapshot(), null)
+            val appended = chaptersLoader.loadPrevNextChapter(mangaDetails.requireValue(), currentId, isNext)
+            val pages = chaptersLoader.snapshot()
+            content.value = ReaderContent(pages, null)
+            if (appended && isNext && pageLoader.isPrefetchApplicable()) {
+                val prefetchPages = pages.nextChapterPrefetchPages(currentId, PREFETCH_LIMIT)
+                if (prefetchPages.isNotEmpty()) {
+                    pageLoader.prefetch(prefetchPages)
+                }
+            }
         }
     }
 

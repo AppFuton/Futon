@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 The format is based on "Keep a Changelog" and follows semantic versioning where possible.
 
+## 9.8.2
+Date: 2026-10-03
+
+### Highlights
+* Fix saved reading progress reverting to an earlier page.
+* Add opt-in smart resume for newly available chapters.
+* Fix loading pauses between chapters when preloading is enabled.
+
+### Maintenance
+- Updated parsers and dependencies
+
 ## 9.8.1
 Date: 2026-08-16
 
