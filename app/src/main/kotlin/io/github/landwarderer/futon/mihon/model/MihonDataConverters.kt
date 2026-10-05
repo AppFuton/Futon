@@ -110,9 +110,13 @@ fun Content.toMihonManga(): SManga {
     
     // Fix malformed protocols (https// -> https://)
     cleanUrl = cleanUrl.replace(Regex("^(https?)/+"), "$1://")
-    
+
+    // Komga overrides HttpSource requests to pass manga.url directly to GET(), not baseUrl + url.
+    // Keep absolute API URLs intact and resolve relative /api/v1/... paths once the server is configured.
+    val isKomgaStyleApi = cleanUrl.contains("/api/v1/")
+
     // If URL is absolute and starts with baseUrl, strip it to avoid duplicates in HttpSource
-    if (baseUrl.isNotBlank()) {
+    if (baseUrl.isNotBlank() && !isKomgaStyleApi) {
         val baseHost = baseUrl.trimEnd('/')
         if (cleanUrl.startsWith(baseHost)) {
             val stripped = cleanUrl.substring(baseHost.length)
@@ -121,6 +125,11 @@ fun Content.toMihonManga(): SManga {
                 android.util.Log.d("MihonDataConverters", "Stripped baseUrl from absolute URL: '$url' -> '$cleanUrl'")
             }
         }
+    }
+
+    if (isKomgaStyleApi && !cleanUrl.matches(Regex("^https?://.*")) && baseUrl.isNotBlank()) {
+        cleanUrl = baseUrl.trimEnd('/') + cleanUrl
+        android.util.Log.d("MihonDataConverters", "Resolved Komga API URL: '$url' -> '$cleanUrl'")
     }
     
     // If URL still doesn't look absolute, log warning
@@ -184,8 +193,13 @@ fun SChapter.toContentChapter(source: ContentSource, overrideNumber: Float? = nu
  * Convert Apps ContentChapter to Mihon SChapter.
  */
 fun ContentChapter.toMihonChapter(): SChapter {
+    val baseUrl = (source as? MihonMangaSource)?.let { mihonSource ->
+        (mihonSource.catalogueSource as? HttpSource)?.baseUrl ?: ""
+    } ?: ""
+    val chapterUrl = resolveMihonRequestUrl(url, baseUrl)
+
     return SChapter.create().apply {
-        this.url = this@toMihonChapter.url
+        this.url = chapterUrl
         this.name = this@toMihonChapter.title ?: "Chapter ${this@toMihonChapter.number}"
         this.chapter_number = this@toMihonChapter.number
         this.date_upload = this@toMihonChapter.uploadDate
@@ -273,6 +287,16 @@ fun HttpSource.getPublicChapterUrl(chapter: SChapter): String {
 /**
  * Resolve relative URL using baseUrl.
  */
+private fun resolveMihonRequestUrl(url: String, baseUrl: String): String {
+    if (url.isBlank() || url.matches(Regex("^https?://.*"))) {
+        return url
+    }
+    if (baseUrl.isBlank()) {
+        return url
+    }
+    return baseUrl.trimEnd('/') + "/" + url.trimStart('/')
+}
+
 private fun resolveUrl(baseUrl: String, url: String?): String? {
     if (url.isNullOrBlank()) return null
     if (url.startsWith("http")) return url
