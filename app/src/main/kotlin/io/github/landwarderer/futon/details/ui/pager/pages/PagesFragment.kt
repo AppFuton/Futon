@@ -87,7 +87,7 @@ class PagesFragment :
 			parentViewModel.readingState,
 			parentViewModel.selectedBranch,
 		) { details, readingState, branch ->
-			if (details != null && (details.isLoaded || details.chapters.isNotEmpty())) {
+			if (details != null && !details.isNovel && (details.isLoaded || details.chapters.isNotEmpty())) {
 				PagesViewModel.State(details.filterChapters(branch), readingState, branch)
 			} else {
 				null

@@ -23,11 +23,18 @@ class LocalNovelRepository @Inject constructor(
 
 	override val source: MangaSource = LocalNovelSource
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.NEWEST)
+	override val sortOrders: Set<SortOrder> = EnumSet.of(
+		SortOrder.ALPHABETICAL,
+		SortOrder.NEWEST,
+		SortOrder.RELEVANCE,
+	)
 
 	override var defaultSortOrder: SortOrder = SortOrder.NEWEST
 
-	override val filterCapabilities = MangaListFilterCapabilities()
+	override val filterCapabilities = MangaListFilterCapabilities(
+		isSearchSupported = true,
+		isSearchWithFiltersSupported = true,
+	)
 
 	override suspend fun getList(offset: Int, order: SortOrder?, filter: MangaListFilter?): List<Manga> = withContext(Dispatchers.IO) {
 		val all = novelStorageManager.getAllNovels()

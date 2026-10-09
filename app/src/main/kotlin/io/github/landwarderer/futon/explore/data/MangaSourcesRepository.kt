@@ -112,7 +112,9 @@ class MangaSourcesRepository @Inject constructor(
 		if (settings.isAllSourcesEnabled) {
 			return emptySet()
 		}
-		val result = EnumSet.copyOf(allMangaSources)
+		val result = HashSet<MangaSource>(allMangaSources)
+		result.addAll(NovelParserSource.entries)
+		result.addAll(mihonExtensionManager.getMihonMangaSources())
 		val enabled = dao.findAllEnabledNames()
 		for (name in enabled) {
 			val source = name.toMangaSourceOrNull() ?: continue

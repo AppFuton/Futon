@@ -13,6 +13,7 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.LocalNovelSource
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.util.ext.addMenuProvider
+import io.github.landwarderer.futon.core.util.ext.withArgs
 import io.github.landwarderer.futon.databinding.FragmentListBinding
 import io.github.landwarderer.futon.filter.ui.FilterCoordinator
 import io.github.landwarderer.futon.list.ui.MangaListFragment
@@ -76,6 +77,10 @@ class NovelLocalListFragment : MangaListFragment(), FilterCoordinator.Owner, Men
 
 	companion object {
 		private const val MENU_ID_IMPORT = 1001
+
+		fun newInstance() = NovelLocalListFragment().withArgs(1) {
+			putString(RemoteListFragment.ARG_SOURCE, LocalNovelSource.name)
+		}
 	}
 
 	private fun openFilePicker() {

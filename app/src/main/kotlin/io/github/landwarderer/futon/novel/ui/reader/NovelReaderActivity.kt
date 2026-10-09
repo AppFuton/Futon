@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.slider.Slider
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.landwarderer.futon.R
+import io.github.landwarderer.futon.core.network.MangaHttpClient
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.ui.BaseFullscreenActivity
 import io.github.landwarderer.futon.core.util.MimeTypes
@@ -21,7 +22,13 @@ import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.observeEvent
 import io.github.landwarderer.futon.databinding.ActivityNovelReaderBinding
 import io.github.landwarderer.futon.novel.data.model.NovelReadingMode
+import io.github.landwarderer.futon.novel.data.source.BaseNovelRepository
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import java.io.FilterInputStream
 import java.io.InputStream
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -34,10 +41,23 @@ class NovelReaderActivity :
 	@Inject
 	lateinit var appSettings: AppSettings
 
+	@Inject
+	@MangaHttpClient
+	lateinit var baseOkHttpClient: OkHttpClient
+
+	private val imageOkHttpClient by lazy {
+		baseOkHttpClient.newBuilder()
+			.connectTimeout(15, TimeUnit.SECONDS)
+			.readTimeout(20, TimeUnit.SECONDS)
+			.build()
+	}
+
 	private val viewModel by viewModels<NovelReaderViewModel>()
 	private lateinit var readerSettings: NovelReaderSettings
 	private var isUiVisible = true
 	private var isSliderTracking = false
+	@Volatile
+	private var defaultUserAgent: String? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -76,6 +96,7 @@ class NovelReaderActivity :
 			useWideViewPort = true
 			displayZoomControls = false
 			builtInZoomControls = false
+			defaultUserAgent = userAgentString
 		}
 
 		viewBinding.webView.setBackgroundColor(readerSettings.effectiveBackgroundColor)
@@ -104,19 +125,27 @@ class NovelReaderActivity :
 				view: WebView?,
 				request: WebResourceRequest?,
 			): WebResourceResponse? {
-				val url = request?.url ?: return null
-				val path = url.path.orEmpty()
-				val epubParser = viewModel.getEpubParser()
-				if (epubParser != null && (url.scheme == "epub" || url.host == "futon.reader")) {
-					val cleanPath = path.removePrefix("/")
-					val stream: InputStream? = epubParser.readEntry(cleanPath)
-					if (stream != null) {
-						val ext = cleanPath.substringAfterLast('.', "")
-						val mime = MimeTypes.getMimeTypeFromExtension(ext)?.toString() ?: "application/octet-stream"
-						return WebResourceResponse(mime, null, stream)
+				return try {
+					val url = request?.url ?: return null
+					val path = url.path.orEmpty()
+					val epubParser = viewModel.getEpubParser()
+					if (epubParser != null && (url.scheme == "epub" || url.host == "futon.reader")) {
+						val cleanPath = path.removePrefix("/")
+						val stream: InputStream? = epubParser.readEntry(cleanPath)
+						if (stream != null) {
+							val ext = cleanPath.substringAfterLast('.', "")
+							val mime = MimeTypes.getMimeTypeFromExtension(ext)?.toString() ?: "application/octet-stream"
+							return WebResourceResponse(mime, null, stream)
+						}
 					}
+					val host = url.host.orEmpty()
+					if (host.equals("img.lnori.com", ignoreCase = true) || host.endsWith(".lnori.com", ignoreCase = true)) {
+						return interceptLnoriImage(request)
+					}
+					super.shouldInterceptRequest(view, request)
+				} catch (e: Throwable) {
+					null
 				}
-				return super.shouldInterceptRequest(view, request)
 			}
 		}
 	}
@@ -183,7 +212,83 @@ class NovelReaderActivity :
 	private fun renderChapterContent(html: String) {
 		val title = viewModel.currentChapter.value?.title ?: ""
 		val fullDoc = NovelHtmlTemplate.buildDocument(title, html, readerSettings)
-		viewBinding.webView.loadDataWithBaseURL("https://futon.reader/", fullDoc, "text/html", "UTF-8", null)
+		val chapterUrl = viewModel.currentChapter.value?.url?.substringBefore('#')
+		val isOnline = !chapterUrl.isNullOrEmpty() && (chapterUrl.startsWith("http://") || chapterUrl.startsWith("https://"))
+		val baseUrl = if (isOnline) chapterUrl else "https://futon.reader/"
+		viewBinding.webView.loadDataWithBaseURL(baseUrl, fullDoc, "text/html", "UTF-8", null)
+	}
+
+	private fun interceptLnoriImage(request: WebResourceRequest): WebResourceResponse? {
+		var response: Response? = null
+		return try {
+			val urlString = request.url.toString()
+			val userAgent = request.requestHeaders?.get("User-Agent")
+				?: defaultUserAgent
+				?: BaseNovelRepository.DEFAULT_USER_AGENT
+
+			val okHttpRequest = Request.Builder()
+				.url(urlString)
+				.method(request.method, null)
+				.header("Referer", "https://lnori.com/")
+				.apply {
+					if (!userAgent.isNullOrBlank()) {
+						header("User-Agent", userAgent)
+					}
+				}
+				.build()
+
+			response = imageOkHttpClient.newCall(okHttpRequest).execute()
+			if (!response.isSuccessful) {
+				response.close()
+				return null
+			}
+
+			val body = response.body ?: run {
+				response.close()
+				return null
+			}
+
+			val rawContentType = response.header("Content-Type")?.substringBefore(';')?.trim()
+			val mimeType = if (!rawContentType.isNullOrBlank() && rawContentType != "application/octet-stream") {
+				rawContentType
+			} else {
+				val ext = request.url.path?.substringAfterLast('.', "") ?: "avif"
+				MimeTypes.getMimeTypeFromExtension(ext)?.toString() ?: "image/avif"
+			}
+
+			val responseHeaders = mutableMapOf<String, String>()
+			for (i in 0 until response.headers.size) {
+				val name = response.headers.name(i)
+				if (name.equals("content-encoding", ignoreCase = true) ||
+					name.equals("transfer-encoding", ignoreCase = true)
+				) {
+					continue
+				}
+				responseHeaders[name] = response.headers.value(i)
+			}
+
+			val wrappedStream = object : FilterInputStream(body.byteStream()) {
+				override fun close() {
+					try {
+						super.close()
+					} finally {
+						response.close()
+					}
+				}
+			}
+
+			WebResourceResponse(
+				mimeType,
+				null,
+				response.code,
+				response.message.ifBlank { "OK" },
+				responseHeaders,
+				wrappedStream,
+			)
+		} catch (e: Throwable) {
+			response?.close()
+			null
+		}
 	}
 
 	private fun toggleUiVisibility() {

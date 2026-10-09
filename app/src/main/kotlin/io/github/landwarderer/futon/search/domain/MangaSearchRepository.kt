@@ -15,6 +15,9 @@ import io.github.landwarderer.futon.core.db.entity.toManga
 import io.github.landwarderer.futon.core.db.entity.toMangaTag
 import io.github.landwarderer.futon.core.db.entity.toMangaTagsList
 import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.model.getTitle
+import io.github.landwarderer.futon.core.model.isNsfw
+import io.github.landwarderer.futon.novel.data.source.NovelParserSource
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -133,9 +136,10 @@ class MangaSearchRepository @Inject constructor(
 			return emptyList()
 		}
 		val skipNsfw = settings.isNsfwContentDisabled
-		val sources = sourcesRepository.allMangaSources
+		val allSources: List<MangaSource> = sourcesRepository.allMangaSources.toList() + NovelParserSource.entries
+		val sources = allSources
 			.filter { x ->
-				(x.contentType != ContentType.HENTAI || !skipNsfw) && x.title.contains(query, ignoreCase = true)
+				(!x.isNsfw() || !skipNsfw) && x.getTitle(context).contains(query, ignoreCase = true)
 			}
 		return if (limit == 0) {
 			sources

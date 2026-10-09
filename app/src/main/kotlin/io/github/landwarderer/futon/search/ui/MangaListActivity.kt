@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.LocalMangaSource
+import io.github.landwarderer.futon.core.model.LocalNovelSource
 import io.github.landwarderer.futon.core.model.MangaSource
 import io.github.landwarderer.futon.core.model.getSummary
 import io.github.landwarderer.futon.core.model.getTitle
@@ -38,6 +39,7 @@ import io.github.landwarderer.futon.core.util.ext.getSerializableExtraCompat
 import io.github.landwarderer.futon.core.util.ext.getThemeColor
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.setTextAndVisible
+import io.github.landwarderer.futon.novel.ui.local.NovelLocalListFragment
 import io.github.landwarderer.futon.core.util.ext.start
 import io.github.landwarderer.futon.databinding.ActivityMangaListBinding
 import io.github.landwarderer.futon.filter.ui.FilterCoordinator
@@ -146,6 +148,8 @@ class MangaListActivity :
 				setReorderingAllowed(true)
 				val fragment = if (source == LocalMangaSource) {
 					LocalListFragment()
+				} else if (source == LocalNovelSource) {
+					NovelLocalListFragment.newInstance()
 				} else {
 					RemoteListFragment.newInstance(source)
 				}
