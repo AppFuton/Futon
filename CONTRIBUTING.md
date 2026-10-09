@@ -11,3 +11,18 @@
 + Please, **do not modify readme and other information files** (except for typos)(and if you are better at explaining it then thats also accepted)
 + **Avoid adding new dependencies** unless required. APK size is important.
 + **please explain your changes** atleast try to cause it just helps us work a lot faster than spending time figuring out what you did🥲.
+
+### Snapshot Tests
+
+* Baseline: `app/src/test/snapshots/images`
+* Reports: `app/build/reports/paparazzi/debug/index.html`
+
+To verify:
+```shell
+gradlew verifyPaparazziDebug
+```
+
+To update:
+```shell
+gradlew recordPaparazziDebug
+```

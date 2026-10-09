@@ -12,6 +12,7 @@ plugins {
 	// id 'dev.reformator.stacktracedecoroutinator'
     id 'io.sentry.android.gradle' version '6.1.0'
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.paparazzi)
 }
 
 android {
@@ -242,6 +243,7 @@ dependencies {
 	debugImplementation libs.workinspector
     debugImplementation libs.compose.ui.tooling
     debugImplementation libs.compose.ui.test.manifest
+    testImplementation libs.compose.ui.tooling
 
 	testImplementation libs.junit
 	testImplementation libs.json
