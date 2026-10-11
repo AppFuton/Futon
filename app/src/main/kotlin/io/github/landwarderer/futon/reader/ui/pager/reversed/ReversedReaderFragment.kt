@@ -41,11 +41,6 @@ class ReversedReaderFragment : BasePagerReaderFragment() {
 		super.onPagesChanged(pages.reversed(), pendingState)
 	}
 
-	override fun notifyPageChanged(page: Int) {
-		val pos = reversed(page)
-		viewModel.onCurrentPageChanged(pos, pos)
-	}
-
 	private fun reversed(position: Int): Int {
 		return ((readerAdapter?.itemCount ?: 0) - position - 1).coerceAtLeast(0)
 	}
