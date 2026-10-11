@@ -61,6 +61,19 @@ abstract class BaseReaderFragment<B : ViewBinding> : BaseFragment<B>(), ZoomCont
 		super.onDestroyView()
 	}
 
+	/** Resolve adapter positions against the adapter's own items, which may lag behind the view model content. */
+	protected fun notifyVisiblePagesChanged(lowerPos: Int, upperPos: Int) {
+		val adapter = readerAdapter ?: return
+		val lastIndex = adapter.itemCount - 1
+		if (lastIndex < 0) {
+			return
+		}
+		viewModel.onCurrentPageChanged(
+			adapter.getItemOrNull(lowerPos.coerceIn(0, lastIndex)),
+			adapter.getItemOrNull(upperPos.coerceIn(0, lastIndex)),
+		)
+	}
+
 	protected fun requireAdapter() = checkNotNull(readerAdapter) {
 		"Adapter was not created or already destroyed"
 	}

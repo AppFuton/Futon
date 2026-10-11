@@ -18,10 +18,6 @@ class ReversedDoubleReaderFragment : DoubleReaderFragment() {
 		super.onPagesChanged(pages.reversed(), pendingState)
 	}
 
-	override fun notifyPageChanged(lowerPos: Int, upperPos: Int) {
-		viewModel.onCurrentPageChanged(reversed(upperPos), reversed(lowerPos))
-	}
-
 	private fun reversed(position: Int): Int {
 		return ((readerAdapter?.itemCount ?: 0) - position - 1).coerceAtLeast(0)
 	}

@@ -47,6 +47,7 @@ import io.github.landwarderer.futon.reader.domain.DetectReaderModeUseCase
 import io.github.landwarderer.futon.reader.domain.PageLoader
 import io.github.landwarderer.futon.reader.domain.nextChapterPrefetchPages
 import io.github.landwarderer.futon.reader.ui.config.ReaderSettings
+import io.github.landwarderer.futon.reader.ui.pager.ReaderPage
 import io.github.landwarderer.futon.reader.ui.pager.ReaderUiState
 import io.github.landwarderer.futon.scrobbling.discord.ui.DiscordRpc
 import io.github.landwarderer.futon.stats.domain.StatsCollector
@@ -346,16 +347,29 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Pages are passed by identity, not by position: the adapter applies [content] asynchronously, so its
+     * positions can refer to an older list. After a previous chapter is prepended, a stale position would
+     * otherwise resolve to the start of that previous chapter and be saved as the reading progress.
+     */
     @MainThread
-    fun onCurrentPageChanged(lowerPos: Int, upperPos: Int) {
+    fun onCurrentPageChanged(lowerPage: ReaderPage?, upperPage: ReaderPage?) {
+        if (lowerPage == null || upperPage == null) {
+            return
+        }
         val prevJob = stateChangeJob
-        val pages = content.value.pages // capture immediately
         stateChangeJob = launchJob(Dispatchers.IO) {
             prevJob?.cancelAndJoin()
             loadingJob?.join()
-            if (pages.size != content.value.pages.size) {
-                return@launchJob // TODO
+            val pages = content.value.pages
+            val lowerIndex = pages.indexOfPage(lowerPage)
+            val upperIndex = pages.indexOfPage(upperPage)
+            if (lowerIndex < 0 || upperIndex < 0) {
+                return@launchJob // page is no longer loaded
             }
+            // reversed modes report pages in reverse order
+            val lowerPos = minOf(lowerIndex, upperIndex)
+            val upperPos = maxOf(lowerIndex, upperIndex)
             val centerPos = (lowerPos + upperPos) / 2
             pages.getOrNull(centerPos)?.let { page ->
                 val oldChapterId = readingState.value?.chapterId
@@ -607,6 +621,10 @@ class ReaderViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun List<ReaderPage>.indexOfPage(page: ReaderPage): Int = indexOfFirst {
+        it.chapterId == page.chapterId && it.index == page.index
     }
 
     private fun <T> List<T>.trySublist(fromIndex: Int, toIndex: Int): List<T> {
