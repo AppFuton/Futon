@@ -32,6 +32,7 @@ class MainViewModel @Inject constructor(
 
 	val onOpenReader = MutableEventFlow<Manga>()
 	val onFirstStart = MutableEventFlow<Unit>()
+	val onShowOnboarding = MutableEventFlow<Unit>()
 
 	val isResumeEnabled = readingResumeEnabledUseCase()
 		.withErrorHandling()
@@ -71,6 +72,16 @@ class MainViewModel @Inject constructor(
 	)
 
 	init {
+		launchJob(Dispatchers.IO) {
+			if (settings.onboardingVersion < AppSettings.CURRENT_ONBOARDING_VERSION) {
+				onShowOnboarding.call(Unit)
+			} else if (sourcesRepository.isSetupRequired()) {
+				onFirstStart.call(Unit)
+			}
+		}
+	}
+
+	fun onOnboardingFinished() {
 		launchJob(Dispatchers.IO) {
 			if (sourcesRepository.isSetupRequired()) {
 				onFirstStart.call(Unit)

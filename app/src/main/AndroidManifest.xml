@@ -148,6 +148,11 @@
 			android:exported="false"
 			android:theme="@style/Theme.Futon" />
 		<activity
+			android:name="io.github.landwarderer.futon.onboarding.ui.OnboardingActivity"
+			android:configChanges="keyboardHidden|orientation|screenSize"
+			android:exported="false"
+			android:theme="@style/Theme.Futon" />
+		<activity
 			android:name="io.github.landwarderer.futon.search.ui.MangaListActivity"
 			android:exported="true"
 			android:label="@string/manga_list">

@@ -60,6 +60,8 @@ import io.github.landwarderer.futon.local.ui.LocalIndexUpdateService
 import io.github.landwarderer.futon.local.ui.LocalStorageCleanupWorker
 import io.github.landwarderer.futon.main.ui.owners.AppBarOwner
 import io.github.landwarderer.futon.main.ui.owners.BottomNavOwner
+import androidx.activity.result.contract.ActivityResultContracts
+import io.github.landwarderer.futon.onboarding.ui.OnboardingActivity
 import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.remotelist.ui.MangaSearchMenuProvider
 import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionItemCallback
@@ -97,6 +99,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		if (result != null) {
 			viewBinding.searchView.setText(result)
 		}
+	}
+	private val onboardingLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+		viewModel.onOnboardingFinished()
 	}
 	private lateinit var navigationDelegate: MainNavigationDelegate
 	private lateinit var fadingAppbarMediator: FadingAppbarMediator
@@ -157,6 +162,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				viewModel.isLoading.observe(this@MainActivity, this@MainActivity::onLoadingStateChanged)
 				viewModel.isResumeEnabled.observe(this@MainActivity, this@MainActivity::onResumeEnabledChanged)
 				viewModel.feedCounter.observe(this@MainActivity, ::onFeedCounterChanged)
+				viewModel.onShowOnboarding.observeEvent(this@MainActivity) {
+					onboardingLauncher.launch(Intent(this@MainActivity, OnboardingActivity::class.java))
+				}
 				viewModel.onFirstStart.observeEvent(this@MainActivity) { router.showWelcomeSheet() }
 				viewModel.isBottomNavPinned.observe(this@MainActivity, ::setNavbarPinned)
 				searchSuggestionViewModel.isIncognitoModeEnabled.observe(this@MainActivity, this@MainActivity::onIncognitoModeChanged)

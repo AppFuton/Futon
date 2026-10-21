@@ -355,6 +355,10 @@ class AppSettings internal constructor(
 		get() = prefs.getInt(KEY_SOURCES_VERSION, 0)
 		set(value) = prefs.edit { putInt(KEY_SOURCES_VERSION, value) }
 
+	var onboardingVersion: Int
+		get() = prefs.getInt(KEY_ONBOARDING_VERSION, 0)
+		set(value) = prefs.edit { putInt(KEY_ONBOARDING_VERSION, value) }
+
 	var isAllSourcesEnabled: Boolean
 		get() = prefs.getBoolean(KEY_SOURCES_ENABLED_ALL, false)
 		set(value) = prefs.edit { putBoolean(KEY_SOURCES_ENABLED_ALL, value) }
@@ -914,6 +918,9 @@ class AppSettings internal constructor(
 		const val KEY_FEED_HEADER = "feed_header"
 		const val KEY_SEARCH_SUGGESTION_TYPES = "search_suggest_types"
 		const val KEY_SOURCES_VERSION = "sources_version"
+		const val KEY_ONBOARDING_VERSION = "onboarding_version"
+		const val CURRENT_ONBOARDING_VERSION = 1
+		const val KEY_ABOUT_ONBOARDING = "about_onboarding"
 		const val KEY_SOURCES_ENABLED_ALL = "sources_enabled_all"
 		const val KEY_QUICK_FILTER = "quick_filter"
 		const val KEY_COLLAPSE_DESCRIPTION = "description_collapse"
