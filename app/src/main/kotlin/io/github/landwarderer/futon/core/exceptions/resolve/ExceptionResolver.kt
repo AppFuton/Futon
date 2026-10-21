@@ -15,6 +15,8 @@ import kotlinx.coroutines.async
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.browser.BrowserActivity
 import io.github.landwarderer.futon.browser.cloudflare.CloudFlareActivity
+import io.github.landwarderer.futon.core.exceptions.CloudFlareBlockedException
+import io.github.landwarderer.futon.core.exceptions.CloudFlareException
 import io.github.landwarderer.futon.core.exceptions.CloudFlareProtectedException
 import io.github.landwarderer.futon.core.exceptions.EmptyMangaException
 import io.github.landwarderer.futon.core.exceptions.InteractiveActionRequiredException
@@ -64,16 +66,24 @@ class ExceptionResolver private constructor(
     }
 
     suspend fun resolve(e: Throwable): Boolean = host.lifecycleScope.async {
-        when (e) {
-            is CloudFlareProtectedException -> resolveCF(e)
-            is AuthRequiredException -> resolveAuthException(e.source)
+        when (val error = findResolvable(e) ?: e) {
+            is CloudFlareProtectedException -> resolveCF(error)
+            is CloudFlareBlockedException -> resolveBrowserAction(
+                InteractiveActionRequiredException(error.source, error.url),
+            )
+
+            is CloudFlareException -> resolveBrowserAction(
+                InteractiveActionRequiredException(error.source, error.url),
+            )
+
+            is AuthRequiredException -> resolveAuthException(error.source)
             is SSLException,
             is CertPathValidatorException -> {
                 showSslErrorDialog()
                 false
             }
 
-            is InteractiveActionRequiredException -> resolveBrowserAction(e)
+            is InteractiveActionRequiredException -> resolveBrowserAction(error)
 
             is ProxyConfigException -> {
                 host.router.openProxySettings()
@@ -81,32 +91,32 @@ class ExceptionResolver private constructor(
             }
 
             is NotFoundException -> {
-                openInBrowser(e.url)
+                openInBrowser(error.url)
                 false
             }
 
             is EmptyMangaException -> {
-                when (e.reason) {
-                    EmptyMangaReason.NO_CHAPTERS -> openAlternatives(e.manga)
+                when (error.reason) {
+                    EmptyMangaReason.NO_CHAPTERS -> openAlternatives(error.manga)
                     EmptyMangaReason.LOADING_ERROR -> Unit
-                    EmptyMangaReason.RESTRICTED -> host.router.openBrowser(e.manga)
+                    EmptyMangaReason.RESTRICTED -> host.router.openBrowser(error.manga)
                     else -> Unit
                 }
                 false
             }
 
             is UnsupportedSourceException -> {
-                e.manga?.let { openAlternatives(it) }
+                error.manga?.let { openAlternatives(it) }
                 false
             }
 
             is ScrobblerAuthRequiredException -> {
                 val authHelper = scrobblerAuthHelperProvider.get()
-                if (authHelper.isAuthorized(e.scrobbler)) {
+                if (authHelper.isAuthorized(error.scrobbler)) {
                     true
                 } else {
                     host.withContext {
-                        authHelper.startAuth(this, e.scrobbler).onFailure(::showErrorDetails)
+                        authHelper.startAuth(this, error.scrobbler).onFailure(::showErrorDetails)
                     }
                     false
                 }
@@ -227,29 +237,51 @@ class ExceptionResolver private constructor(
     companion object {
 
         @StringRes
-        fun getResolveStringId(e: Throwable) = when (e) {
+        fun getResolveStringId(e: Throwable) = when (val error = findResolvable(e)) {
             is CloudFlareProtectedException -> R.string.captcha_solve
+            is CloudFlareBlockedException,
+            is InteractiveActionRequiredException -> R.string._continue
             is ScrobblerAuthRequiredException,
             is AuthRequiredException -> R.string.sign_in
 
-            is NotFoundException -> if (e.url.isHttpUrl()) R.string.open_in_browser else 0
-            is UnsupportedSourceException -> if (e.manga != null) R.string.alternatives else 0
+            is NotFoundException -> if (error.url.isHttpUrl()) R.string.open_in_browser else 0
+            is UnsupportedSourceException -> if (error.manga != null) R.string.alternatives else 0
             is SSLException,
             is CertPathValidatorException -> R.string.fix
 
             is ProxyConfigException -> R.string.settings
 
-            is InteractiveActionRequiredException -> R.string._continue
-
-            is EmptyMangaException -> when (e.reason) {
-                EmptyMangaReason.RESTRICTED -> if (e.manga.publicUrl.isHttpUrl()) R.string.open_in_browser else 0
+            is EmptyMangaException -> when (error.reason) {
+                EmptyMangaReason.RESTRICTED -> if (error.manga.publicUrl.isHttpUrl()) R.string.open_in_browser else 0
                 EmptyMangaReason.NO_CHAPTERS -> R.string.alternatives
                 else -> 0
             }
 
+            null -> 0
             else -> 0
         }
 
         fun canResolve(e: Throwable) = getResolveStringId(e) != 0
+
+        fun findResolvable(e: Throwable): Throwable? {
+            var current: Throwable? = e
+            while (current != null) {
+                when (current) {
+                    is CloudFlareProtectedException,
+                    is CloudFlareBlockedException,
+                    is InteractiveActionRequiredException,
+                    is AuthRequiredException,
+                    is NotFoundException,
+                    is UnsupportedSourceException,
+                    is ProxyConfigException,
+                    is ScrobblerAuthRequiredException,
+                    is EmptyMangaException,
+                    is SSLException,
+                    is CertPathValidatorException -> return current
+                }
+                current = current.cause
+            }
+            return null
+        }
     }
 }

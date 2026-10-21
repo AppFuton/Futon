@@ -4,7 +4,9 @@ import android.view.View
 import androidx.core.util.Consumer
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.EntryPointAccessors
 import io.github.landwarderer.futon.R
+import io.github.landwarderer.futon.core.ui.BaseActivityEntryPoint
 import io.github.landwarderer.futon.core.util.ext.getDisplayMessage
 import io.github.landwarderer.futon.core.util.ext.isSerializable
 import io.github.landwarderer.futon.main.ui.owners.BottomNavOwner
@@ -21,7 +23,16 @@ class SnackbarErrorObserver(
 	constructor(
 		host: View,
 		fragment: Fragment?,
-	) : this(host, fragment, null, null)
+	) : this(
+		host,
+		fragment,
+		fragment?.context?.let { context ->
+			EntryPointAccessors.fromApplication<BaseActivityEntryPoint>(context)
+				.exceptionResolverFactory
+				.create(fragment)
+		},
+		null,
+	)
 
 	override suspend fun emit(value: Throwable) {
 		val snackbar = Snackbar.make(host, value.getDisplayMessage(host.context.resources), Snackbar.LENGTH_SHORT)
@@ -30,6 +41,7 @@ class SnackbarErrorObserver(
 			is BottomSheetOwner -> snackbar.anchorView = activity.bottomSheet
 		}
 		if (canResolve(value)) {
+			snackbar.duration = Snackbar.LENGTH_INDEFINITE
 			snackbar.setAction(ExceptionResolver.getResolveStringId(value)) {
 				resolve(value)
 			}

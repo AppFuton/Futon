@@ -340,13 +340,22 @@ class MihonMangaRepository(
         try {
             return block()
         } catch (e: RuntimeException) {
-            when (val cause = e.cause) {
-                is CloudFlareException -> throw cause
-                is InteractiveActionRequiredException -> throw cause
-                is java.io.IOException -> throw cause
-                else -> throw e
-            }
+            throw unwrapMihonNetworkException(e.cause ?: e)
+        } catch (e: java.io.IOException) {
+            throw unwrapMihonNetworkException(e)
         }
+    }
+
+    private fun unwrapMihonNetworkException(error: Throwable): Throwable {
+        var current: Throwable? = error
+        while (current != null) {
+            when (current) {
+                is CloudFlareException,
+                is InteractiveActionRequiredException -> return current
+            }
+            current = current.cause
+        }
+        return error
     }
     
     override suspend fun getRelatedMangaImpl(seed: Manga): List<Manga> = emptyList()
