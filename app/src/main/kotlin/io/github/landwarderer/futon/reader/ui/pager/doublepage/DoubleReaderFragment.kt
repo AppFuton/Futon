@@ -136,7 +136,7 @@ open class DoubleReaderFragment : BaseReaderFragment<FragmentReaderDoubleBinding
 	}
 
 	protected open fun notifyPageChanged(lowerPos: Int, upperPos: Int) {
-		viewModel.onCurrentPageChanged(lowerPos, upperPos)
+		notifyVisiblePagesChanged(lowerPos, upperPos)
 	}
 
 	private fun getCurrentItem() = (requireViewBinding().recyclerView.layoutManager as LinearLayoutManager)
