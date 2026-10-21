@@ -1,0 +1,9 @@
+Date: 2026-10-21
+
+Highlights
+- Light Novel reading mode & online sources
+- Local novel import, EPUB & vertical PDF reader
+- Watermark mode indicator with Japanese fonts
+- Interactive onboarding walkthrough
+Maintenance
+- Updated parsers

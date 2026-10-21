@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 The format is based on "Keep a Changelog" and follows semantic versioning where possible.
 
+## 9.9
+Date: 2026-10-21
+
+### Highlights
+* Light Novel reading mode & online sources
+* Local novel support with EPUB & vertical PDF reader
+* Watermark mode indicator with Japanese fonts
+* Interactive onboarding walkthrough & mode switcher spotlight
+
+### Maintenance
+- Updated parsers and dependencies
+
 ## 9.8.2
 Date: 2026-10-03
 
