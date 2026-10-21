@@ -110,8 +110,8 @@ interface MangaRepository {
 					io.github.landwarderer.futon.novel.data.source.RanobesRepository(contentCache, loaderContext.httpClient)
 				io.github.landwarderer.futon.novel.data.source.NovelParserSource.WUXIAWORLD ->
 					io.github.landwarderer.futon.novel.data.source.WuxiaworldRepository(contentCache, loaderContext.httpClient)
-				io.github.landwarderer.futon.novel.data.source.NovelParserSource.ELSCIONE ->
-					io.github.landwarderer.futon.novel.data.source.ElscioneRepository(contentCache, loaderContext.httpClient, context)
+				io.github.landwarderer.futon.novel.data.source.NovelParserSource.LNCRAWLER ->
+					io.github.landwarderer.futon.novel.data.source.LNCrawlerRepository(contentCache, loaderContext.httpClient)
 			}
 
 			TestMangaSource -> TestMangaRepository(

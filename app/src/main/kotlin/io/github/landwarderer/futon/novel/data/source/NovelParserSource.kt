@@ -32,18 +32,18 @@ enum class NovelParserSource(
 	),
 	RANOBES(
 		title = "Ranobes",
-		domain = "ranobes.top",
-		defaultUrl = "https://ranobes.top",
+		domain = "ranobes.net",
+		defaultUrl = "https://ranobes.net",
 	),
 	WUXIAWORLD(
 		title = "Wuxiaworld",
 		domain = "wuxiaworld.com",
 		defaultUrl = "https://www.wuxiaworld.com",
 	),
-	ELSCIONE(
-		title = "Elscione",
-		domain = "server.elscione.com",
-		defaultUrl = "https://server.elscione.com",
+	LNCRAWLER(
+		title = "LNCrawler",
+		domain = "lncrawler.monster",
+		defaultUrl = "https://lncrawler.monster",
 	);
 
 	companion object {
