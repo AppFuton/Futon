@@ -6,7 +6,9 @@ import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.core.app.ActivityCompat
@@ -19,7 +21,9 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -39,9 +43,11 @@ import io.github.landwarderer.futon.core.exceptions.resolve.SnackbarErrorObserve
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.os.VoiceInputContract
 import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.prefs.HomeBackgroundFont
 import io.github.landwarderer.futon.core.prefs.NavItem
 import io.github.landwarderer.futon.core.ui.BaseActivity
 import io.github.landwarderer.futon.core.ui.util.FadingAppbarMediator
+import io.github.landwarderer.futon.core.ui.util.FontCache
 import io.github.landwarderer.futon.core.ui.util.MenuInvalidator
 import io.github.landwarderer.futon.core.ui.widgets.SlidingBottomNavigationView
 import io.github.landwarderer.futon.core.util.ext.consume
@@ -58,6 +64,8 @@ import io.github.landwarderer.futon.local.ui.LocalIndexUpdateService
 import io.github.landwarderer.futon.local.ui.LocalStorageCleanupWorker
 import io.github.landwarderer.futon.main.ui.owners.AppBarOwner
 import io.github.landwarderer.futon.main.ui.owners.BottomNavOwner
+import io.github.landwarderer.futon.main.ui.widgets.ModeSwitcherSpotlightOverlay
+import io.github.landwarderer.futon.onboarding.ui.OnboardingActivity
 import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.remotelist.ui.MangaSearchMenuProvider
 import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionItemCallback
@@ -96,6 +104,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			viewBinding.searchView.setText(result)
 		}
 	}
+	private val onboardingLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+		viewModel.onOnboardingFinished()
+		checkAndShowModeSwitcherSpotlight()
+	}
+	private var modeSwitcherSpotlight: ModeSwitcherSpotlightOverlay? = null
 	private lateinit var navigationDelegate: MainNavigationDelegate
 	private lateinit var fadingAppbarMediator: FadingAppbarMediator
 
@@ -109,6 +122,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		super.onCreate(savedInstanceState)
 		setContentView(ActivityMainBinding.inflate(layoutInflater))
 		setSupportActionBar(viewBinding.searchBar)
+		updateHomeWatermark()
 
 		viewBinding.fab?.setOnClickListener(this)
 		viewBinding.navRail?.headerView?.findViewById<View>(R.id.railFab)?.setOnClickListener(this)
@@ -146,6 +160,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.searchView.addTransitionListener(this)
 		viewBinding.searchView.addTransitionListener(exitCallback)
 
+		supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
+			override fun onFragmentDestroyed(fm: FragmentManager, f: Fragment) {
+				if (f is DialogFragment) {
+					viewBinding.root.post {
+						checkAndShowModeSwitcherSpotlight()
+					}
+				}
+			}
+		}, false)
+
 		// Defer heavy initialization to after window is shown to prevent ANR on slow devices
 		lifecycleScope.launch {
 			lifecycle.withResumed {
@@ -154,9 +178,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				viewModel.isLoading.observe(this@MainActivity, this@MainActivity::onLoadingStateChanged)
 				viewModel.isResumeEnabled.observe(this@MainActivity, this@MainActivity::onResumeEnabledChanged)
 				viewModel.feedCounter.observe(this@MainActivity, ::onFeedCounterChanged)
+				viewModel.onShowOnboarding.observeEvent(this@MainActivity) {
+					onboardingLauncher.launch(Intent(this@MainActivity, OnboardingActivity::class.java))
+				}
 				viewModel.onFirstStart.observeEvent(this@MainActivity) { router.showWelcomeSheet() }
+				checkAndShowModeSwitcherSpotlight()
 				viewModel.isBottomNavPinned.observe(this@MainActivity, ::setNavbarPinned)
 				searchSuggestionViewModel.isIncognitoModeEnabled.observe(this@MainActivity, this@MainActivity::onIncognitoModeChanged)
+				viewModel.appMode.observe(this@MainActivity) {
+					invalidateOptionsMenu()
+					navigationDelegate.reloadCurrentFragment()
+					updateHomeWatermark()
+				}
+				viewModel.homeBackgroundFont.observe(this@MainActivity) {
+					updateHomeWatermark()
+				}
 				initSearch()
 			}
 		}
@@ -430,6 +466,61 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				params.bottomMargin = newMargin
 				layoutParams = params
 			}
+		}
+	}
+
+	private fun updateHomeWatermark() {
+		val tv = viewBinding.textViewWatermark ?: return
+		val font = viewModel.homeBackgroundFont.value
+		if (font == HomeBackgroundFont.NONE) {
+			tv.isVisible = false
+			return
+		}
+		tv.isVisible = true
+		tv.alpha = 0.10f
+		val isNovel = viewModel.appMode.value.isNovel
+		tv.text = if (isNovel) "ラ\nノ\nベ" else "漫\n画"
+		font.fontAssetPath?.let { assetPath ->
+			FontCache.getTypeface(this, assetPath)?.let { typeface ->
+				tv.typeface = typeface
+			}
+		}
+	}
+
+	override fun onDestroy() {
+		super.onDestroy()
+		modeSwitcherSpotlight = null
+	}
+
+	private fun checkAndShowModeSwitcherSpotlight() {
+		if (settings.isModeSwitcherSpotlightShown || settings.onboardingVersion < AppSettings.CURRENT_ONBOARDING_VERSION) {
+			return
+		}
+		if (supportFragmentManager.fragments.any { it is DialogFragment && it.isVisible }) {
+			return
+		}
+		viewBinding.searchBar.post {
+			if (isFinishing || isDestroyed) return@post
+			if (settings.isModeSwitcherSpotlightShown) return@post
+			val target = viewBinding.searchBar.findViewById<View>(R.id.action_app_mode)
+			if (target == null) {
+				viewBinding.searchBar.postDelayed({
+					checkAndShowModeSwitcherSpotlight()
+				}, 300)
+				return@post
+			}
+			if (modeSwitcherSpotlight != null) return@post
+
+			val contentRoot = findViewById<ViewGroup>(android.R.id.content) ?: return@post
+			val overlay = ModeSwitcherSpotlightOverlay(this, target) { demoToggle ->
+				settings.isModeSwitcherSpotlightShown = true
+				modeSwitcherSpotlight = null
+				if (demoToggle) {
+					viewModel.toggleAppMode()
+				}
+			}
+			modeSwitcherSpotlight = overlay
+			overlay.showIn(contentRoot)
 		}
 	}
 

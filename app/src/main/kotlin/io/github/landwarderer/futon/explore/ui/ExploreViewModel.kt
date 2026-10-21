@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.MangaSourceInfo
+import io.github.landwarderer.futon.core.model.isNovelSource
 import io.github.landwarderer.futon.core.os.AppShortcutManager
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.observeAsFlow
@@ -26,9 +27,11 @@ import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.list.ui.model.MangaCompactListModel
 import io.github.landwarderer.futon.suggestions.domain.SuggestionRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine as combineFlows
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
@@ -58,6 +61,12 @@ class ExploreViewModel @Inject constructor(
 		scope = viewModelScope + Dispatchers.IO,
 		key = AppSettings.KEY_SOURCES_ENABLED_ALL,
 		valueProducer = { isAllSourcesEnabled },
+	)
+
+	val appMode = settings.observeAsStateFlow(
+		scope = viewModelScope + Dispatchers.IO,
+		key = AppSettings.KEY_APP_MODE,
+		valueProducer = { appMode },
 	)
 
 	private val isSuggestionsEnabled = settings.observeAsFlow(
@@ -138,15 +147,23 @@ class ExploreViewModel @Inject constructor(
 		}
 	}
 
-	private fun createContentFlow() = combine(
+	private fun observeFilteredSources(): Flow<List<MangaSourceInfo>> = combineFlows(
 		sourcesRepository.observeEnabledSources(),
+		appMode,
+	) { sources, mode ->
+		val isNovel = mode.isNovel
+		sources.filter { it.mangaSource.isNovelSource == isNovel }
+	}
+
+	private fun createContentFlow(): Flow<List<ListModel>> = combine(
+		observeFilteredSources(),
 		getSuggestionFlow(),
 		isGrid,
 		isRandomLoading,
 		isAllSourcesEnabled,
 		sourcesRepository.observeHasNewSourcesForBadge(),
-	) { content, suggestions, grid, randomLoading, allSourcesEnabled, newSources ->
-		buildList(content, suggestions, grid, randomLoading, allSourcesEnabled, newSources)
+	) { sources, suggestions, grid, randomLoading, allSourcesEnabled, newSources ->
+		buildList(sources, suggestions, grid, randomLoading, allSourcesEnabled, newSources)
 	}.withErrorHandling()
 
 	private fun buildList(

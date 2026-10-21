@@ -46,11 +46,32 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class AppSettings @Inject constructor(@ApplicationContext context: Context) {
+class AppSettings internal constructor(
+	@ApplicationContext context: Context,
+	private val prefs: SharedPreferences,
+) {
 
-	private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-	private val connectivityManager = context.connectivityManager
-	private val mangaListBadgesDefault = ArraySet(context.resources.getStringArray(R.array.values_list_badges))
+	@Inject
+	constructor(@ApplicationContext context: Context) : this(
+		context,
+		PreferenceManager.getDefaultSharedPreferences(context),
+	)
+
+	private val connectivityManager by lazy { context.connectivityManager }
+	private val mangaListBadgesDefault by lazy { ArraySet(context.resources.getStringArray(R.array.values_list_badges)) }
+
+	var appMode: AppMode
+		get() = prefs.getEnumValue(KEY_APP_MODE, AppMode.MANGA)
+		set(value) = prefs.edit { putEnumValue(KEY_APP_MODE, value) }
+
+	fun observeAppMode(): Flow<AppMode> = observeAsFlow(KEY_APP_MODE) { appMode }
+
+	var homeBackgroundFont: HomeBackgroundFont
+		get() = prefs.getEnumValue(KEY_HOME_BACKGROUND_FONT, HomeBackgroundFont.DEFAULT)
+		set(value) = prefs.edit { putEnumValue(KEY_HOME_BACKGROUND_FONT, value) }
+
+	fun observeHomeBackgroundFont(): Flow<HomeBackgroundFont> =
+		observeAsFlow(KEY_HOME_BACKGROUND_FONT) { homeBackgroundFont }
 
 	var listMode: ListMode
 		get() = prefs.getEnumValue(KEY_LIST_MODE, ListMode.GRID)
@@ -334,6 +355,14 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getInt(KEY_SOURCES_VERSION, 0)
 		set(value) = prefs.edit { putInt(KEY_SOURCES_VERSION, value) }
 
+	var onboardingVersion: Int
+		get() = prefs.getInt(KEY_ONBOARDING_VERSION, 0)
+		set(value) = prefs.edit { putInt(KEY_ONBOARDING_VERSION, value) }
+
+	var isModeSwitcherSpotlightShown: Boolean
+		get() = prefs.getBoolean(KEY_MODE_SWITCHER_SPOTLIGHT_SHOWN, false)
+		set(value) = prefs.edit { putBoolean(KEY_MODE_SWITCHER_SPOTLIGHT_SHOWN, value) }
+
 	var isAllSourcesEnabled: Boolean
 		get() = prefs.getBoolean(KEY_SOURCES_ENABLED_ALL, false)
 		set(value) = prefs.edit { putBoolean(KEY_SOURCES_ENABLED_ALL, value) }
@@ -355,6 +384,16 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		set(value) {
 			val set = value.mapToSet { it.absolutePath }
 			prefs.edit { putStringSet(KEY_LOCAL_MANGA_DIRS, set) }
+		}
+
+	var userSpecifiedNovelDirectories: Set<File>
+		get() {
+			val set = prefs.getStringSet(KEY_LOCAL_NOVEL_DIRS, emptySet()).orEmpty()
+			return set.mapNotNullToSet { File(it).takeIfReadable() }
+		}
+		set(value) {
+			val set = value.mapToSet { it.absolutePath }
+			prefs.edit { putStringSet(KEY_LOCAL_NOVEL_DIRS, set) }
 		}
 
 	var mangaStorageDir: File?
@@ -855,8 +894,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_PROXY_PASSWORD = "proxy_password"
 		const val KEY_IMAGES_PROXY = "images_proxy_2"
 		const val KEY_LOCAL_MANGA_DIRS = "local_manga_dirs"
+		const val KEY_LOCAL_NOVEL_DIRS = "local_novel_dirs"
 		const val KEY_DISABLE_NSFW = "no_nsfw"
 		const val KEY_RELATED_MANGA = "related_manga"
+		const val KEY_APP_MODE = "app_mode"
+		const val KEY_HOME_BACKGROUND_FONT = "home_background_font"
 		const val KEY_NAV_MAIN = "nav_main"
 		const val KEY_NAV_LABELS = "nav_labels"
 		const val KEY_NAV_PINNED = "nav_pinned"
@@ -880,6 +922,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_FEED_HEADER = "feed_header"
 		const val KEY_SEARCH_SUGGESTION_TYPES = "search_suggest_types"
 		const val KEY_SOURCES_VERSION = "sources_version"
+		const val KEY_ONBOARDING_VERSION = "onboarding_version"
+		const val CURRENT_ONBOARDING_VERSION = 1
+		const val KEY_MODE_SWITCHER_SPOTLIGHT_SHOWN = "mode_switcher_spotlight_shown"
+		const val KEY_ABOUT_ONBOARDING = "about_onboarding"
 		const val KEY_SOURCES_ENABLED_ALL = "sources_enabled_all"
 		const val KEY_QUICK_FILTER = "quick_filter"
 		const val KEY_COLLAPSE_DESCRIPTION = "description_collapse"

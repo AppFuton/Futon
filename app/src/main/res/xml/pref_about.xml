@@ -9,6 +9,12 @@
 		android:persistent="false" />
 
 	<Preference
+		android:key="about_onboarding"
+		android:persistent="false"
+		android:summary="@string/about_onboarding_summary"
+		android:title="@string/about_onboarding" />
+
+	<Preference
 		android:fragment="io.github.landwarderer.futon.settings.about.changelog.ChangelogFragment"
 		android:key="changelog"
 		android:persistent="false"

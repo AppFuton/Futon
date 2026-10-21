@@ -2,6 +2,8 @@ package io.github.landwarderer.futon.search.ui.suggestion
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.landwarderer.futon.core.model.isNovel
+import io.github.landwarderer.futon.core.model.isNovelSource
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.SearchSuggestionType
 import io.github.landwarderer.futon.core.prefs.observeAsFlow
@@ -59,9 +61,10 @@ class SearchSuggestionViewModel @Inject constructor(
 		query.debounce(DEBOUNCE_TIMEOUT),
 		sourcesRepository.observeEnabledSources().map { it.mapToSet { x -> x.name } },
 		settings.observeAsFlow(AppSettings.KEY_SEARCH_SUGGESTION_TYPES) { searchSuggestionTypes },
+		settings.observeAppMode(),
 		invalidationTrigger,
 	)
-	{ a, b, c, _ ->
+	{ a, b, c, _, _ ->
 		Triple(a, b, c)
 	}.mapLatest { (searchQuery, enabledSources, types) ->
 		buildSearchSuggestion(searchQuery, enabledSources, types)
@@ -183,7 +186,9 @@ class SearchSuggestionViewModel @Inject constructor(
 	}
 
 	private suspend fun getManga(searchQuery: String): List<SearchSuggestionItem> = runCatchingCancellable {
+		val isNovel = settings.appMode.isNovel
 		val manga = repository.getMangaSuggestion(searchQuery, MAX_MANGA_ITEMS, null)
+			.filter { it.isNovel == isNovel }
 		if (manga.isEmpty()) {
 			emptyList()
 		} else {
@@ -196,7 +201,9 @@ class SearchSuggestionViewModel @Inject constructor(
 
 	private fun getSources(searchQuery: String, enabledSources: Set<String>): List<SearchSuggestionItem> =
 		runCatchingCancellable {
+			val isNovel = settings.appMode.isNovel
 			repository.getSourcesSuggestion(searchQuery, MAX_SOURCES_ITEMS)
+				.filter { it.isNovelSource == isNovel }
 				.map { SearchSuggestionItem.Source(it, it.name in enabledSources) }
 		}.getOrElse { e ->
 			e.printStackTraceDebug("SearchSuggestionViewModel::getSources")
@@ -205,7 +212,9 @@ class SearchSuggestionViewModel @Inject constructor(
 
 	private suspend fun getRecentSources(searchQuery: String): List<SearchSuggestionItem> = if (searchQuery.isEmpty()) {
 		runCatchingCancellable {
+			val isNovel = settings.appMode.isNovel
 			repository.getSourcesSuggestion(MAX_SOURCES_TIPS_ITEMS)
+				.filter { it.isNovelSource == isNovel }
 				.map { SearchSuggestionItem.SourceTip(it) }
 		}.getOrElse { e ->
 			e.printStackTraceDebug("SearchSuggestionViewModel::getRecentSources")

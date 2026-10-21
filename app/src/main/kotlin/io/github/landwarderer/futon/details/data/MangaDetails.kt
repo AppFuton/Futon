@@ -2,6 +2,7 @@ package io.github.landwarderer.futon.details.data
 
 import io.github.landwarderer.futon.core.model.getLocale
 import io.github.landwarderer.futon.core.model.isLocal
+import io.github.landwarderer.futon.core.model.isNovel
 import io.github.landwarderer.futon.core.model.withOverride
 import io.github.landwarderer.futon.core.ui.model.MangaOverride
 import io.github.landwarderer.futon.local.domain.model.LocalManga
@@ -53,6 +54,9 @@ data class MangaDetails(
 
     val isRestricted: Boolean
         get() = manga.state == MangaState.RESTRICTED
+
+    val isNovel: Boolean
+        get() = manga.isNovel
 
     private val mergedManga by lazy {
         if (localManga == null) {

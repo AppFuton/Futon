@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.onEach
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.bookmarks.ui.AllBookmarksFragment
 import io.github.landwarderer.futon.core.nav.AppRouter
+import io.github.landwarderer.futon.core.prefs.AppMode
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.NavItem
 import io.github.landwarderer.futon.core.ui.util.RecyclerViewOwner
@@ -41,6 +42,7 @@ import io.github.landwarderer.futon.explore.ui.ExploreFragment
 import io.github.landwarderer.futon.favourites.ui.container.FavouritesContainerFragment
 import io.github.landwarderer.futon.history.ui.HistoryListFragment
 import io.github.landwarderer.futon.local.ui.LocalListFragment
+import io.github.landwarderer.futon.novel.ui.local.NovelLocalListFragment
 import io.github.landwarderer.futon.suggestions.ui.SuggestionsFragment
 import io.github.landwarderer.futon.tracker.ui.feed.FeedFragment
 import io.github.landwarderer.futon.tracker.ui.updates.UpdatesFragment
@@ -189,7 +191,7 @@ class MainNavigationDelegate(
 			R.id.nav_favorites -> FavouritesContainerFragment::class.java
 			R.id.nav_explore -> ExploreFragment::class.java
 			R.id.nav_feed -> FeedFragment::class.java
-			R.id.nav_local -> LocalListFragment::class.java
+			R.id.nav_local -> if (settings.appMode == AppMode.NOVEL) NovelLocalListFragment::class.java else LocalListFragment::class.java
 			R.id.nav_suggestions -> SuggestionsFragment::class.java
 			R.id.nav_bookmarks -> AllBookmarksFragment::class.java
 			R.id.nav_updated -> UpdatesFragment::class.java
@@ -202,12 +204,34 @@ class MainNavigationDelegate(
 		return true
 	}
 
+	fun reloadCurrentFragment() {
+		val itemId = navBar.selectedItemId
+		if (itemId == R.id.nav_local) {
+			val fragmentClass = if (settings.appMode == AppMode.NOVEL) {
+				NovelLocalListFragment::class.java
+			} else {
+				LocalListFragment::class.java
+			}
+			if (fragmentManager.isStateSaved || fragmentClass.isInstance(primaryFragment)) return
+			val fragment = instantiateFragment(fragmentClass)
+			val args = buildBundle(1) {
+				putBoolean(AppRouter.KEY_IS_BOTTOMTAB, true)
+			}
+			fragment.enterTransition = MaterialFadeThrough()
+			fragmentManager.beginTransaction()
+				.setReorderingAllowed(true)
+				.replace(R.id.container, fragmentClass, args, TAG_PRIMARY)
+				.runOnCommit { onFragmentChanged(fragment, fromUser = false) }
+				.commit()
+		}
+	}
+
 	private fun getItemId(fragment: Fragment) = when (fragment) {
 		is HistoryListFragment -> R.id.nav_history
 		is FavouritesContainerFragment -> R.id.nav_favorites
 		is ExploreFragment -> R.id.nav_explore
 		is FeedFragment -> R.id.nav_feed
-		is LocalListFragment -> R.id.nav_local
+		is LocalListFragment, is NovelLocalListFragment -> R.id.nav_local
 		is SuggestionsFragment -> R.id.nav_suggestions
 		is AllBookmarksFragment -> R.id.nav_bookmarks
 		is UpdatesFragment -> R.id.nav_updated

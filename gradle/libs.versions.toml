@@ -123,6 +123,7 @@ rxjava = { module = "io.reactivex:rxjava", version.ref = "rxjava" }
 rxandroid = { module = "io.reactivex:rxandroid", version.ref = "rxandroid" }
 okhttp-bom = { module = "com.squareup.okhttp3:okhttp-bom", version.ref = "okhttp" }
 okhttp = { module = "com.squareup.okhttp3:okhttp" }
+okhttp-brotli = { module = "com.squareup.okhttp3:okhttp-brotli" }
 okhttp-dnsoverhttps = { module = "com.squareup.okhttp3:okhttp-dnsoverhttps" }
 okhttp-tls = { module = "com.squareup.okhttp3:okhttp-tls" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }

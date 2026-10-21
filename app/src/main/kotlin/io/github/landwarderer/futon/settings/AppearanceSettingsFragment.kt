@@ -16,6 +16,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.os.AppShortcutManager
 import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.prefs.HomeBackgroundFont
 import io.github.landwarderer.futon.core.prefs.ListMode
 import io.github.landwarderer.futon.core.prefs.ProgressIndicatorMode
 import io.github.landwarderer.futon.core.prefs.ScreenshotsPolicy
@@ -60,6 +61,10 @@ class AppearanceSettingsFragment :
         findPreference<ListPreference>(AppSettings.KEY_PROGRESS_INDICATORS)?.run {
             entryValues = ProgressIndicatorMode.entries.names()
             setDefaultValueCompat(ProgressIndicatorMode.PERCENT_READ.name)
+        }
+        findPreference<ListPreference>(AppSettings.KEY_HOME_BACKGROUND_FONT)?.run {
+            entryValues = HomeBackgroundFont.entries.names()
+            setDefaultValueCompat(HomeBackgroundFont.DEFAULT.name)
         }
         findPreference<ActivityListPreference>(AppSettings.KEY_APP_LOCALE)?.run {
             initLocalePicker(this)

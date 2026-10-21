@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/coordinator"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+
+	<!-- WebView for Reflowable HTML (EPUB & Web Novels) -->
+	<android.webkit.WebView
+		android:id="@+id/webView"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:scrollbars="vertical" />
+
+	<!-- RecyclerView for Fixed-Layout PDF Pages -->
+	<androidx.recyclerview.widget.RecyclerView
+		android:id="@+id/recyclerView_pdf"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:visibility="gone"
+		tools:visibility="gone" />
+
+	<!-- Loading Spinner -->
+	<com.google.android.material.progressindicator.CircularProgressIndicator
+		android:id="@+id/progressBar"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center"
+		android:indeterminate="true"
+		android:visibility="gone" />
+
+	<!-- Top App Bar -->
+	<com.google.android.material.appbar.AppBarLayout
+		android:id="@+id/appbar_top"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:elevation="4dp"
+		app:elevation="4dp"
+		app:liftOnScroll="false">
+
+		<com.google.android.material.appbar.MaterialToolbar
+			android:id="@+id/toolbar"
+			android:layout_width="match_parent"
+			android:layout_height="?actionBarSize"
+			app:popupTheme="@style/ThemeOverlay.Futon" />
+
+	</com.google.android.material.appbar.AppBarLayout>
+
+	<!-- Bottom Docked Toolbar -->
+	<com.google.android.material.card.MaterialCardView
+		android:id="@+id/card_bottom"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom"
+		app:cardCornerRadius="0dp"
+		app:cardElevation="6dp"
+		app:strokeWidth="0dp">
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical"
+			android:paddingHorizontal="16dp"
+			android:paddingTop="8dp"
+			android:paddingBottom="12dp">
+
+			<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:gravity="center_vertical"
+				android:orientation="horizontal">
+
+				<com.google.android.material.button.MaterialButton
+					android:id="@+id/button_prev"
+					style="?materialIconButtonStyle"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:contentDescription="@string/previous_chapter"
+					app:icon="@drawable/ic_prev" />
+
+				<com.google.android.material.slider.Slider
+					android:id="@+id/slider_progress"
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1"
+					android:valueFrom="0.0"
+					android:valueTo="100.0" />
+
+				<com.google.android.material.button.MaterialButton
+					android:id="@+id/button_next"
+					style="?materialIconButtonStyle"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:contentDescription="@string/next_chapter"
+					app:icon="@drawable/ic_next" />
+
+			</LinearLayout>
+
+			<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:gravity="center_vertical"
+				android:orientation="horizontal">
+
+				<TextView
+					android:id="@+id/text_progress"
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1"
+					android:textAppearance="?textAppearanceLabelMedium"
+					android:textColor="?colorOnSurfaceVariant"
+					tools:text="Chapter 1 (45%)" />
+
+				<com.google.android.material.button.MaterialButton
+					android:id="@+id/button_font_settings"
+					style="?materialIconButtonFilledTonalStyle"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:contentDescription="@string/novel_font_size"
+					app:icon="@drawable/ic_font" />
+
+			</LinearLayout>
+
+		</LinearLayout>
+
+	</com.google.android.material.card.MaterialCardView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

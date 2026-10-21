@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import io.github.landwarderer.futon.core.model.isNovelSource
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.util.ext.toLocale
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
@@ -60,7 +61,8 @@ class AlternativesUseCase @Inject constructor(
 		sourcesRepository.getDisabledSources()
 	} else {
 		sourcesRepository.getEnabledSources()
-	}.sortedByDescending { it.priority(ref) }
+	}.filter { it.isNovelSource == ref.isNovelSource }
+	.sortedByDescending { it.priority(ref) }
 
 	private fun MangaSource.priority(ref: MangaSource): Int {
 		var res = 0

@@ -22,6 +22,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.Cache
 import okhttp3.CookieJar
 import okhttp3.OkHttpClient
+import okhttp3.brotli.BrotliInterceptor
 import java.util.concurrent.TimeUnit
 import javax.inject.Provider
 import javax.inject.Singleton
@@ -67,6 +68,7 @@ interface NetworkModule {
             proxyProvider: ProxyProvider,
         ): OkHttpClient = OkHttpClient.Builder().apply {
             assertNotInMainThread()
+            fastFallback(true)
             connectTimeout(20, TimeUnit.SECONDS)
             readTimeout(60, TimeUnit.SECONDS)
             writeTimeout(20, TimeUnit.SECONDS)
@@ -80,6 +82,7 @@ interface NetworkModule {
                 installExtraCertificates(contextProvider.get())
             }
             cache(cache)
+            addInterceptor(BrotliInterceptor)
             //addInterceptor(GZipInterceptor())
             addInterceptor(CloudFlareInterceptor())
             addInterceptor(RateLimitInterceptor())

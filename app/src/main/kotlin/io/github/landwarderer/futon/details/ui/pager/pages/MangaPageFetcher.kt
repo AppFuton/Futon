@@ -17,6 +17,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
+import io.github.landwarderer.futon.core.model.isNovelSource
 import io.github.landwarderer.futon.core.network.MangaHttpClient
 import io.github.landwarderer.futon.core.network.imageproxy.ImageProxyInterceptor
 import io.github.landwarderer.futon.core.parser.MangaRepository
@@ -44,6 +45,9 @@ class MangaPageFetcher(
 ) : Fetcher {
 
 	override suspend fun fetch(): FetchResult? {
+		if (page.source.isNovelSource) {
+			return null
+		}
 		if (!page.preview.isNullOrEmpty()) {
 			runCatchingCancellable {
 				imageLoader.fetch(checkNotNull(page.preview), options)
@@ -53,6 +57,9 @@ class MangaPageFetcher(
 		}
 		val repo = mangaRepositoryFactory.create(page.source)
 		val pageUrl = repo.getPageUrl(page)
+		if (pageUrl.startsWith("<") || pageUrl.isBlank()) {
+			return null
+		}
 		if (options.diskCachePolicy.readEnabled) {
 			pagesCache[pageUrl]?.let { file ->
 				return SourceFetchResult(

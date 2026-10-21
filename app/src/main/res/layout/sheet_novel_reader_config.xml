@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content">
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:paddingHorizontal="24dp"
+		android:paddingTop="16dp"
+		android:paddingBottom="32dp">
+
+		<!-- Handle indicator -->
+		<com.google.android.material.bottomsheet.BottomSheetDragHandleView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" />
+
+		<!-- Themes section -->
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="8dp"
+			android:text="@string/theme"
+			android:textAppearance="?textAppearanceTitleSmall" />
+
+		<com.google.android.material.chip.ChipGroup
+			android:id="@+id/chipGroup_themes"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="8dp"
+			app:singleSelection="true">
+
+			<com.google.android.material.chip.Chip
+				android:id="@+id/chip_theme_dark"
+				style="@style/Widget.Material3.Chip.Filter"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/novel_theme_dark" />
+
+			<com.google.android.material.chip.Chip
+				android:id="@+id/chip_theme_light"
+				style="@style/Widget.Material3.Chip.Filter"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/novel_theme_light" />
+
+			<com.google.android.material.chip.Chip
+				android:id="@+id/chip_theme_oled"
+				style="@style/Widget.Material3.Chip.Filter"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/novel_theme_oled" />
+
+			<com.google.android.material.chip.Chip
+				android:id="@+id/chip_theme_sepia"
+				style="@style/Widget.Material3.Chip.Filter"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/novel_theme_sepia" />
+
+		</com.google.android.material.chip.ChipGroup>
+
+		<!-- Reading mode -->
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="16dp"
+			android:text="@string/novel_reading_mode"
+			android:textAppearance="?textAppearanceTitleSmall" />
+
+		<com.google.android.material.button.MaterialButtonToggleGroup
+			android:id="@+id/toggleGroup_readingMode"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="8dp"
+			app:singleSelection="true">
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/button_mode_continuous"
+				style="?materialButtonOutlinedStyle"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:text="@string/novel_scroll_continuous" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/button_mode_paged"
+				style="?materialButtonOutlinedStyle"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:text="@string/novel_scroll_paged" />
+
+		</com.google.android.material.button.MaterialButtonToggleGroup>
+
+		<!-- Font Size -->
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="16dp"
+			android:gravity="center_vertical"
+			android:orientation="horizontal">
+
+			<TextView
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:text="@string/novel_font_size"
+				android:textAppearance="?textAppearanceTitleSmall" />
+
+			<TextView
+				android:id="@+id/text_fontSize_value"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:textAppearance="?textAppearanceBodyMedium"
+				android:text="18sp" />
+
+		</LinearLayout>
+
+		<com.google.android.material.slider.Slider
+			android:id="@+id/slider_fontSize"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:stepSize="1.0"
+			android:valueFrom="12.0"
+			android:valueTo="36.0" />
+
+		<!-- Font Family -->
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="16dp"
+			android:text="@string/novel_font_family"
+			android:textAppearance="?textAppearanceTitleSmall" />
+
+		<com.google.android.material.chip.ChipGroup
+			android:id="@+id/chipGroup_fontFamily"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="8dp"
+			app:singleSelection="true">
+
+			<com.google.android.material.chip.Chip
+				android:id="@+id/chip_font_serif"
+				style="@style/Widget.Material3.Chip.Filter"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/novel_font_serif" />
+
+			<com.google.android.material.chip.Chip
+				android:id="@+id/chip_font_sans"
+				style="@style/Widget.Material3.Chip.Filter"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/novel_font_sans_serif" />
+
+			<com.google.android.material.chip.Chip
+				android:id="@+id/chip_font_mono"
+				style="@style/Widget.Material3.Chip.Filter"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/novel_font_monospace" />
+
+		</com.google.android.material.chip.ChipGroup>
+
+		<!-- Line Spacing -->
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="16dp"
+			android:gravity="center_vertical"
+			android:orientation="horizontal">
+
+			<TextView
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:text="@string/novel_line_spacing"
+				android:textAppearance="?textAppearanceTitleSmall" />
+
+			<TextView
+				android:id="@+id/text_lineSpacing_value"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:textAppearance="?textAppearanceBodyMedium"
+				android:text="1.6" />
+
+		</LinearLayout>
+
+		<com.google.android.material.slider.Slider
+			android:id="@+id/slider_lineSpacing"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:stepSize="0.1"
+			android:valueFrom="1.0"
+			android:valueTo="2.4" />
+
+		<!-- Text Alignment -->
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="16dp"
+			android:text="@string/novel_alignment"
+			android:textAppearance="?textAppearanceTitleSmall" />
+
+		<com.google.android.material.button.MaterialButtonToggleGroup
+			android:id="@+id/toggleGroup_alignment"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="8dp"
+			app:singleSelection="true">
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/button_align_left"
+				style="?materialButtonOutlinedStyle"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:text="@string/novel_align_left" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/button_align_justify"
+				style="?materialButtonOutlinedStyle"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:text="@string/novel_align_justify" />
+
+		</com.google.android.material.button.MaterialButtonToggleGroup>
+
+	</LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

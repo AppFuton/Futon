@@ -150,4 +150,16 @@
 	<string-array name="values_github_mirrors" translatable="false">
         <item>KEIYOUSHI</item>
 	</string-array>
+	<string-array name="home_background_fonts" translatable="false">
+		<item>@string/home_background_font_light_thin</item>
+		<item>@string/home_background_font_bold</item>
+		<item>@string/home_background_font_extra_bold</item>
+		<item>@string/home_background_font_none</item>
+	</string-array>
+	<string-array name="values_home_background_fonts" translatable="false">
+		<item>LIGHT_THIN</item>
+		<item>BOLD</item>
+		<item>EXTRA_BOLD</item>
+		<item>NONE</item>
+	</string-array>
 </resources>

@@ -7,7 +7,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.LocalMangaSource
+import io.github.landwarderer.futon.core.model.LocalNovelSource
 import io.github.landwarderer.futon.core.model.UnknownMangaSource
+import io.github.landwarderer.futon.core.model.isNovel
+import io.github.landwarderer.futon.core.model.isNovelSource
 import io.github.landwarderer.futon.core.nav.AppRouter
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
@@ -145,10 +148,12 @@ class SearchViewModel @Inject constructor(
 		searchJob = launchLoadingJob(Dispatchers.IO) {
 			includeDisabledSources.value = true
 			prevJob?.join()
+			val isNovel = settings.appMode.isNovel
 			val sources = if (pinnedOnly.value) {
 				emptyList()
 			} else {
 				sourcesRepository.getDisabledSources()
+					.filter { it.isNovelSource == isNovel }
 					.sortedByDescending { it.priority() }
 			}
 			val semaphore = Semaphore(MAX_PARALLELISM)
@@ -166,13 +171,14 @@ class SearchViewModel @Inject constructor(
 		val prevJob = searchJob
 		searchJob = launchLoadingJob(Dispatchers.IO) {
 			prevJob?.cancelAndJoin()
+			val isNovel = settings.appMode.isNovel
 			appendResult(searchHistory())
 			appendResult(searchFavorites())
 			appendResult(searchLocal())
 			val sources = if (pinnedOnly.value) {
-				sourcesRepository.getPinnedSources().toList()
+				sourcesRepository.getPinnedSources().filter { it.isNovelSource == isNovel }
 			} else {
-				sourcesRepository.getEnabledSources()
+				sourcesRepository.getEnabledSources().filter { it.isNovelSource == isNovel }
 			}
 			val semaphore = Semaphore(MAX_PARALLELISM)
 			sources.map { source ->
@@ -192,7 +198,8 @@ class SearchViewModel @Inject constructor(
 		searchHelper(query, kind)
 	}.fold(
 		onSuccess = { result ->
-			val filteredManga = result?.manga?.filterBlacklistedTags()
+			val isNovel = settings.appMode.isNovel
+			val filteredManga = result?.manga?.filter { it.isNovel == isNovel }?.filterBlacklistedTags()
 			if (filteredManga.isNullOrEmpty()) {
 				null
 			} else {
@@ -224,7 +231,8 @@ class SearchViewModel @Inject constructor(
 		historyRepository.search(query, kind, Int.MAX_VALUE)
 	}.fold(
 		onSuccess = { result ->
-			val filteredManga = result.filterBlacklistedTags()
+			val isNovel = settings.appMode.isNovel
+			val filteredManga = result.filter { it.isNovel == isNovel }.filterBlacklistedTags()
 			if (filteredManga.isNotEmpty()) {
 				SearchResultsListModel(
 					titleResId = R.string.history,
@@ -254,7 +262,8 @@ class SearchViewModel @Inject constructor(
 		favouritesRepository.search(query, kind, Int.MAX_VALUE)
 	}.fold(
 		onSuccess = { result ->
-			val filteredManga = result.filterBlacklistedTags()
+			val isNovel = settings.appMode.isNovel
+			val filteredManga = result.filter { it.isNovel == isNovel }.filterBlacklistedTags()
 			if (filteredManga.isNotEmpty()) {
 				SearchResultsListModel(
 					titleResId = R.string.favourites,
@@ -285,14 +294,18 @@ class SearchViewModel @Inject constructor(
 	)
 
 	private suspend fun searchLocal(): SearchResultsListModel? = runCatchingCancellable {
-		searchHelperFactory.create(LocalMangaSource).invoke(query, kind)
+		val isNovel = settings.appMode.isNovel
+		val localSource = if (isNovel) LocalNovelSource else LocalMangaSource
+		searchHelperFactory.create(localSource).invoke(query, kind)
 	}.fold(
 		onSuccess = { result ->
-			val filteredManga = result?.manga?.filterBlacklistedTags()
+			val isNovel = settings.appMode.isNovel
+			val localSource = if (isNovel) LocalNovelSource else LocalMangaSource
+			val filteredManga = result?.manga?.filter { it.isNovel == isNovel }?.filterBlacklistedTags()
 			if (!filteredManga.isNullOrEmpty()) {
 				SearchResultsListModel(
 					titleResId = 0,
-					source = LocalMangaSource,
+					source = localSource,
 					list = mangaListMapper.toListModelList(
 						manga = filteredManga,
 						mode = ListMode.GRID,
@@ -307,9 +320,11 @@ class SearchViewModel @Inject constructor(
 			}
 		},
 		onFailure = { error ->
+			val isNovel = settings.appMode.isNovel
+			val localSource = if (isNovel) LocalNovelSource else LocalMangaSource
 			SearchResultsListModel(
 				titleResId = 0,
-				source = LocalMangaSource,
+				source = localSource,
 				list = emptyList(),
 				error = error,
 				listFilter = null,

@@ -41,3 +41,8 @@ replay_pid*.log
 *.keystore
 .idea/
 gradle.properties
+.claude/
+.claude.local.md
+.superpowers/
+docs/superpowers/
+.playwright-mcp/

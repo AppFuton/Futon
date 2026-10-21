@@ -32,6 +32,7 @@ class MainViewModel @Inject constructor(
 
 	val onOpenReader = MutableEventFlow<Manga>()
 	val onFirstStart = MutableEventFlow<Unit>()
+	val onShowOnboarding = MutableEventFlow<Unit>()
 
 	val isResumeEnabled = readingResumeEnabledUseCase()
 		.withErrorHandling()
@@ -58,7 +59,29 @@ class MainViewModel @Inject constructor(
 		valueProducer = { isIncognitoModeEnabled },
 	)
 
+	val appMode = settings.observeAsStateFlow(
+		scope = viewModelScope + Dispatchers.IO,
+		key = AppSettings.KEY_APP_MODE,
+		valueProducer = { appMode },
+	)
+
+	val homeBackgroundFont = settings.observeAsStateFlow(
+		scope = viewModelScope + Dispatchers.IO,
+		key = AppSettings.KEY_HOME_BACKGROUND_FONT,
+		valueProducer = { homeBackgroundFont },
+	)
+
 	init {
+		launchJob(Dispatchers.IO) {
+			if (settings.onboardingVersion < AppSettings.CURRENT_ONBOARDING_VERSION) {
+				onShowOnboarding.call(Unit)
+			} else if (sourcesRepository.isSetupRequired()) {
+				onFirstStart.call(Unit)
+			}
+		}
+	}
+
+	fun onOnboardingFinished() {
 		launchJob(Dispatchers.IO) {
 			if (sourcesRepository.isSetupRequired()) {
 				onFirstStart.call(Unit)
@@ -75,5 +98,13 @@ class MainViewModel @Inject constructor(
 
 	fun setIncognitoMode(isEnabled: Boolean) {
 		settings.isIncognitoModeEnabled = isEnabled
+	}
+
+	fun toggleAppMode() {
+		settings.appMode = if (settings.appMode == io.github.landwarderer.futon.core.prefs.AppMode.NOVEL) {
+			io.github.landwarderer.futon.core.prefs.AppMode.MANGA
+		} else {
+			io.github.landwarderer.futon.core.prefs.AppMode.NOVEL
+		}
 	}
 }

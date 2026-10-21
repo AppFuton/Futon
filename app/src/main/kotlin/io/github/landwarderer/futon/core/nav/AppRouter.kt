@@ -77,6 +77,7 @@ import io.github.landwarderer.futon.local.ui.ImportDialogFragment
 import io.github.landwarderer.futon.local.ui.info.LocalInfoDialog
 import io.github.landwarderer.futon.main.ui.MainActivity
 import io.github.landwarderer.futon.main.ui.welcome.WelcomeSheet
+import io.github.landwarderer.futon.onboarding.ui.OnboardingActivity
 import io.github.landwarderer.futon.reader.ui.colorfilter.ColorFilterConfigActivity
 import io.github.landwarderer.futon.reader.ui.config.ReaderConfigSheet
 import io.github.landwarderer.futon.scrobbling.common.domain.model.ScrobblerService
@@ -206,6 +207,8 @@ class AppRouter private constructor(
     }
 
     fun openSourcesCatalog() = startActivity(SourcesCatalogActivity::class.java)
+
+    fun openOnboarding() = startActivity(OnboardingActivity::class.java)
 
     fun openExtensionDownloader() = startActivity(ExtensionDownloaderActivity::class.java)
 

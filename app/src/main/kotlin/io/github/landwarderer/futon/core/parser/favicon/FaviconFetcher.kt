@@ -34,6 +34,8 @@ import io.github.landwarderer.futon.local.data.FaviconCache
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.LocalStorageCache
 import io.github.landwarderer.futon.mihon.MihonMangaRepository
+import io.github.landwarderer.futon.novel.data.LocalNovelRepository
+import io.github.landwarderer.futon.novel.data.source.BaseNovelRepository
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.runInterruptible
@@ -66,9 +68,40 @@ class FaviconFetcher(
 			)
 
 			is LocalMangaRepository -> imageLoader.fetch(R.drawable.ic_storage, options)
+			is LocalNovelRepository -> imageLoader.fetch(R.drawable.ic_novel, options)
+			is BaseNovelRepository -> fetchNovelFavicon(repo)
 			is MihonMangaRepository -> fetchMihonIcon(repo)
 
-			else -> throw IllegalArgumentException("Unsupported repo ${repo.javaClass.simpleName}")
+			else -> imageLoader.fetch(R.drawable.ic_novel, options)
+		}
+	}
+
+	private suspend fun fetchNovelFavicon(repository: BaseNovelRepository): FetchResult? {
+		val domain = repository.source.domain
+		val faviconUrl = "https://www.google.com/s2/favicons?domain=$domain&sz=128"
+		val cacheKey = options.diskCacheKey ?: "${repository.source.name}_favicon"
+		if (options.diskCachePolicy.readEnabled) {
+			localStorageCache[cacheKey]?.let { file ->
+				return SourceFetchResult(
+					source = ImageSource(file.toOkioPath(), FileSystem.SYSTEM),
+					mimeType = MimeTypes.probeMimeType(file)?.toString(),
+					dataSource = DataSource.DISK,
+				)
+			}
+		}
+		val result = try {
+			imageLoader.fetch(faviconUrl, options)
+		} catch (_: Exception) {
+			null
+		}
+		return if (result != null) {
+			if (options.diskCachePolicy.writeEnabled) {
+				writeToCache(cacheKey, result)
+			} else {
+				result
+			}
+		} else {
+			imageLoader.fetch(R.drawable.ic_novel, options)
 		}
 	}
 
