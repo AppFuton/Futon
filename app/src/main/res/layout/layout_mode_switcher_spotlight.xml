@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/spotlightRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#66000000"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Pulsing Outer Wave Halo Ring -->
+    <View
+        android:id="@+id/viewHaloRing"
+        android:layout_width="68dp"
+        android:layout_height="68dp"
+        android:background="@drawable/bg_spotlight_halo" />
+
+    <!-- Inner Spotlight Beacon Ring -->
+    <View
+        android:id="@+id/viewSpotlightRing"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:background="@drawable/bg_spotlight_ring" />
+
+    <!-- Callout Tag Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardCallout"
+        style="?attr/materialCardViewFilledStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="8dp"
+        app:strokeColor="?attr/colorPrimary"
+        app:strokeWidth="1.5dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:maxWidth="280dp"
+            android:orientation="vertical"
+            android:paddingHorizontal="18dp"
+            android:paddingVertical="14dp">
+
+            <TextView
+                android:id="@+id/textSpotlightTag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/spotlight_switcher_tag"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonGotIt"
+                style="?attr/materialButtonTonalStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:layout_marginTop="10dp"
+                android:minWidth="90dp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="0dp"
+                android:text="@string/spotlight_switcher_got_it"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</FrameLayout>

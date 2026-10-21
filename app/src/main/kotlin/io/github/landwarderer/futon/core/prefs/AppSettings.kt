@@ -359,6 +359,10 @@ class AppSettings internal constructor(
 		get() = prefs.getInt(KEY_ONBOARDING_VERSION, 0)
 		set(value) = prefs.edit { putInt(KEY_ONBOARDING_VERSION, value) }
 
+	var isModeSwitcherSpotlightShown: Boolean
+		get() = prefs.getBoolean(KEY_MODE_SWITCHER_SPOTLIGHT_SHOWN, false)
+		set(value) = prefs.edit { putBoolean(KEY_MODE_SWITCHER_SPOTLIGHT_SHOWN, value) }
+
 	var isAllSourcesEnabled: Boolean
 		get() = prefs.getBoolean(KEY_SOURCES_ENABLED_ALL, false)
 		set(value) = prefs.edit { putBoolean(KEY_SOURCES_ENABLED_ALL, value) }
@@ -920,6 +924,7 @@ class AppSettings internal constructor(
 		const val KEY_SOURCES_VERSION = "sources_version"
 		const val KEY_ONBOARDING_VERSION = "onboarding_version"
 		const val CURRENT_ONBOARDING_VERSION = 1
+		const val KEY_MODE_SWITCHER_SPOTLIGHT_SHOWN = "mode_switcher_spotlight_shown"
 		const val KEY_ABOUT_ONBOARDING = "about_onboarding"
 		const val KEY_SOURCES_ENABLED_ALL = "sources_enabled_all"
 		const val KEY_QUICK_FILTER = "quick_filter"

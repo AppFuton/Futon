@@ -1034,4 +1034,6 @@
     <string name="onboarding_page4_feature3">Tap Get Started below to begin your journey</string>
     <string name="about_onboarding">Replay Intro Walkthrough</string>
     <string name="about_onboarding_summary">Learn how to use Futon, dual modes, and source extensions</string>
+    <string name="spotlight_switcher_tag">Use this to switch between manga and novels</string>
+    <string name="spotlight_switcher_got_it">Got it</string>
 </resources>
