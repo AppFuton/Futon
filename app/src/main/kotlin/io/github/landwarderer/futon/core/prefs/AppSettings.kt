@@ -66,6 +66,13 @@ class AppSettings internal constructor(
 
 	fun observeAppMode(): Flow<AppMode> = observeAsFlow(KEY_APP_MODE) { appMode }
 
+	var homeBackgroundFont: HomeBackgroundFont
+		get() = prefs.getEnumValue(KEY_HOME_BACKGROUND_FONT, HomeBackgroundFont.DEFAULT)
+		set(value) = prefs.edit { putEnumValue(KEY_HOME_BACKGROUND_FONT, value) }
+
+	fun observeHomeBackgroundFont(): Flow<HomeBackgroundFont> =
+		observeAsFlow(KEY_HOME_BACKGROUND_FONT) { homeBackgroundFont }
+
 	var listMode: ListMode
 		get() = prefs.getEnumValue(KEY_LIST_MODE, ListMode.GRID)
 		set(value) = prefs.edit { putEnumValue(KEY_LIST_MODE, value) }
@@ -883,6 +890,7 @@ class AppSettings internal constructor(
 		const val KEY_DISABLE_NSFW = "no_nsfw"
 		const val KEY_RELATED_MANGA = "related_manga"
 		const val KEY_APP_MODE = "app_mode"
+		const val KEY_HOME_BACKGROUND_FONT = "home_background_font"
 		const val KEY_NAV_MAIN = "nav_main"
 		const val KEY_NAV_LABELS = "nav_labels"
 		const val KEY_NAV_PINNED = "nav_pinned"

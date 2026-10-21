@@ -995,4 +995,10 @@
     <string name="novel_font_monospace">Monospace</string>
     <string name="novel_font_custom">Custom Font (.ttf/.otf)</string>
     <string name="previous_chapter">Previous chapter</string>
+    <string name="home_background_font">Change Home Screen Background Font</string>
+    <string name="home_background_font_light_thin">Light Thin</string>
+    <string name="home_background_font_bold">Bold</string>
+    <string name="home_background_font_extra_bold">Extra Bold</string>
+    <string name="home_background_font_none">None</string>
+
 </resources>

@@ -89,6 +89,14 @@
 
     <PreferenceCategory android:title="@string/main_screen">
 
+        <ListPreference
+            android:defaultValue="BOLD"
+            android:entries="@array/home_background_fonts"
+            android:entryValues="@array/values_home_background_fonts"
+            android:key="home_background_font"
+            android:title="@string/home_background_font"
+            app:useSimpleSummaryProvider="true" />
+
         <MultiSelectListPreference
             android:key="search_suggest_types"
             android:title="@string/search_suggestions" />

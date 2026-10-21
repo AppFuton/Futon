@@ -64,6 +64,12 @@ class MainViewModel @Inject constructor(
 		valueProducer = { appMode },
 	)
 
+	val homeBackgroundFont = settings.observeAsStateFlow(
+		scope = viewModelScope + Dispatchers.IO,
+		key = AppSettings.KEY_HOME_BACKGROUND_FONT,
+		valueProducer = { homeBackgroundFont },
+	)
+
 	init {
 		launchJob(Dispatchers.IO) {
 			if (sourcesRepository.isSetupRequired()) {

@@ -39,9 +39,11 @@ import io.github.landwarderer.futon.core.exceptions.resolve.SnackbarErrorObserve
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.os.VoiceInputContract
 import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.prefs.HomeBackgroundFont
 import io.github.landwarderer.futon.core.prefs.NavItem
 import io.github.landwarderer.futon.core.ui.BaseActivity
 import io.github.landwarderer.futon.core.ui.util.FadingAppbarMediator
+import io.github.landwarderer.futon.core.ui.util.FontCache
 import io.github.landwarderer.futon.core.ui.util.MenuInvalidator
 import io.github.landwarderer.futon.core.ui.widgets.SlidingBottomNavigationView
 import io.github.landwarderer.futon.core.util.ext.consume
@@ -109,6 +111,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		super.onCreate(savedInstanceState)
 		setContentView(ActivityMainBinding.inflate(layoutInflater))
 		setSupportActionBar(viewBinding.searchBar)
+		updateHomeWatermark()
 
 		viewBinding.fab?.setOnClickListener(this)
 		viewBinding.navRail?.headerView?.findViewById<View>(R.id.railFab)?.setOnClickListener(this)
@@ -160,6 +163,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				viewModel.appMode.observe(this@MainActivity) {
 					invalidateOptionsMenu()
 					navigationDelegate.reloadCurrentFragment()
+					updateHomeWatermark()
+				}
+				viewModel.homeBackgroundFont.observe(this@MainActivity) {
+					updateHomeWatermark()
 				}
 				initSearch()
 			}
@@ -433,6 +440,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			if (params.bottomMargin != newMargin) {
 				params.bottomMargin = newMargin
 				layoutParams = params
+			}
+		}
+	}
+
+	private fun updateHomeWatermark() {
+		val tv = viewBinding.textViewWatermark ?: return
+		val font = viewModel.homeBackgroundFont.value
+		if (font == HomeBackgroundFont.NONE) {
+			tv.isVisible = false
+			return
+		}
+		tv.isVisible = true
+		tv.alpha = 0.10f
+		val isNovel = viewModel.appMode.value.isNovel
+		tv.text = if (isNovel) "ラ\nノ\nベ" else "漫\n画"
+		font.fontAssetPath?.let { assetPath ->
+			FontCache.getTypeface(this, assetPath)?.let { typeface ->
+				tv.typeface = typeface
 			}
 		}
 	}
