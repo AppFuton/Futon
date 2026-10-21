@@ -2,11 +2,13 @@ package io.github.landwarderer.futon.core.nav
 
 import android.content.Context
 import android.content.Intent
+import org.koitharu.kotatsu.parsers.model.Manga
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.bookmarks.domain.Bookmark
 import io.github.landwarderer.futon.core.model.isNovel
 import io.github.landwarderer.futon.core.model.parcelable.ParcelableManga
-import org.koitharu.kotatsu.parsers.model.Manga
+import io.github.landwarderer.futon.novel.ui.reader.NovelReaderActivity
+import io.github.landwarderer.futon.novel.ui.reader.pdf.PdfReaderActivity
 import io.github.landwarderer.futon.reader.ui.ReaderActivity
 import io.github.landwarderer.futon.reader.ui.ReaderState
 
@@ -23,11 +25,10 @@ value class ReaderIntent private constructor(
 		fun manga(manga: Manga) = apply {
 			intent.putExtra(AppRouter.KEY_MANGA, ParcelableManga(manga))
 			intent.setData(AppRouter.shortMangaUrl(manga.id))
-			if (manga.isNovel ||
-				manga.url.endsWith(".epub", ignoreCase = true) ||
-				manga.url.endsWith(".pdf", ignoreCase = true)
-			) {
-				intent.setClass(context, io.github.landwarderer.futon.novel.ui.reader.NovelReaderActivity::class.java)
+			if (manga.url.endsWith(".pdf", ignoreCase = true) || manga.url.startsWith("pdf://")) {
+				intent.setClass(context, PdfReaderActivity::class.java)
+			} else if (manga.isNovel || manga.url.endsWith(".epub", ignoreCase = true)) {
+				intent.setClass(context, NovelReaderActivity::class.java)
 			}
 		}
 

@@ -1,18 +1,24 @@
 package io.github.landwarderer.futon.novel.ui.local
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.viewModels
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.LocalNovelSource
 import io.github.landwarderer.futon.core.nav.router
+import io.github.landwarderer.futon.core.os.OpenDocumentTreeHelper
 import io.github.landwarderer.futon.core.util.ext.addMenuProvider
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
+import io.github.landwarderer.futon.core.util.ext.tryLaunch
 import io.github.landwarderer.futon.core.util.ext.withArgs
 import io.github.landwarderer.futon.databinding.FragmentListBinding
 import io.github.landwarderer.futon.filter.ui.FilterCoordinator
@@ -28,6 +34,18 @@ class NovelLocalListFragment : MangaListFragment(), FilterCoordinator.Owner, Men
 	) { uris ->
 		if (!uris.isNullOrEmpty()) {
 			viewModel.importFiles(uris)
+		}
+	}
+
+	private val openDirectoryLauncher = OpenDocumentTreeHelper(this) { uri ->
+		if (uri != null) {
+			try {
+				val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+				requireContext().contentResolver.takePersistableUriPermission(uri, flags)
+			} catch (e: Exception) {
+				e.printStackTraceDebug()
+			}
+			viewModel.importFolder(uri)
 		}
 	}
 
@@ -60,7 +78,7 @@ class NovelLocalListFragment : MangaListFragment(), FilterCoordinator.Owner, Men
 
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
 		return if (menuItem.itemId == MENU_ID_IMPORT) {
-			openFilePicker()
+			showImportOptionsDialog()
 			true
 		} else {
 			false
@@ -68,11 +86,30 @@ class NovelLocalListFragment : MangaListFragment(), FilterCoordinator.Owner, Men
 	}
 
 	override fun onEmptyActionClick() {
-		openFilePicker()
+		showImportOptionsDialog()
 	}
 
 	override fun onFilterClick(view: View?) {
 		router.showFilterSheet()
+	}
+
+	private fun showImportOptionsDialog() {
+		val options = arrayOf(
+			getString(R.string.add_folder),
+			getString(R.string.select_files),
+		)
+		MaterialAlertDialogBuilder(requireContext())
+			.setTitle(R.string._import)
+			.setItems(options) { _, which ->
+				when (which) {
+					0 -> if (!openDirectoryLauncher.tryLaunch(null)) {
+						Toast.makeText(requireContext(), R.string.operation_not_supported, Toast.LENGTH_SHORT).show()
+					}
+					1 -> openFilePicker()
+				}
+			}
+			.setNegativeButton(android.R.string.cancel, null)
+			.show()
 	}
 
 	companion object {

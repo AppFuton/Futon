@@ -984,6 +984,8 @@
     <string name="novel_scroll_continuous">Continuous Scroll</string>
     <string name="novel_scroll_paged">Page Flip</string>
     <string name="novel_import_file">Import Novel (.epub, .pdf)</string>
+    <string name="add_folder">Add Folder</string>
+    <string name="select_files">Select Files</string>
     <string name="novel_no_novels">No light novels found</string>
     <string name="novel_explore_title">Light Novel Sources</string>
     <string name="novel_font_family">Font Family</string>

@@ -46,11 +46,19 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class AppSettings @Inject constructor(@ApplicationContext context: Context) {
+class AppSettings internal constructor(
+	@ApplicationContext context: Context,
+	private val prefs: SharedPreferences,
+) {
 
-	private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-	private val connectivityManager = context.connectivityManager
-	private val mangaListBadgesDefault = ArraySet(context.resources.getStringArray(R.array.values_list_badges))
+	@Inject
+	constructor(@ApplicationContext context: Context) : this(
+		context,
+		PreferenceManager.getDefaultSharedPreferences(context),
+	)
+
+	private val connectivityManager by lazy { context.connectivityManager }
+	private val mangaListBadgesDefault by lazy { ArraySet(context.resources.getStringArray(R.array.values_list_badges)) }
 
 	var appMode: AppMode
 		get() = prefs.getEnumValue(KEY_APP_MODE, AppMode.MANGA)
@@ -361,6 +369,16 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		set(value) {
 			val set = value.mapToSet { it.absolutePath }
 			prefs.edit { putStringSet(KEY_LOCAL_MANGA_DIRS, set) }
+		}
+
+	var userSpecifiedNovelDirectories: Set<File>
+		get() {
+			val set = prefs.getStringSet(KEY_LOCAL_NOVEL_DIRS, emptySet()).orEmpty()
+			return set.mapNotNullToSet { File(it).takeIfReadable() }
+		}
+		set(value) {
+			val set = value.mapToSet { it.absolutePath }
+			prefs.edit { putStringSet(KEY_LOCAL_NOVEL_DIRS, set) }
 		}
 
 	var mangaStorageDir: File?
@@ -861,6 +879,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_PROXY_PASSWORD = "proxy_password"
 		const val KEY_IMAGES_PROXY = "images_proxy_2"
 		const val KEY_LOCAL_MANGA_DIRS = "local_manga_dirs"
+		const val KEY_LOCAL_NOVEL_DIRS = "local_novel_dirs"
 		const val KEY_DISABLE_NSFW = "no_nsfw"
 		const val KEY_RELATED_MANGA = "related_manga"
 		const val KEY_APP_MODE = "app_mode"
