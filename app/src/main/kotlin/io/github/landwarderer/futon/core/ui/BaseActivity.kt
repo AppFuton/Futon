@@ -29,7 +29,10 @@ import io.github.landwarderer.futon.core.nav.AppRouter
 import io.github.landwarderer.futon.core.ui.util.ActionModeDelegate
 import io.github.landwarderer.futon.core.util.ext.isWebViewUnavailable
 import io.github.landwarderer.futon.main.ui.protect.ScreenshotPolicyHelper
+import io.github.landwarderer.futon.core.prefs.ColorScheme
 import androidx.appcompat.R as appcompatR
+import com.google.android.material.color.DynamicColors
+import com.google.android.material.color.DynamicColorsOptions
 
 abstract class BaseActivity<B : ViewBinding> :
 	AppCompatActivity(),
@@ -60,7 +63,27 @@ abstract class BaseActivity<B : ViewBinding> :
 	override fun onCreate(savedInstanceState: Bundle?) {
 		val settings = entryPoint.settings
 		isAmoledTheme = settings.isAmoledTheme
-		setTheme(settings.colorScheme.styleResId)
+		val importedTheme = settings.selectedCustomTheme.takeIf { settings.colorScheme == ColorScheme.CUSTOM }
+		// Content-based dynamic theming (setContentBasedSource) uses Material Color Utilities
+		// internally, which works on all API 23+ -- no Monet/API-31 requirement.
+		// Only fall back to the default when CUSTOM is selected but no theme is imported.
+		val colorScheme = when {
+			importedTheme == null && settings.colorScheme == ColorScheme.CUSTOM -> ColorScheme.default
+			else -> settings.colorScheme
+		}
+		setTheme(colorScheme.styleResId)
+		if (importedTheme != null) {
+			setTheme(
+				if (importedTheme.isDark) R.style.ThemeOverlay_Futon_Custom_Dark
+				else R.style.ThemeOverlay_Futon_Custom_Light,
+			)
+			DynamicColors.applyToActivityIfAvailable(
+				this,
+				DynamicColorsOptions.Builder()
+					.setContentBasedSource(importedTheme.primaryColor)
+					.build(),
+			)
+		}
 		if (isAmoledTheme) {
 			setTheme(R.style.ThemeOverlay_Futon_Amoled)
 		}
@@ -69,6 +92,7 @@ abstract class BaseActivity<B : ViewBinding> :
 		enableEdgeToEdge()
 		super.onCreate(savedInstanceState)
 	}
+
 
 	override fun onPostCreate(savedInstanceState: Bundle?) {
 		super.onPostCreate(savedInstanceState)

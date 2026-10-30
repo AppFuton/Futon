@@ -84,6 +84,41 @@ class AppSettings internal constructor(
 	val colorScheme: ColorScheme
 		get() = prefs.getEnumValue(KEY_COLOR_THEME, ColorScheme.default)
 
+	@Volatile
+	private var cachedImportedThemes: List<ImportedTheme>? = null
+
+	/** Parsed imported themes, cached in memory and invalidated on write. */
+	val importedThemes: List<ImportedTheme>
+		get() = cachedImportedThemes ?: ImportedThemeFile
+			.parseStored(prefs.getString(KEY_CUSTOM_THEMES, "{}") ?: "{}")
+			.also { cachedImportedThemes = it }
+
+	var selectedCustomThemeId: String?
+		get() = prefs.getString(KEY_CUSTOM_THEME, null)
+		set(value) = prefs.edit { putString(KEY_CUSTOM_THEME, value) }
+
+	val selectedCustomTheme: ImportedTheme?
+		get() = importedThemes.firstOrNull { it.id == selectedCustomThemeId }
+
+	fun importCustomThemes(source: String): List<ImportedTheme> {
+		val imported = ImportedThemeFile.parseImport(source)
+		val stored = prefs.getString(KEY_CUSTOM_THEMES, "{}") ?: "{}"
+		prefs.edit { putString(KEY_CUSTOM_THEMES, ImportedThemeFile.mergeStored(stored, imported)) }
+		cachedImportedThemes = null
+		return imported
+	}
+
+	fun deleteCustomTheme(id: String) {
+		val themes = importedThemes.filterNot { it.id == id }
+		prefs.edit {
+			putString(KEY_CUSTOM_THEMES, ImportedThemeFile.mergeStored("{}", themes))
+			if (selectedCustomThemeId == id) {
+				remove(KEY_CUSTOM_THEME)
+			}
+		}
+		cachedImportedThemes = null
+	}
+
 	val isAmoledTheme: Boolean
 		get() = prefs.getBoolean(KEY_THEME_AMOLED, false)
 
@@ -773,6 +808,8 @@ class AppSettings internal constructor(
 		const val KEY_THEME = "theme"
 		const val KEY_COLOR_THEME = "color_theme"
 		const val KEY_THEME_AMOLED = "amoled_theme"
+		const val KEY_CUSTOM_THEMES = "custom_themes"
+		const val KEY_CUSTOM_THEME = "custom_theme"
 		const val KEY_OFFLINE_DISABLED = "no_offline"
 		const val KEY_PAGES_CACHE_CLEAR = "pages_cache_clear"
 		const val KEY_HTTP_CACHE_CLEAR = "http_cache_clear"

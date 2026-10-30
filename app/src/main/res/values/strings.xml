@@ -365,6 +365,15 @@
     <string name="theme_name_dynamic">Dynamic</string>
     <string name="theme_name_expressive">Expressive (Test)</string>
     <string name="color_theme">Color scheme</string>
+    <string name="theme_name_custom">Custom</string>
+    <string name="custom_themes">Custom themes</string>
+    <string name="custom_themes_none">No custom themes imported</string>
+    <string name="custom_theme_import">Import theme file</string>
+    <string name="custom_theme_import_summary">Import an Idle Fantasy compatible Material 3 theme JSON</string>
+    <string name="custom_theme_imported">Theme imported and applied</string>
+    <string name="custom_theme_import_failed">Could not import this theme file</string>
+    <string name="custom_theme_delete">Delete selected theme</string>
+    <string name="custom_theme_delete_confirm">Delete “%1$s”?</string>
     <string name="show_in_grid_view">Show in grid view</string>
     <string name="theme_name_miku">Miku</string>
     <string name="theme_name_asuka">Asuka</string>
