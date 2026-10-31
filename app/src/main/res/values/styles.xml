@@ -257,6 +257,10 @@
 		<item name="cornerSize">4dp</item>
 	</style>
 
+	<style name="ShapeAppearanceOverlay.Futon.Cover.Large" parent="">
+		<item name="cornerSize">20dp</item>
+	</style>
+
 	<style name="ShapeAppearanceOverlay.Futon.Circle" parent="">
 		<item name="cornerFamily">rounded</item>
 		<item name="cornerSize">50%</item>
