@@ -423,6 +423,11 @@ class AppSettings internal constructor(
 		get() = prefs.getBoolean(KEY_SOURCES_ENABLED_ALL, false)
 		set(value) = prefs.edit { putBoolean(KEY_SOURCES_ENABLED_ALL, value) }
 
+	/** Id of the active source preset, or 0 when the regular enabled sources are used. */
+	var activeSourcePresetId: Long
+		get() = getLongCompat(KEY_ACTIVE_SOURCE_PRESET, 0L)
+		set(value) = prefs.edit { putLong(KEY_ACTIVE_SOURCE_PRESET, value) }
+
 	val isPagesNumbersEnabled: Boolean
 		get() = prefs.getBoolean(KEY_PAGES_NUMBERS, false)
 
@@ -808,7 +813,7 @@ class AppSettings internal constructor(
         if (!isMerge) {
             clear()
         }
-		putAll(m)
+		putAll(normalizeImportedPreferences(m))
 	}
 
 	private fun isBackgroundNetworkRestricted(): Boolean {
@@ -816,6 +821,36 @@ class AppSettings internal constructor(
 			connectivityManager.restrictBackgroundStatus == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED
 		} else {
 			false
+		}
+	}
+
+	// Long preferences restored from a JSON backup come back as Integer (or String)
+	private fun getLongCompat(key: String, defaultValue: Long): Long = try {
+		prefs.getLong(key, defaultValue)
+	} catch (_: ClassCastException) {
+		val fixedValue = when (val rawValue = prefs.all[key]) {
+			is Number -> rawValue.toLong()
+			is String -> rawValue.toLongOrNull()
+			else -> null
+		}
+		if (fixedValue == null) {
+			prefs.edit { remove(key) }
+			defaultValue
+		} else {
+			prefs.edit { putLong(key, fixedValue) }
+			fixedValue
+		}
+	}
+
+	private fun normalizeImportedPreferences(values: Map<String, *>): Map<String, *> {
+		val fixedValue = when (val rawValue = values[KEY_ACTIVE_SOURCE_PRESET] ?: return values) {
+			is Long -> return values
+			is Number -> rawValue.toLong()
+			is String -> rawValue.toLongOrNull() ?: return values
+			else -> return values
+		}
+		return HashMap(values).apply {
+			put(KEY_ACTIVE_SOURCE_PRESET, fixedValue)
 		}
 	}
 
@@ -1014,6 +1049,7 @@ class AppSettings internal constructor(
 		const val KEY_MODE_SWITCHER_SPOTLIGHT_SHOWN = "mode_switcher_spotlight_shown"
 		const val KEY_ABOUT_ONBOARDING = "about_onboarding"
 		const val KEY_SOURCES_ENABLED_ALL = "sources_enabled_all"
+		const val KEY_ACTIVE_SOURCE_PRESET = "active_source_preset"
 		const val KEY_QUICK_FILTER = "quick_filter"
 		const val KEY_COLLAPSE_DESCRIPTION = "description_collapse"
 		const val KEY_BACKUP_TG_ENABLED = "backup_periodic_tg_enabled"

@@ -187,6 +187,29 @@
 		<item name="elevation">24dp</item>
 	</style>
 
+	<style name="Widget.Futon.ExploreButton.SplitStart" parent="Widget.Futon.ExploreButton">
+		<item name="shapeAppearanceOverlay">@style/ShapeAppearance.Futon.SplitStart</item>
+		<item name="android:insetRight">0dp</item>
+	</style>
+
+	<style name="Widget.Futon.ExploreButton.SplitEnd" parent="Widget.Futon.ExploreButton">
+		<item name="shapeAppearanceOverlay">@style/ShapeAppearance.Futon.SplitEnd</item>
+		<item name="android:insetLeft">0dp</item>
+		<item name="iconPadding">0dp</item>
+		<item name="android:minWidth">48dp</item>
+		<item name="android:gravity">center</item>
+	</style>
+
+	<style name="ShapeAppearance.Futon.SplitStart" parent="">
+		<item name="cornerSizeTopRight">0dp</item>
+		<item name="cornerSizeBottomRight">0dp</item>
+	</style>
+
+	<style name="ShapeAppearance.Futon.SplitEnd" parent="">
+		<item name="cornerSizeTopLeft">0dp</item>
+		<item name="cornerSizeBottomLeft">0dp</item>
+	</style>
+
 	<style name="Widget.Futon.TextView.Indicator" parent="Widget.MaterialComponents.TextView">
 		<item name="android:drawablePadding">12dp</item>
 		<item name="android:gravity">center_vertical</item>

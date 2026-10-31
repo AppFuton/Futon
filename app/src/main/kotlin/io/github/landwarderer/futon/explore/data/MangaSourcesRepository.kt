@@ -17,6 +17,7 @@ import io.github.landwarderer.futon.core.model.getTitle
 import io.github.landwarderer.futon.core.model.updateMihonTitle
 import io.github.landwarderer.futon.core.model.isBroken
 import io.github.landwarderer.futon.core.model.isNsfw
+import io.github.landwarderer.futon.core.model.languageCode
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.observeAsFlow
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -253,6 +255,72 @@ class MangaSourcesRepository @Inject constructor(
 			list.addAll(enabled)
 			list
 		}
+
+	/**
+	 * The sources a preset refers to that can still be used: built-in parsers, installed Mihon extensions
+	 * and external plugins, minus broken and (when hidden) NSFW ones, in the same order as the sources list.
+	 * Names of sources that have since been removed or uninstalled are skipped, not reported.
+	 */
+	suspend fun getPresetSources(preset: SourcePreset): List<MangaSourceInfo> {
+		if (preset.sources.isEmpty()) {
+			return emptyList()
+		}
+		assimilateNewSources()
+		val order = settings.sourcesSortOrder
+		val entities = dao.findAll(enabledOnly = false, order = order)
+		return mergePresetSources(
+			preset = preset,
+			fromDb = entities.filter { it.source in preset.sources }.toSources(settings.isNsfwContentDisabled, order),
+			external = getExternalSources(),
+		)
+	}
+
+	fun observePresetSources(preset: SourcePreset): Flow<List<MangaSourceInfo>> = if (preset.sources.isEmpty()) {
+		flowOf(emptyList())
+	} else {
+		combine(
+			observeIsNsfwDisabled(),
+			observeSortOrder(),
+		) { skipNsfw, order ->
+			dao.observeAll(enabledOnly = false, order = order).map { entities ->
+				entities.filter { it.source in preset.sources }.toSources(skipNsfw, order)
+			}
+		}.flattenLatest()
+			.onStart { assimilateNewSources() }
+			.combine(observeExternalSources()) { fromDb, external ->
+				mergePresetSources(preset, fromDb, external)
+			}
+	}
+
+	/** Every language code a source can declare, built-in parsers and installed Mihon extensions alike. */
+	fun getAllSourceLanguages(): Set<String> = buildSet {
+		allMangaSources.mapNotNullTo(this) { it.languageCode }
+		getMihonSources().mapNotNullTo(this) { it.languageCode }
+	}
+
+	/** Names of the usable sources in [languages], as the starting point of a new preset. */
+	fun getSourceNamesForLanguages(languages: Set<String>): Set<String> {
+		if (languages.isEmpty()) {
+			return emptySet()
+		}
+		val skipNsfw = settings.isNsfwContentDisabled
+		return (allMangaSources.asSequence() + getMihonSources().asSequence())
+			.filter { it.languageCode in languages && (!skipNsfw || !it.isNsfw()) }
+			.mapTo(LinkedHashSet()) { it.name }
+	}
+
+	private fun mergePresetSources(
+		preset: SourcePreset,
+		fromDb: List<MangaSourceInfo>,
+		external: List<MangaSource>,
+	): List<MangaSourceInfo> {
+		val dbNames = fromDb.mapToSet { it.name }
+		val result = ArrayList<MangaSourceInfo>(fromDb.size)
+		external.filter { it.name in preset.sources && it.name !in dbNames }
+			.mapTo(result) { MangaSourceInfo(it, isEnabled = true, isPinned = false) }
+		fromDb.mapTo(result) { it.copy(isEnabled = true) }
+		return result
+	}
 
 	fun observeAll(): Flow<List<Pair<MangaSource, Boolean>>> = dao.observeAll().map { entities ->
 		val result = ArrayList<Pair<MangaSource, Boolean>>(entities.size)

@@ -349,6 +349,10 @@
 		<activity
 			android:name="io.github.landwarderer.futon.alternatives.ui.AlternativesActivity"
 			android:label="@string/alternatives" />
+		<activity android:name="io.github.landwarderer.futon.explore.ui.preset.SourcePresetEditActivity" />
+		<activity
+			android:name="io.github.landwarderer.futon.explore.ui.preset.SourcePresetListActivity"
+			android:label="@string/source_presets" />
 		<activity
 			android:name="io.github.landwarderer.futon.tracker.ui.debug.TrackerDebugActivity"
 			android:label="@string/tracker_debug_info" />

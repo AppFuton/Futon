@@ -1057,6 +1057,16 @@
     <string name="manga_unavailable_message_no_source">\"%1$s\" could not be loaded. It may have been removed or moved to another address.</string>
     <string name="manga_unavailable_search_alternatives">Find on other sources</string>
     <string name="manga_unavailable_hint">Alternatives searches the other enabled sources for the same title, so you can carry on reading where you left off.</string>
+    <string name="source_presets">Source presets</string>
+    <string name="create_preset">New preset</string>
+    <string name="edit_preset">Edit preset</string>
+    <string name="preset_name">Preset name</string>
+    <string name="preset_languages">Languages</string>
+    <string name="preset_deleted">Preset deleted</string>
+    <string name="preset_activated">Preset activated</string>
+    <string name="preset_deactivated">Preset deactivated</string>
+    <string name="no_presets_text">Create a preset to quickly switch between different source configurations</string>
+    <string name="default_sources">Default</string>
     <string name="exclude_nsfw_from_shortcuts">Hide NSFW from shortcuts</string>
     <string name="exclude_nsfw_from_shortcuts_summary">Adult manga will not appear in the shortcut menu shown when you long press the app icon</string>
     <string name="update_removed">Update removed</string>

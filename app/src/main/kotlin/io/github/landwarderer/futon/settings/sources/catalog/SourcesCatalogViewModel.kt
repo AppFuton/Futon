@@ -13,6 +13,8 @@ import io.github.landwarderer.futon.core.ui.util.ReversibleAction
 import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.core.util.ext.call
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
+import io.github.landwarderer.futon.explore.data.SourcePreset
+import io.github.landwarderer.futon.explore.data.SourcePresetsRepository
 import io.github.landwarderer.futon.explore.data.SourcesSortOrder
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingState
@@ -22,8 +24,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.util.EnumSet
@@ -34,9 +39,26 @@ import javax.inject.Inject
 class SourcesCatalogViewModel @Inject constructor(
 	private val repository: MangaSourcesRepository,
 	private val mihonExtensionManager: MihonExtensionManager,
+	private val presetsRepository: SourcePresetsRepository,
 	db: MangaDatabase,
 	settings: AppSettings,
 ) : BaseViewModel() {
+
+	private val activePresetId = settings.activeSourcePresetId
+	private val presetMutex = Mutex()
+
+	/** The preset being edited: while one is active the catalog adds sources to it instead of enabling them. */
+	private val activePresetFlow = if (activePresetId == SourcePresetsRepository.NO_PRESET) {
+		flowOf(null)
+	} else {
+		presetsRepository.observe(activePresetId)
+	}
+
+	val activePreset: StateFlow<SourcePreset?> = activePresetFlow
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
+
+	val isPresetMode: Boolean
+		get() = activePreset.value != null
 
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 	val locales: Set<String?> = buildSet {
@@ -65,14 +87,21 @@ class SourcesCatalogViewModel @Inject constructor(
 		appliedFilter,
 		db.invalidationTrackerFlow(TABLE_SOURCES),
 		mihonExtensionManager.installedExtensions,
-	) { q, f, _, _ ->
-		buildSourcesList(f, q)
+		activePresetFlow,
+	) { q, f, _, _, preset ->
+		buildSourcesList(f, q, preset)
 	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState()))
 
 	init {
 		repository.clearNewSourcesBadge()
 		launchJob(Dispatchers.IO) {
 			contentTypes.value = getContentTypes(settings.isNsfwContentDisabled)
+		}
+		launchJob(Dispatchers.IO) {
+			val presetLocale = presetsRepository.getById(activePresetId)?.languages?.firstOrNull()
+			if (presetLocale != null && presetLocale in locales) {
+				appliedFilter.value = appliedFilter.value.copy(locale = presetLocale)
+			}
 		}
 	}
 
@@ -88,6 +117,18 @@ class SourcesCatalogViewModel @Inject constructor(
 		launchJob(Dispatchers.IO) {
 			val rollback = repository.setSourcesEnabled(setOf(source), true)
 			onActionDone.call(ReversibleAction(R.string.source_enabled, rollback))
+		}
+	}
+
+	fun togglePresetSource(source: MangaSource) {
+		launchJob(Dispatchers.IO) {
+			presetMutex.withLock {
+				// Read the stored set, not the observed one, so quick successive taps never undo each other.
+				val preset = presetsRepository.getById(activePresetId) ?: return@withLock
+				val name = source.name
+				val updated = if (name in preset.sources) preset.sources - name else preset.sources + name
+				presetsRepository.updatePresetSources(preset.id, updated)
+			}
 		}
 	}
 
@@ -107,11 +148,15 @@ class SourcesCatalogViewModel @Inject constructor(
 		appliedFilter.value = appliedFilter.value.copy(isNewOnly = value)
 	}
 
-	private suspend fun buildSourcesList(filter: SourcesCatalogFilter, query: String?): List<SourceCatalogItem> {
+	private suspend fun buildSourcesList(
+		filter: SourcesCatalogFilter,
+		query: String?,
+		preset: SourcePreset?,
+	): List<SourceCatalogItem> {
 		val sources = repository.queryParserSources(
-			isDisabledOnly = true,
+			isDisabledOnly = preset == null,
 			isNewOnly = filter.isNewOnly,
-			excludeBroken = false,
+			excludeBroken = preset != null,
 			types = filter.types,
 			query = query,
 			locale = filter.locale,
@@ -135,7 +180,10 @@ class SourcesCatalogViewModel @Inject constructor(
 			)
 		} else {
 			sources.map {
-				SourceCatalogItem.Source(source = it)
+				SourceCatalogItem.Source(
+					source = it,
+					isInPreset = preset != null && it.name in preset.sources,
+				)
 			}
 		}
 	}
