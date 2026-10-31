@@ -9,10 +9,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
 import io.github.landwarderer.futon.R
+import io.github.landwarderer.futon.core.db.SourceSearchFilter
 import io.github.landwarderer.futon.core.model.MangaHistory
 import io.github.landwarderer.futon.core.model.isNovel
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
@@ -40,6 +42,8 @@ import io.github.landwarderer.futon.list.ui.model.ListHeader
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.list.ui.model.toErrorState
+import io.github.landwarderer.futon.search.domain.ScreenSearchQuery
+import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionScope
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
@@ -57,6 +61,8 @@ class HistoryListViewModel @Inject constructor(
 	private val mangaListMapper: MangaListMapper,
 	private val markAsReadUseCase: MarkAsReadUseCase,
 	private val quickFilter: HistoryListQuickFilter,
+	private val screenSearchQuery: ScreenSearchQuery,
+	private val sourceSearchFilter: SourceSearchFilter,
 	mangaDataRepository: MangaDataRepository,
 	@LocalStorageChanges localStorageChanges: SharedFlow<LocalManga?>,
 ) : MangaListViewModel(settings, mangaDataRepository, localStorageChanges), QuickFilterListener by quickFilter {
@@ -82,6 +88,8 @@ class HistoryListViewModel @Inject constructor(
 
 	private val limit = MutableStateFlow(PAGE_SIZE)
 	private val isPaginationReady = AtomicBoolean(false)
+	private val searchQuery = screenSearchQuery.query(SearchSuggestionScope.HISTORY)
+		.mapLatest { sourceSearchFilter.resolve(it) }
 
 	val isStatsEnabled = settings.observeAsStateFlow(
 		scope = viewModelScope + Dispatchers.IO,
@@ -161,10 +169,16 @@ class HistoryListViewModel @Inject constructor(
 		sortOrder,
 		quickFilter.appliedOptions.combineWithSettings(),
 		limit,
-	) { order, filters, limit ->
+		searchQuery,
+	) { order, filters, limit, search ->
 		isPaginationReady.set(false)
-		repository.observeAllWithHistory(order, filters, limit)
+		repository.observeAllWithHistory(order, filters, limit, search)
 	}.flattenLatest()
+
+	override fun clearFilter() {
+		screenSearchQuery.clear(SearchSuggestionScope.HISTORY)
+		quickFilter.clearFilter()
+	}
 
 	private suspend fun mapList(
 		list: List<MangaWithHistory>,
@@ -174,7 +188,11 @@ class HistoryListViewModel @Inject constructor(
 		isIncognito: Boolean,
 	): List<ListModel> {
 		if (list.isEmpty()) {
-			return if (filters.isEmpty()) {
+			// A text filter counts as a filter: showing "what you read will appear here" to someone who
+			// just searched reads as if their history was wiped.
+			val hasFilters = filters.isNotEmpty() ||
+				screenSearchQuery.query(SearchSuggestionScope.HISTORY).value.isNotEmpty()
+			return if (!hasFilters) {
 				listOf(getEmptyState(hasFilters = false))
 			} else {
 				listOfNotNull(quickFilter.filterItem(filters), getEmptyState(hasFilters = true))

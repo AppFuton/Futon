@@ -12,11 +12,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.isNovel
+import io.github.landwarderer.futon.core.db.SourceSearchFilter
 import io.github.landwarderer.futon.core.nav.AppRouter
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
@@ -38,6 +40,8 @@ import io.github.landwarderer.futon.list.ui.model.EmptyState
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.list.ui.model.toErrorState
+import io.github.landwarderer.futon.search.domain.ScreenSearchQuery
+import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionScope
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
@@ -54,6 +58,8 @@ class FavouritesListViewModel @Inject constructor(
 	private val mangaListMapper: MangaListMapper,
 	private val markAsReadUseCase: MarkAsReadUseCase,
 	quickFilterFactory: FavoritesListQuickFilter.Factory,
+	private val screenSearchQuery: ScreenSearchQuery,
+	private val sourceSearchFilter: SourceSearchFilter,
 	settings: AppSettings,
 	mangaDataRepository: MangaDataRepository,
 	@LocalStorageChanges localStorageChanges: SharedFlow<LocalManga?>,
@@ -64,6 +70,8 @@ class FavouritesListViewModel @Inject constructor(
 	private val refreshTrigger = MutableStateFlow(Any())
 	private val limit = MutableStateFlow(PAGE_SIZE)
 	private val isPaginationReady = AtomicBoolean(false)
+	private val searchQuery = screenSearchQuery.query(SearchSuggestionScope.FAVOURITES)
+		.mapLatest { sourceSearchFilter.resolve(it) }
 
 	override val listMode = settings.observeAsFlow(AppSettings.KEY_LIST_MODE_FAVORITES) { favoritesListMode }
 		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, settings.favoritesListMode)
@@ -105,12 +113,24 @@ class FavouritesListViewModel @Inject constructor(
 
 	override fun toggleFilterOption(option: ListFilterOption) = quickFilter.toggleFilterOption(option)
 
-	override fun clearFilter() = quickFilter.clearFilter()
+	override fun clearFilter() {
+		screenSearchQuery.clear(SearchSuggestionScope.FAVOURITES)
+		quickFilter.clearFilter()
+	}
 
 	fun markAsRead(items: Set<Manga>) {
 		launchLoadingJob(Dispatchers.IO) {
 			markAsReadUseCase(items)
 			onRefresh()
+		}
+	}
+
+	fun setPinned(ids: Set<Long>, isPinned: Boolean) {
+		if (ids.isEmpty()) {
+			return
+		}
+		launchJob(Dispatchers.IO) {
+			repository.setPinned(ids, categoryId, isPinned)
 		}
 	}
 
@@ -145,15 +165,20 @@ class FavouritesListViewModel @Inject constructor(
 
 	private suspend fun List<Manga>.mapList(mode: ListMode, filters: Set<ListFilterOption>): List<ListModel> {
 		if (isEmpty()) {
-			return if (filters.isEmpty()) {
+			// A text filter counts as a filter: the "no favourites yet" copy would otherwise suggest the
+			// list is empty rather than that nothing matched.
+			val hasFilters = filters.isNotEmpty() ||
+				screenSearchQuery.query(SearchSuggestionScope.FAVOURITES).value.isNotEmpty()
+			return if (!hasFilters) {
 				listOf(getEmptyState(hasFilters = false))
 			} else {
 				listOfNotNull(quickFilter.filterItem(filters), getEmptyState(hasFilters = true))
 			}
 		}
+		val pinnedIds = repository.getPinnedIds(categoryId)
 		val result = ArrayList<ListModel>(size + 1)
 		quickFilter.filterItem(filters)?.let(result::add)
-		mangaListMapper.toListModelList(result, this, mode, MangaListMapper.NO_FAVORITE)
+		mangaListMapper.toListModelList(result, this, mode, MangaListMapper.NO_FAVORITE, pinnedIds)
 		return result
 	}
 
@@ -162,13 +187,18 @@ class FavouritesListViewModel @Inject constructor(
 			sortOrder.filterNotNull(),
 			quickFilter.appliedOptions.combineWithSettings(),
 			limit,
-		) { order, filters, limit ->
+			searchQuery,
+		) { order, filters, limit, search ->
 			isPaginationReady.set(false)
-			repository.observeAll(order, filters, limit)
+			repository.observeAll(order, filters, limit, search)
 		}.flattenLatest()
 	} else {
-		combine(quickFilter.appliedOptions.combineWithSettings(), limit) { filters, limit ->
-			repository.observeAll(categoryId, filters, limit)
+		combine(
+			quickFilter.appliedOptions.combineWithSettings(),
+			limit,
+			searchQuery,
+		) { filters, limit, search ->
+			repository.observeAll(categoryId, filters, limit, search)
 		}.flattenLatest()
 	}
 

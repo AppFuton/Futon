@@ -5,6 +5,7 @@ import dagger.Reusable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import io.github.landwarderer.futon.core.db.LibrarySearchQuery
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.db.entity.toEntity
 import io.github.landwarderer.futon.core.db.entity.toManga
@@ -93,12 +94,13 @@ class HistoryRepository @Inject constructor(
 	fun observeAllWithHistory(
 		order: ListSortOrder,
 		filterOptions: Set<ListFilterOption>,
-		limit: Int
+		limit: Int,
+		search: LibrarySearchQuery = LibrarySearchQuery.EMPTY,
 	): Flow<List<MangaWithHistory>> {
 		if (ListFilterOption.Downloaded in filterOptions) {
-			return localObserver.observeAll(order, filterOptions, limit)
+			return localObserver.observeAll(order, filterOptions, limit, search)
 		}
-		return db.getHistoryDao().observeAll(order, filterOptions, limit).mapItems {
+		return db.getHistoryDao().observeAll(order, filterOptions, limit, search).mapItems {
 			MangaWithHistory(
 				it.toManga(),
 				it.history.toMangaHistory(),

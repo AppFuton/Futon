@@ -2,6 +2,7 @@ package io.github.landwarderer.futon.favourites.domain
 
 import dagger.Reusable
 import kotlinx.coroutines.flow.Flow
+import io.github.landwarderer.futon.core.db.LibrarySearchQuery
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.db.entity.toManga
 import io.github.landwarderer.futon.core.db.entity.toMangaTags
@@ -22,15 +23,17 @@ class LocalFavoritesObserver @Inject constructor(
 	fun observeAll(
 		order: ListSortOrder,
 		filterOptions: Set<ListFilterOption>,
-		limit: Int
-	): Flow<List<Manga>> = db.getFavouritesDao().observeAll(order, filterOptions, limit).mapToLocal()
+		limit: Int,
+		search: LibrarySearchQuery = LibrarySearchQuery.EMPTY,
+	): Flow<List<Manga>> = db.getFavouritesDao().observeAll(order, filterOptions, limit, search).mapToLocal()
 
 	fun observeAll(
 		categoryId: Long,
 		order: ListSortOrder,
 		filterOptions: Set<ListFilterOption>,
-		limit: Int
-	): Flow<List<Manga>> = db.getFavouritesDao().observeAll(categoryId, order, filterOptions, limit).mapToLocal()
+		limit: Int,
+		search: LibrarySearchQuery = LibrarySearchQuery.EMPTY,
+	): Flow<List<Manga>> = db.getFavouritesDao().observeAll(categoryId, order, filterOptions, limit, search).mapToLocal()
 
 	override fun toManga(e: FavouriteManga) = e.manga.toManga(e.tags.toMangaTags(), null)
 

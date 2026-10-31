@@ -11,6 +11,7 @@ class MangaQueryBuilder(
 
 	private var filterOptions: Collection<ListFilterOption> = emptyList()
 	private var whereConditions = LinkedList<String>()
+	private val whereArgs = ArrayList<Any>()
 	private var orderBy: String? = null
 	private var groupBy: String? = null
 	private var extraJoins: String? = null
@@ -22,6 +23,12 @@ class MangaQueryBuilder(
 
 	fun where(condition: String) = apply {
 		whereConditions.add(condition)
+	}
+
+	/** A condition with bound arguments; they are bound in the order the conditions were added. */
+	fun where(condition: SqlCondition) = apply {
+		whereConditions.add(condition.sql)
+		whereArgs.addAll(condition.args)
 	}
 
 	fun orderBy(orderBy: String?) = apply {
@@ -97,7 +104,7 @@ class MangaQueryBuilder(
 			append(" LIMIT ")
 			append(limit)
 		}
-	}.let { SimpleSQLiteQuery(it) }
+	}.let { SimpleSQLiteQuery(it, whereArgs.toTypedArray()) }
 
 	private fun getConditionOrThrow(option: ListFilterOption): String = when (option) {
 		is ListFilterOption.Inverted -> "NOT(${getConditionOrThrow(option.option)})"
