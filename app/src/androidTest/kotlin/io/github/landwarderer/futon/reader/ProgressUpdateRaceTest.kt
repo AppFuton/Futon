@@ -75,6 +75,19 @@ class ProgressUpdateRaceTest {
     }
 
     @Test
+    fun recalculationKeepsChaptersCountForSmartResume() = runBlocking {
+        val fixture = fixture()
+        val dao = database.getHistoryDao()
+        // read while the source had 29 chapters; chapter 30 has been released since
+        dao.update(dao.find(fixture.manga.id)!!.copy(chaptersCount = 29))
+        val job = async(Dispatchers.IO) { recalculate(fixture.manga) }
+        withTimeout(30_000) { fixture.started.await() }
+        fixture.release()
+        withTimeout(30_000) { job.await() }
+        assertEquals(29, dao.find(fixture.manga.id)!!.chaptersCount)
+    }
+
+    @Test
     fun historyRemovedDuringRecalculationStaysRemoved() = runBlocking {
         val fixture = fixture()
         val job = async(Dispatchers.IO) { recalculate(fixture.manga) }
