@@ -12,6 +12,9 @@ class WebtoonFrameLayout @JvmOverloads constructor(
 	@AttrRes defStyleAttr: Int = 0,
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
+	/** Set between the image becoming ready and [WebtoonRecyclerView] placing it. */
+	var isRepinPending = false
+
 	private var _target: WebtoonImageView? = null
 	val target: WebtoonImageView
 		get() = _target ?: findViewById<WebtoonImageView?>(R.id.ssiv).also {
