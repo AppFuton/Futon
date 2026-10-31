@@ -1,5 +1,8 @@
 package io.github.landwarderer.futon.core.network.webview
 
+import android.graphics.Bitmap
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -11,6 +14,7 @@ import kotlinx.coroutines.sync.withLock
 import io.github.landwarderer.futon.browser.BrowserCallback
 import io.github.landwarderer.futon.browser.BrowserClient
 import io.github.landwarderer.futon.core.network.webview.adblock.AdBlock
+import java.lang.ref.WeakReference
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -29,7 +33,8 @@ class RequestInterceptorWebViewClient(
     private val mutex = Mutex()
     private val isCapturing = AtomicBoolean(true)
     private val startTime = System.currentTimeMillis()
-    private val scriptInjected = AtomicBoolean(false)
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val pollScheduled = AtomicBoolean(false)
 
     @WorkerThread
     override fun shouldInterceptRequest(
@@ -57,15 +62,56 @@ class RequestInterceptorWebViewClient(
         return super.shouldOverrideUrlLoading(view, request)
     }
 
+    override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+        super.onPageStarted(view, url, favicon)
+        if (view != null) {
+            injectPageScript(view)
+        }
+    }
+
     override fun onPageFinished(view: WebView, url: String) {
         super.onPageFinished(view, url)
+        injectPageScript(view)
+        schedulePolling(view)
+    }
+
+    /**
+     * The script has to be injected again on every navigation, not just the first one:
+     * an interstitial (a Cloudflare challenge, a redirect) is its own document, and the page
+     * that replaces it gets a fresh JS context. Scripts are expected to be idempotent.
+     */
+    private fun injectPageScript(view: WebView) {
         val script = config.pageScript
-        if (!script.isNullOrBlank() && scriptInjected.compareAndSet(false, true)) {
-            Log.d(TAG_VRF, "Injecting pageScript for URL: $url")
-            view.evaluateJavascript(script, null)
-        } else if (!script.isNullOrBlank()) {
-            Log.v(TAG_VRF, "PageScript already injected, skipping for URL: $url")
+        if (script.isNullOrBlank() || !isCapturing.get() || isTimeoutReached()) {
+            return
         }
+        view.evaluateJavascript(script, null)
+    }
+
+    /**
+     * Keeps re-running the script while a page is up, so a payload that only becomes
+     * available after some in-page work, or after a challenge clears without a navigation,
+     * is still picked up.
+     */
+    private fun schedulePolling(view: WebView) {
+        if (config.pageScript.isNullOrBlank() || !pollScheduled.compareAndSet(false, true)) {
+            return
+        }
+        val viewRef = WeakReference(view)
+        mainHandler.postDelayed(
+            object : Runnable {
+                override fun run() {
+                    val webView = viewRef.get()
+                    if (webView == null || !isCapturing.get() || isTimeoutReached()) {
+                        pollScheduled.set(false)
+                        return
+                    }
+                    injectPageScript(webView)
+                    mainHandler.postDelayed(this, SCRIPT_POLL_INTERVAL_MS)
+                }
+            },
+            SCRIPT_POLL_INTERVAL_MS,
+        )
     }
 
     /**
@@ -138,5 +184,10 @@ class RequestInterceptorWebViewClient(
         return synchronized(capturedRequests) {
             capturedRequests.toList()
         }
+    }
+
+    private companion object {
+
+        const val SCRIPT_POLL_INTERVAL_MS = 250L
     }
 }

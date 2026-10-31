@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.webkit.WebSettings
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.core.view.isInvisible
 import androidx.lifecycle.lifecycleScope
@@ -46,6 +47,7 @@ class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 	lateinit var captchaHandler: CaptchaHandler
 
 	private lateinit var cfClient: CloudFlareClient
+	private var alignedUserAgent: String? = null
 
 	override fun onCreate2(savedInstanceState: Bundle?, source: MangaSource, repository: ParserMangaRepository?) {
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = true)
@@ -54,6 +56,7 @@ class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 			finishAfterTransition()
 			return
 		}
+		alignUserAgentWithEngine(repository)
 
 		// Check if source needs header interception
 		val needsInterception = shouldUseInterception(source, repository)
@@ -118,6 +121,7 @@ class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 
 	override fun onCheckPassed() {
 		pendingResult = RESULT_OK
+		rememberAlignedUserAgent()
 		lifecycleScope.launch {
 			val source = intent?.getStringExtra(AppRouter.KEY_SOURCE)
 			if (source != null) {
@@ -152,6 +156,38 @@ class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 	private suspend fun clearCfCookies(url: HttpUrl) = runInterruptible(Dispatchers.IO) {
 		cookieJar.removeCookies(url) { cookie ->
 			CloudFlareHelper.isCloudFlareCookie(cookie.name)
+		}
+	}
+
+	/**
+	 * Turnstile cannot be passed by a WebView that lies about what it is. Some parsers pin a desktop
+	 * User-Agent, which contradicts everything the challenge script measures (`navigator.userAgentData`,
+	 * platform, touch points, WebGL renderer), so the challenge reloads forever. Realign such an agent
+	 * with the engine's own; sources whose agent already looks like Android are left untouched.
+	 */
+	private fun alignUserAgentWithEngine(repository: ParserMangaRepository?) {
+		if (repository == null) return
+		val engineUserAgent = runCatching { WebSettings.getDefaultUserAgent(this) }.getOrNull()
+		if (engineUserAgent.isNullOrEmpty() || ANDROID_UA_TOKEN !in engineUserAgent) return
+		val currentUserAgent = viewBinding.webView.settings.userAgentString
+		if (currentUserAgent.isNullOrEmpty() || ANDROID_UA_TOKEN in currentUserAgent) return
+		viewBinding.webView.settings.userAgentString = engineUserAgent
+		alignedUserAgent = engineUserAgent
+	}
+
+	/**
+	 * The clearance cookie is bound to the User-Agent that earned it, so OkHttp has to present the same
+	 * one. Writing [ConfigKey.UserAgent] would not do, since parsers with a hard-coded agent never read it.
+	 */
+	private fun rememberAlignedUserAgent() {
+		val userAgent = alignedUserAgent ?: return
+		val source = intent?.getStringExtra(AppRouter.KEY_SOURCE) ?: return
+		runCatching {
+			(mangaRepositoryFactory.create(MangaSource(source)) as? ParserMangaRepository)
+				?.getConfig()
+				?.cloudFlareUserAgent = userAgent
+		}.onFailure {
+			it.printStackTraceDebug("CloudFlareActivity::rememberAlignedUserAgent")
 		}
 	}
 
@@ -193,5 +229,6 @@ class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 	companion object {
 
 		const val TAG = "CloudFlareActivity"
+		private const val ANDROID_UA_TOKEN = "Android"
 	}
 }
