@@ -191,8 +191,17 @@ class BackupRepository @Inject constructor(
                         getBookmarksDao().upsert(it.bookmarks.map { b -> b.toEntity() })
                     }
 
-                    BackupSection.SOURCES -> input.readJsonArray<SourceBackup>(serializer()).restoreToDb {
-                        getSourcesDao().upsert(it.toEntity())
+                    BackupSection.SOURCES -> {
+                        val sources = input.readJsonArray<SourceBackup>(serializer()).toList()
+                        if (!isMerge && sources.isNotEmpty()) {
+                            // The backup holds only the enabled sources, so a plain upsert would keep every
+                            // source already enabled here, e.g. the defaults enabled on a fresh install.
+                            // Replace the selection instead; merging keeps adding to it.
+                            database.getSourcesDao().disableAllSources()
+                        }
+                        sources.asSequence().restoreToDb {
+                            getSourcesDao().upsert(it.toEntity())
+                        }
                     }
 
                     BackupSection.SCROBBLING -> input.readJsonArray<ScrobblingBackup>(serializer()).restoreToDb {
