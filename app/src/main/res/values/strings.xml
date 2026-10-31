@@ -1052,6 +1052,8 @@
     <string name="about_onboarding_summary">Learn how to use Futon, dual modes, and source extensions</string>
     <string name="spotlight_switcher_tag">Use this to switch between manga and novels</string>
     <string name="spotlight_switcher_got_it">Got it</string>
+    <string name="exclude_nsfw_from_shortcuts">Hide NSFW from shortcuts</string>
+    <string name="exclude_nsfw_from_shortcuts_summary">Adult manga will not appear in the shortcut menu shown when you long press the app icon</string>
     <string name="update_removed">Update removed</string>
     <string name="recently_read_manga">Recently read manga</string>
 </resources>

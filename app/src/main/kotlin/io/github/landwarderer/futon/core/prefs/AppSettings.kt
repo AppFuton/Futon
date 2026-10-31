@@ -359,6 +359,14 @@ class AppSettings internal constructor(
 	val isDynamicShortcutsEnabled: Boolean
 		get() = prefs.getBoolean(KEY_SHORTCUTS, true)
 
+	/**
+	 * Keep adult manga out of the launcher's long-press shortcuts.
+	 *
+	 * Defaults to `true`: the home screen is visible to anyone holding the phone.
+	 */
+	val isShortcutsNsfwDisabled: Boolean
+		get() = prefs.getBoolean(KEY_SHORTCUTS_NO_NSFW, true)
+
 	val isUnstableUpdatesAllowed: Boolean
 		get() = prefs.getBoolean(KEY_UPDATES_UNSTABLE, false)
 
@@ -945,6 +953,7 @@ class AppSettings internal constructor(
 		const val KEY_READER_BACKGROUND = "reader_background"
 		const val KEY_READER_SCREEN_ON = "reader_screen_on"
 		const val KEY_SHORTCUTS = "dynamic_shortcuts"
+		const val KEY_SHORTCUTS_NO_NSFW = "shortcuts_no_nsfw"
 		const val KEY_READER_TAP_ACTIONS = "reader_tap_actions"
 		const val KEY_READER_OPTIMIZE = "reader_optimize"
 		const val KEY_LOCAL_LIST_ORDER = "local_order"

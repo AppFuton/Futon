@@ -19,6 +19,7 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.LocalizedAppContext
 import io.github.landwarderer.futon.core.db.TABLE_HISTORY
 import io.github.landwarderer.futon.core.model.getTitle
+import io.github.landwarderer.futon.core.model.isNsfw
 import io.github.landwarderer.futon.core.nav.AppRouter
 import io.github.landwarderer.futon.core.nav.ReaderIntent
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
@@ -72,11 +73,18 @@ class AppShortcutManager @Inject constructor(
 	}
 
 	override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-		if (key == AppSettings.KEY_SHORTCUTS) {
-			if (settings.isDynamicShortcutsEnabled) {
+		when (key) {
+			AppSettings.KEY_SHORTCUTS -> if (settings.isDynamicShortcutsEnabled) {
 				onInvalidated(emptySet())
 			} else {
 				clearShortcuts()
+			}
+
+			// Rebuild straight away, so turning the filter on removes what is already on the home screen
+			// instead of waiting for the next history change.
+			AppSettings.KEY_SHORTCUTS_NO_NSFW,
+			AppSettings.KEY_DISABLE_NSFW -> if (settings.isDynamicShortcutsEnabled) {
+				onInvalidated(emptySet())
 			}
 		}
 	}
@@ -119,8 +127,13 @@ class AppShortcutManager @Inject constructor(
 
 	private suspend fun updateShortcutsImpl() = runCatchingCancellable {
 		val maxShortcuts = ShortcutManagerCompat.getMaxShortcutCountPerActivity(context).coerceAtLeast(5)
-		val shortcuts = historyRepository.getList(0, maxShortcuts)
-			.filter { x -> x.title.isNotEmpty() }
+		val skipNsfw = settings.isShortcutsNsfwDisabled || settings.isNsfwContentDisabled
+		// Over-fetch when filtering, so a run of adult titles at the top of the history does not leave
+		// the launcher with only one or two shortcuts.
+		val limit = if (skipNsfw) maxShortcuts * HISTORY_OVERFETCH else maxShortcuts
+		val shortcuts = historyRepository.getList(0, limit)
+			.filter { x -> x.title.isNotEmpty() && (!skipNsfw || !x.isNsfw()) }
+			.take(maxShortcuts)
 			.map { buildShortcutInfo(it) }
 		ShortcutManagerCompat.setDynamicShortcuts(context, shortcuts)
 	}.onFailure {
@@ -190,5 +203,11 @@ class AppShortcutManager @Inject constructor(
 			.setLongLived(true)
 			.setIntent(AppRouter.listIntent(context, source, null, null))
 			.build()
+	}
+
+	private companion object {
+
+		/** How much extra history to read when adult titles are being filtered out. */
+		const val HISTORY_OVERFETCH = 4
 	}
 }
