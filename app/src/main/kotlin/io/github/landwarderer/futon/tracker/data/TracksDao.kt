@@ -43,6 +43,18 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 	)
 	abstract suspend fun findAll(offset: Int, limit: Int, minActivityTime: Long, staleCheckTime: Long): List<TrackWithManga>
 
+	/** Tracks of [source] whose last check stopped at a captcha. */
+	@Transaction
+	@Query(
+		"""
+		SELECT tracks.* FROM tracks
+		INNER JOIN manga ON manga.manga_id = tracks.manga_id
+		WHERE manga.source = :source AND tracks.last_result = ${TrackEntity.RESULT_CAPTCHA}
+		ORDER BY tracks.last_check_time ASC
+		""",
+	)
+	abstract suspend fun findCaptchaBlocked(source: String): List<TrackWithManga>
+
 	@Transaction
 	@Query("SELECT * FROM tracks ORDER BY last_check_time DESC")
 	abstract fun observeAll(): Flow<List<TrackWithManga>>

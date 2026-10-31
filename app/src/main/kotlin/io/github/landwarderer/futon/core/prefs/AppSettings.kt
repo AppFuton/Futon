@@ -255,6 +255,9 @@ class AppSettings internal constructor(
 	val trackerDownloadStrategy: TrackerDownloadStrategy
 		get() = prefs.getEnumValue(KEY_TRACKER_DOWNLOAD, TrackerDownloadStrategy.DISABLED)
 
+	val isTrackerCaptchaRecheckEnabled: Boolean
+		get() = prefs.getBoolean(KEY_TRACKER_CAPTCHA_RECHECK, true)
+
 	var isTrackerUnstuckMigrationDone: Boolean
 		get() = prefs.getBoolean(KEY_TRACKER_UNSTUCK_MIGRATION, false)
 		set(value) = prefs.edit { putBoolean(KEY_TRACKER_UNSTUCK_MIGRATION, value) }
@@ -872,6 +875,7 @@ class AppSettings internal constructor(
 		const val KEY_TRACKER_NOTIFICATIONS = "tracker_notifications"
 		const val KEY_TRACKER_NO_NSFW = "tracker_no_nsfw"
 		const val KEY_TRACKER_DOWNLOAD = "tracker_download"
+		const val KEY_TRACKER_CAPTCHA_RECHECK = "tracker_captcha_recheck"
 		const val KEY_TRACKER_UNSTUCK_MIGRATION = "tracker_unstuck_migration"
 		const val KEY_TRACKER_PROGRESS_REFRESH = "tracker_progress_refresh"
 		const val KEY_NOTIFICATIONS_SETTINGS = "notifications_settings"

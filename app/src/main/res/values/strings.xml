@@ -483,6 +483,8 @@
     <string name="manage_categories">Manage categories</string>
     <string name="suggestions_wifi_only_summary">Do not update suggestions using metered network connections</string>
     <string name="tracker_wifi_only_summary">Do not check for new chapters using metered network connections</string>
+    <string name="tracker_captcha_recheck">Re-check after solving a CAPTCHA</string>
+    <string name="tracker_captcha_recheck_summary">Check the manga that needed a CAPTCHA again as soon as it is solved</string>
     <string name="search_hint">Enter manga title, genre or source name</string>
     <string name="progress">Progress</string>
     <string name="order_added">Added</string>

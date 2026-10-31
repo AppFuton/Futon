@@ -14,6 +14,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
@@ -25,6 +26,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.await
+import androidx.work.workDataOf
 import dagger.Lazy
 import dagger.Reusable
 import dagger.assisted.Assisted
@@ -32,6 +34,7 @@ import dagger.assisted.AssistedInject
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.db.MangaDatabase
+import io.github.landwarderer.futon.core.model.MangaSource
 import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaHandler
 import io.github.landwarderer.futon.core.model.ids
 import io.github.landwarderer.futon.core.nav.AppRouter
@@ -113,8 +116,9 @@ class TrackWorker @AssistedInject constructor(
 		// foreground service promotion succeeded - Android may refuse the promotion
 		// on certain OEMs, but the user explicitly asked for an immediate full check.
 		val isFullRun = TAG_ONESHOT in tags
+		val recheckSource = inputData.getString(KEY_SOURCE)?.let { MangaSource(it) }
 		return try {
-			doWorkImpl(isFullRun = isFullRun)
+			doWorkImpl(isFullRun = isFullRun, recheckSource = recheckSource)
 		} catch (e: CancellationException) {
 			throw e
 		} catch (e: Throwable) {
@@ -127,11 +131,16 @@ class TrackWorker @AssistedInject constructor(
 		}
 	}
 
-	private suspend fun doWorkImpl(isFullRun: Boolean): Result {
+	private suspend fun doWorkImpl(isFullRun: Boolean, recheckSource: MangaSource?): Result {
 		if (!settings.isTrackerEnabled) {
 			return Result.success()
 		}
-		val tracks = getTracksUseCase(if (isFullRun) Int.MAX_VALUE else BATCH_SIZE)
+		val tracks = if (recheckSource != null) {
+			// Right after a captcha was solved: only the manga of that source which stopped at the captcha
+			trackingRepository.getCaptchaBlockedTracks(recheckSource)
+		} else {
+			getTracksUseCase(if (isFullRun) Int.MAX_VALUE else BATCH_SIZE)
+		}
 		if (tracks.isEmpty()) {
 			return Result.success()
 		}
@@ -418,8 +427,25 @@ class TrackWorker @AssistedInject constructor(
 			workManager.enqueue(request)
 		}
 
+		/**
+		 * Checks again the manga of [source] that stopped at its captcha, once that captcha is solved.
+		 * A re-check already waiting or running for the source is kept.
+		 */
+		fun recheckSource(source: MangaSource) {
+			val constraints = Constraints.Builder()
+				.setRequiredNetworkType(NetworkType.CONNECTED)
+				.build()
+			val request = OneTimeWorkRequestBuilder<TrackWorker>()
+				.setConstraints(constraints)
+				.setInputData(workDataOf(KEY_SOURCE to source.name))
+				.addTag(TAG_RECHECK)
+				.setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+				.build()
+			workManager.enqueueUniqueWork("${TAG_RECHECK}_${source.name}", ExistingWorkPolicy.KEEP, request)
+		}
+
 		fun observeIsRunning(): Flow<Boolean> {
-			val query = WorkQuery.Builder.fromTags(listOf(TAG, TAG_ONESHOT)).build()
+			val query = WorkQuery.Builder.fromTags(listOf(TAG, TAG_ONESHOT, TAG_RECHECK)).build()
 			return workManager.getWorkInfosFlow(query)
 				.map { works ->
 					works.any { x -> x.state == WorkInfo.State.RUNNING }
@@ -437,6 +463,8 @@ class TrackWorker @AssistedInject constructor(
 		const val WORKER_NOTIFICATION_ID = 35
 		const val TAG = "tracking"
 		const val TAG_ONESHOT = "tracking_oneshot"
+		const val TAG_RECHECK = "tracking_recheck"
+		const val KEY_SOURCE = "source"
 		const val MAX_PARALLELISM = 6
 		const val MAX_PER_SOURCE_PARALLELISM = 2
 		val BATCH_SIZE = if (BuildConfig.DEBUG) 20 else 46

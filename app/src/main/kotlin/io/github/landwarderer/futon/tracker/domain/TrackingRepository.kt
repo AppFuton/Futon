@@ -21,6 +21,7 @@ import io.github.landwarderer.futon.details.domain.ProgressUpdateUseCase
 import io.github.landwarderer.futon.list.domain.ListFilterOption
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.ifZero
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.tracker.data.TrackEntity
@@ -116,6 +117,18 @@ class TrackingRepository @Inject constructor(
 			}
 		}
 		return result
+	}
+
+	suspend fun getCaptchaBlockedTracks(source: MangaSource): List<MangaTracking> {
+		return db.getTracksDao().findCaptchaBlocked(source.name).map { item ->
+			MangaTracking(
+				manga = item.manga.toManga(emptySet(), null),
+				lastChapterId = item.track.lastChapterId,
+				lastCheck = item.track.lastCheckTime.toInstantOrNull(),
+				lastChapterDate = item.track.lastChapterDate.toInstantOrNull(),
+				newChapters = item.track.newChapters,
+			)
+		}
 	}
 
 	private fun isUpdateCheckingDisabled(manga: Manga): Boolean {

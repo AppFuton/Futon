@@ -54,6 +54,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -72,12 +75,18 @@ class CaptchaHandler @Inject constructor(
 
 	private val exceptionMap = MutableScatterMap<MangaSource, CloudFlareProtectedException>()
 	private val mutex = Mutex()
+	private val solvedSourcesFlow = MutableSharedFlow<MangaSource>(extraBufferCapacity = SOLVED_BUFFER_CAPACITY)
+
+	/** Sources whose captcha was just solved, by the user or automatically. */
+	val solvedSources: SharedFlow<MangaSource> = solvedSourcesFlow.asSharedFlow()
 
 	@CheckResult
 	suspend fun handle(exception: CloudFlareException): Boolean = handleException(exception.source, exception, true)
 
+	/** Called once the captcha of [source] has been solved. */
 	suspend fun discard(source: MangaSource) {
 		handleException(source, null, true)
+		solvedSourcesFlow.emit(source)
 	}
 
 	override fun onError(request: ImageRequest, result: ErrorResult) {
@@ -287,6 +296,7 @@ class CaptchaHandler @Inject constructor(
 		private const val GROUP_NOTIFICATION_ID = 34
 		private const val SETTINGS_ACTION_CODE = 3
 		private const val ACTION_DISCARD = "io.github.landwarderer.futon.CAPTCHA_DISCARD"
+		private const val SOLVED_BUFFER_CAPACITY = 8
 		private const val RESOLVE_TIMEOUT = 20_000L
 	}
 }

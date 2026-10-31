@@ -1,6 +1,7 @@
 package io.github.landwarderer.futon.settings.work
 
 import android.content.SharedPreferences
+import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaHandler
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
 import io.github.landwarderer.futon.download.ui.worker.DownloadSchedulerWorker
@@ -21,6 +22,7 @@ class WorkScheduleManager @Inject constructor(
 	private val trackerScheduler: TrackWorker.Scheduler,
 	private val downloadScheduler: DownloadWorker.Scheduler,
 	private val trackerUnstuckMigrationProvider: Provider<TrackerUnstuckMigrationUseCase>,
+	private val captchaHandler: CaptchaHandler,
 ) : SharedPreferences.OnSharedPreferenceChangeListener {
 
 	override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
@@ -59,6 +61,13 @@ class WorkScheduleManager @Inject constructor(
 			// Recovery for tracks bugged by the previous reader-side new chapters check.
 			// Runs at most once per install (gated by settings flags).
 			trackerUnstuckMigrationProvider.get().runIfNeeded()
+		}
+		processLifecycleScope.launch(Dispatchers.Default) {
+			captchaHandler.solvedSources.collect { source ->
+				if (settings.isTrackerEnabled && settings.isTrackerCaptchaRecheckEnabled) {
+					trackerScheduler.recheckSource(source)
+				}
+			}
 		}
 	}
 
