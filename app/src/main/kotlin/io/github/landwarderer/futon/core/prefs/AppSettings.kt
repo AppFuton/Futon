@@ -255,6 +255,14 @@ class AppSettings internal constructor(
 	val trackerDownloadStrategy: TrackerDownloadStrategy
 		get() = prefs.getEnumValue(KEY_TRACKER_DOWNLOAD, TrackerDownloadStrategy.DISABLED)
 
+	var isTrackerUnstuckMigrationDone: Boolean
+		get() = prefs.getBoolean(KEY_TRACKER_UNSTUCK_MIGRATION, false)
+		set(value) = prefs.edit { putBoolean(KEY_TRACKER_UNSTUCK_MIGRATION, value) }
+
+	var isTrackerProgressRefreshDone: Boolean
+		get() = prefs.getBoolean(KEY_TRACKER_PROGRESS_REFRESH, false)
+		set(value) = prefs.edit { putBoolean(KEY_TRACKER_PROGRESS_REFRESH, value) }
+
 	var notificationSound: Uri
 		get() = prefs.getString(KEY_NOTIFICATIONS_SOUND, null)?.toUriOrNull()
 			?: Settings.System.DEFAULT_NOTIFICATION_URI
@@ -864,6 +872,8 @@ class AppSettings internal constructor(
 		const val KEY_TRACKER_NOTIFICATIONS = "tracker_notifications"
 		const val KEY_TRACKER_NO_NSFW = "tracker_no_nsfw"
 		const val KEY_TRACKER_DOWNLOAD = "tracker_download"
+		const val KEY_TRACKER_UNSTUCK_MIGRATION = "tracker_unstuck_migration"
+		const val KEY_TRACKER_PROGRESS_REFRESH = "tracker_progress_refresh"
 		const val KEY_NOTIFICATIONS_SETTINGS = "notifications_settings"
 		const val KEY_NOTIFICATIONS_SOUND = "notifications_sound"
 		const val KEY_NOTIFICATIONS_VIBRATE = "notifications_vibrate"

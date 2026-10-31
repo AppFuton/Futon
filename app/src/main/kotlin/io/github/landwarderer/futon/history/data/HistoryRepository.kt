@@ -27,6 +27,7 @@ import io.github.landwarderer.futon.list.domain.ReadingProgress
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.util.almostEquals
 import org.koitharu.kotatsu.parsers.util.findById
 import org.koitharu.kotatsu.parsers.util.levenshteinDistance
 import io.github.landwarderer.futon.scrobbling.common.domain.Scrobbler
@@ -141,6 +142,25 @@ class HistoryRepository @Inject constructor(
 		return db.getHistoryDao().find(manga.id)?.recoverIfNeeded(manga)?.toMangaHistory()
 	}
 
+	/**
+	 * Histories of other library manga whose title (or one of the alternative titles) is almost the same as
+	 * [manga]'s, e.g. the same series read from another source.
+	 */
+	suspend fun findSimilarByTitle(manga: Manga, limit: Int): List<MangaHistory> {
+		val title = manga.title.trim()
+		if (title.length < MIN_TITLE_MATCH_LENGTH) {
+			return emptyList()
+		}
+		val result = ArrayList<MangaHistory>()
+		for (candidate in db.getMangaDao().searchByTitle("%$title%", limit)) {
+			if (candidate.manga.id == manga.id || !candidate.manga.title.matchesTitle(manga)) {
+				continue
+			}
+			db.getHistoryDao().find(candidate.manga.id)?.toMangaHistory()?.let(result::add)
+		}
+		return result
+	}
+
 	suspend fun getProgress(mangaId: Long, mode: ProgressIndicatorMode): ReadingProgress? {
 		val entity = db.getHistoryDao().find(mangaId) ?: return null
 		val fixedPercent = if (ReadingProgress.isCompleted(entity.percent)) 1f else entity.percent
@@ -230,4 +250,19 @@ class HistoryRepository @Inject constructor(
 	}
 
 	private fun HistoryWithManga.toManga() = manga.toManga(tags.toMangaTags(), null)
+
+	private fun String.matchesTitle(manga: Manga): Boolean {
+		if (almostEquals(manga.title, TITLE_MATCH_THRESHOLD)) {
+			return true
+		}
+		return manga.altTitles.any { altTitle ->
+			altTitle.isNotBlank() && almostEquals(altTitle, TITLE_MATCH_THRESHOLD)
+		}
+	}
+
+	private companion object {
+
+		const val MIN_TITLE_MATCH_LENGTH = 4
+		const val TITLE_MATCH_THRESHOLD = 0.12f
+	}
 }

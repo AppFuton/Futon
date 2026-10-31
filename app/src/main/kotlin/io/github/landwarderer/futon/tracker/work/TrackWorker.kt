@@ -90,9 +90,13 @@ class TrackWorker @AssistedInject constructor(
 
 	override suspend fun doWork(): Result {
 		notificationHelper.updateChannels()
-		val isForeground = trySetForeground()
+		trySetForeground()
+		// Full run when manually triggered (TAG_ONESHOT), regardless of whether the
+		// foreground service promotion succeeded - Android may refuse the promotion
+		// on certain OEMs, but the user explicitly asked for an immediate full check.
+		val isFullRun = TAG_ONESHOT in tags
 		return try {
-			doWorkImpl(isFullRun = isForeground && TAG_ONESHOT in tags)
+			doWorkImpl(isFullRun = isFullRun)
 		} catch (e: CancellationException) {
 			throw e
 		} catch (e: Throwable) {

@@ -13,9 +13,35 @@ import io.github.landwarderer.futon.list.domain.ListFilterOption
 @Dao
 abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 
+	/**
+	 * Tracks to check, least recently checked first. Tracks inactive for a while (no recent chapter, read or
+	 * favourite) are skipped unless they were not checked since [staleCheckTime].
+	 */
 	@Transaction
-	@Query("SELECT * FROM tracks ORDER BY last_check_time ASC LIMIT :limit OFFSET :offset")
-	abstract suspend fun findAll(offset: Int, limit: Int): List<TrackWithManga>
+	@Query(
+		"""
+		SELECT * FROM tracks
+		WHERE last_check_time = 0
+			OR last_check_time <= :staleCheckTime
+			OR last_chapter_date = 0
+			OR last_chapter_date >= :minActivityTime
+			OR EXISTS(
+				SELECT 1 FROM history
+				WHERE history.manga_id = tracks.manga_id
+					AND history.deleted_at = 0
+					AND history.updated_at >= :minActivityTime
+			)
+			OR EXISTS(
+				SELECT 1 FROM favourites
+				WHERE favourites.manga_id = tracks.manga_id
+					AND favourites.deleted_at = 0
+					AND favourites.created_at >= :minActivityTime
+			)
+		ORDER BY last_check_time ASC
+		LIMIT :limit OFFSET :offset
+		""",
+	)
+	abstract suspend fun findAll(offset: Int, limit: Int, minActivityTime: Long, staleCheckTime: Long): List<TrackWithManga>
 
 	@Transaction
 	@Query("SELECT * FROM tracks ORDER BY last_check_time DESC")
@@ -58,11 +84,21 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 	@Query("DELETE FROM tracks")
 	abstract suspend fun clear()
 
-	@Query("UPDATE tracks SET chapters_new = 0")
+	/**
+	 * Resets every unread counter and rebases each track on the reading position, so the next check reports the
+	 * chapters after it again instead of losing them behind the newest chapter.
+	 */
+	@Query(
+		"UPDATE tracks SET chapters_new = 0, last_chapter_id = COALESCE(" +
+			"(SELECT chapter_id FROM history WHERE history.manga_id = tracks.manga_id AND history.deleted_at = 0), 0)",
+	)
 	abstract suspend fun clearCounters()
 
 	@Query("UPDATE tracks SET chapters_new = 0 WHERE manga_id = :mangaId")
 	abstract suspend fun clearCounter(mangaId: Long)
+
+	@Query("UPDATE tracks SET chapters_new = 0 WHERE chapters_new > 0 AND last_chapter_date > 0 AND last_chapter_date < :minChapterDate")
+	abstract suspend fun clearStaleCounters(minChapterDate: Long)
 
 	@Query("DELETE FROM tracks WHERE manga_id = :mangaId")
 	abstract suspend fun delete(mangaId: Long)
