@@ -41,11 +41,15 @@ fun trackDebugAD(
 					)
 				} ?: getString(R.string.never),
 			)
-			if (item.lastResult == TrackEntity.RESULT_FAILED) {
+			if (item.lastResult == TrackEntity.RESULT_FAILED || item.lastResult == TrackEntity.RESULT_CAPTCHA) {
 				append(" - ")
 				bold {
 					color(context.getThemeColor(appcompatR.attr.colorError, Color.RED)) {
-						append(item.lastError ?: getString(R.string.error))
+						append(
+							item.lastError ?: getString(
+								if (item.lastResult == TrackEntity.RESULT_CAPTCHA) R.string.captcha_required else R.string.error,
+							),
+						)
 					}
 				}
 			}

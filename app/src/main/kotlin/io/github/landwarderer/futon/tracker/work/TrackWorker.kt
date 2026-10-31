@@ -32,7 +32,6 @@ import dagger.assisted.AssistedInject
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.db.MangaDatabase
-import io.github.landwarderer.futon.core.exceptions.CloudFlareException
 import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaHandler
 import io.github.landwarderer.futon.core.model.ids
 import io.github.landwarderer.futon.core.nav.AppRouter
@@ -42,6 +41,7 @@ import io.github.landwarderer.futon.core.prefs.TrackerDownloadStrategy
 import io.github.landwarderer.futon.core.prefs.TriStateOption
 import io.github.landwarderer.futon.core.util.ext.awaitUniqueWorkInfoByName
 import io.github.landwarderer.futon.core.util.ext.checkNotificationPermission
+import io.github.landwarderer.futon.core.util.ext.findCloudFlareException
 import io.github.landwarderer.futon.core.util.ext.onEachIndexed
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.trySetForeground
@@ -50,11 +50,13 @@ import io.github.landwarderer.futon.history.data.HistoryRepository
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.domain.EnforceStorageQuotaUseCase
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.parsers.util.toIntUp
 import io.github.landwarderer.futon.settings.work.PeriodicWorkScheduler
 import io.github.landwarderer.futon.tracker.domain.CheckNewChaptersUseCase
 import io.github.landwarderer.futon.tracker.domain.GetTracksUseCase
+import io.github.landwarderer.futon.tracker.domain.TrackingRepository
 import io.github.landwarderer.futon.tracker.domain.model.MangaTracking
 import io.github.landwarderer.futon.tracker.domain.model.MangaUpdates
 import io.github.landwarderer.futon.tracker.work.TrackerNotificationHelper.NotificationInfo
@@ -63,8 +65,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -73,6 +77,8 @@ import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Provider
@@ -88,6 +94,7 @@ class TrackWorker @AssistedInject constructor(
 	private val settings: AppSettings,
 	private val getTracksUseCase: GetTracksUseCase,
 	private val checkNewChaptersUseCase: CheckNewChaptersUseCase,
+	private val trackingRepository: TrackingRepository,
 	private val workManager: WorkManager,
 	private val localRepositoryLazy: Lazy<LocalMangaRepository>,
 	private val mangaDataRepositoryLazy: Lazy<MangaDataRepository>,
@@ -143,11 +150,23 @@ class TrackWorker @AssistedInject constructor(
 	@CheckResult
 	private suspend fun checkUpdatesAsync(tracks: List<MangaTracking>): List<NotificationInfo> {
 		val semaphore = Semaphore(MAX_PARALLELISM)
-		return channelFlow {
+		val sourceSemaphores = HashMap<MangaSource, Semaphore>()
+		// Sources that failed in a way every other request of this run would repeat, with that failure
+		val blockedSources = ConcurrentHashMap<MangaSource, MangaUpdates.Failure>()
+		val skipped = ConcurrentHashMap<MangaSource, MutableList<Long>>()
+		val notifications = channelFlow<MangaUpdates?> {
 			for (track in tracks) {
+				val source = track.manga.source
+				val sourceSemaphore = sourceSemaphores.getOrPut(source) { Semaphore(MAX_PER_SOURCE_PARALLELISM) }
 				launch {
-					semaphore.withPermit {
-						send(
+					// The source permit comes first: a busy source must not hold the global slots while it waits
+					sourceSemaphore.withPermit {
+						if (blockedSources.containsKey(source)) {
+							skipped.getOrPut(source) { Collections.synchronizedList(ArrayList()) }.add(track.manga.id)
+							send(null)
+							return@withPermit
+						}
+						val updates = semaphore.withPermit {
 							runCatchingCancellable {
 								checkNewChaptersUseCase.invoke(track)
 							}.getOrElse { error ->
@@ -155,19 +174,24 @@ class TrackWorker @AssistedInject constructor(
 									manga = track.manga,
 									error = error,
 								)
-							},
-						)
+							}
+						}
+						if (updates is MangaUpdates.Failure && updates.isSourceBlocked()) {
+							blockedSources.putIfAbsent(source, updates)
+						}
+						send(updates)
 					}
 				}
 			}
-		}.onEachIndexed { index, it ->
+		}.onEachIndexed { index, _ ->
 			if (applicationContext.checkNotificationPermission(WORKER_CHANNEL_ID)) {
 				notificationManager.notify(WORKER_NOTIFICATION_ID, createWorkerNotification(tracks.size, index + 1))
 			}
+		}.filterNotNull().onEach {
 			when (it) {
 				is MangaUpdates.Failure -> {
-					val e = it.error
-					if (e is CloudFlareException) {
+					val e = it.error?.findCloudFlareException()
+					if (e != null) {
 						captchaHandler.handle(e)
 					}
 				}
@@ -187,6 +211,11 @@ class TrackWorker @AssistedInject constructor(
 				}
 			}
 		}.toList()
+		for ((source, ids) in skipped) {
+			val failure = blockedSources[source] ?: continue
+			trackingRepository.saveSkipped(ids, failure)
+		}
+		return notifications
 	}
 
 	override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -409,6 +438,7 @@ class TrackWorker @AssistedInject constructor(
 		const val TAG = "tracking"
 		const val TAG_ONESHOT = "tracking_oneshot"
 		const val MAX_PARALLELISM = 6
+		const val MAX_PER_SOURCE_PARALLELISM = 2
 		val BATCH_SIZE = if (BuildConfig.DEBUG) 20 else 46
 		const val SETTINGS_ACTION_CODE = 5
 	}

@@ -100,6 +100,10 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 	@Query("UPDATE tracks SET chapters_new = 0 WHERE chapters_new > 0 AND last_chapter_date > 0 AND last_chapter_date < :minChapterDate")
 	abstract suspend fun clearStaleCounters(minChapterDate: Long)
 
+	/** Records a check that was skipped, keeping the tracking state (baseline and counter) as it is. */
+	@Query("UPDATE tracks SET last_check_time = :time, last_result = :result, last_error = :error WHERE manga_id IN (:ids)")
+	abstract suspend fun markChecked(ids: Collection<Long>, time: Long, result: Int, error: String?)
+
 	@Query("DELETE FROM tracks WHERE manga_id = :mangaId")
 	abstract suspend fun delete(mangaId: Long)
 

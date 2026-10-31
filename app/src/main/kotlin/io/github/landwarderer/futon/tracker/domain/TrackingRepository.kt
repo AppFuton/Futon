@@ -15,12 +15,14 @@ import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.parser.ParserMangaRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.mapItems
+import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.toInstantOrNull
 import io.github.landwarderer.futon.details.domain.ProgressUpdateUseCase
 import io.github.landwarderer.futon.list.domain.ListFilterOption
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.util.ifZero
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import io.github.landwarderer.futon.tracker.data.TrackEntity
 import io.github.landwarderer.futon.tracker.data.TrackLogEntity
 import io.github.landwarderer.futon.tracker.data.toTrackingLogItem
@@ -34,6 +36,7 @@ import javax.inject.Inject
 private const val NO_ID = 0L
 private const val MAX_LOG_SIZE = 120
 private const val MAX_STALE_UPDATE_DAYS = 90L
+private const val MAX_QUERY_IDS = 500
 
 @Reusable
 class TrackingRepository @Inject constructor(
@@ -191,11 +194,11 @@ class TrackingRepository @Inject constructor(
 	}
 
 	suspend fun saveUpdates(updates: MangaUpdates) {
+		val hasNewChapters = updates is MangaUpdates.Success && updates.isValid && updates.newChapters.isNotEmpty()
 		db.withTransaction {
 			val track = getOrCreateTrack(updates.manga.id).mergeWith(updates)
 			db.getTracksDao().upsert(track)
-			if (updates is MangaUpdates.Success && updates.isValid && updates.newChapters.isNotEmpty()) {
-				progressUpdateUseCase(updates.manga)
+			if (updates is MangaUpdates.Success && hasNewChapters) {
 				val logEntity = TrackLogEntity(
 					mangaId = updates.manga.id,
 					chapters = updates.newChapters.joinToString("\n") { x -> x.name },
@@ -203,6 +206,34 @@ class TrackingRepository @Inject constructor(
 					isUnread = true,
 				)
 				db.getTrackLogsDao().insert(logEntity)
+			}
+		}
+		if (hasNewChapters) {
+			// Outside the transaction: the progress refresh may load the chapter pages from the network.
+			// It only refreshes the displayed progress, so a failure must not fail the saved check.
+			runCatchingCancellable {
+				progressUpdateUseCase(updates.manga)
+			}.onFailure { e ->
+				e.printStackTraceDebug("TrackingRepository::saveUpdates")
+			}
+		}
+	}
+
+	/**
+	 * Records tracks that were not checked because their source failed with [failure] earlier in the same run.
+	 * They are stamped as checked, so a blocked source cannot fill every following batch.
+	 */
+	suspend fun saveSkipped(mangaIds: Collection<Long>, failure: MangaUpdates.Failure) {
+		if (mangaIds.isEmpty()) {
+			return
+		}
+		val now = System.currentTimeMillis()
+		val result = failure.toResultCode()
+		val error = failure.error?.toString()
+		db.withTransaction {
+			// stay below the SQLite bound parameters limit
+			for (chunk in mangaIds.chunked(MAX_QUERY_IDS)) {
+				db.getTracksDao().markChecked(chunk, now, result, error)
 			}
 		}
 	}
@@ -286,7 +317,7 @@ class TrackingRepository @Inject constructor(
 				newChapters = newChapters,
 				lastCheckTime = System.currentTimeMillis(),
 				lastChapterDate = lastChapterDate,
-				lastResult = TrackEntity.RESULT_FAILED,
+				lastResult = updates.toResultCode(),
 				lastError = updates.error?.toString(),
 			)
 
@@ -309,6 +340,12 @@ class TrackingRepository @Inject constructor(
 				)
 			}
 		}
+	}
+
+	private fun MangaUpdates.Failure.toResultCode(): Int = if (isCaptchaRequired()) {
+		TrackEntity.RESULT_CAPTCHA
+	} else {
+		TrackEntity.RESULT_FAILED
 	}
 
 	private suspend fun gcIfNotCalled() {
