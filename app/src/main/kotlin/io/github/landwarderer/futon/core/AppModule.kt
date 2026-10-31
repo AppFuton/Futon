@@ -31,6 +31,7 @@ import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaAutoResolveCoordinator
 import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaHandler
 import io.github.landwarderer.futon.core.image.AvifImageDecoder
+import io.github.landwarderer.futon.core.image.JxlImageDecoder
 import io.github.landwarderer.futon.core.image.CbzFetcher
 import io.github.landwarderer.futon.core.image.MangaSourceHeaderInterceptor
 import io.github.landwarderer.futon.core.network.MangaHttpClient
@@ -142,6 +143,7 @@ interface AppModule {
 					add(SvgDecoder.Factory())
 					add(CbzFetcher.Factory())
 					add(AvifImageDecoder.Factory())
+					add(JxlImageDecoder.Factory())
 					add(faviconFetcherFactory)
 					add(MangaPageKeyer())
 					add(pageFetcherFactory)

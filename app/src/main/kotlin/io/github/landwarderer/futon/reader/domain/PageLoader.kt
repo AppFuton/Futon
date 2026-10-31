@@ -210,7 +210,7 @@ class PageLoader @Inject constructor(
 		} else {
 			val file = uri.toFile()
 			runInterruptible(Dispatchers.IO) {
-				context.ensureRamAtLeast(file.length() * 2)
+				context.ensureRamAtLeast(BitmapDecoderCompat.estimateDecodedSize(file))
 				BitmapDecoderCompat.decode(file)
 			}.use { image ->
 				image.compressToPNG(file)
