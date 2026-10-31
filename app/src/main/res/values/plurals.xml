@@ -40,4 +40,8 @@
 		<item quantity="one">%1$d source</item>
 		<item quantity="other">%1$d sources</item>
 	</plurals>
+	<plurals name="search_results_count">
+		<item quantity="one">%1$d result</item>
+		<item quantity="other">%1$d results</item>
+	</plurals>
 </resources>

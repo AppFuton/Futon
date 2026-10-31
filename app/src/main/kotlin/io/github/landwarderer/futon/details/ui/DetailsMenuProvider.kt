@@ -49,6 +49,7 @@ class DetailsMenuProvider(
 		menu.findItem(R.id.action_delete).isVisible = mangaDetails?.local != null
 		menu.findItem(R.id.action_browser).isVisible = manga?.publicUrl?.isHttpUrl() == true
 		menu.findItem(R.id.action_alternatives).isVisible = manga?.source != LocalMangaSource
+		menu.findItem(R.id.action_replace_source).isVisible = manga?.source != LocalMangaSource
 		menu.findItem(R.id.action_shortcut).isVisible = ShortcutManagerCompat.isRequestPinShortcutSupported(activity)
 		menu.findItem(R.id.action_scrobbling).isVisible = viewModel.isScrobblingAvailable
 		menu.findItem(R.id.action_online).isVisible = viewModel.remoteManga.value != null
@@ -89,6 +90,10 @@ class DetailsMenuProvider(
 
 			R.id.action_alternatives -> {
 				router.openAlternatives(manga)
+			}
+
+			R.id.action_replace_source -> {
+				router.openSourceReplacement(listOf(manga))
 			}
 
 			R.id.action_stats -> {

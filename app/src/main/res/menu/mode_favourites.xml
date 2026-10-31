@@ -34,9 +34,9 @@
 		app:showAsAction="ifRoom|withText" />
 
 	<item
-		android:id="@+id/action_fix"
-		android:icon="@drawable/ic_auto_fix"
-		android:title="@string/fix"
+		android:id="@+id/action_replace_source"
+		android:icon="@drawable/ic_replace"
+		android:title="@string/replace_source"
 		app:showAsAction="ifRoom|withText" />
 
 	<item

@@ -9,33 +9,44 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
 import io.github.landwarderer.futon.R
+import io.github.landwarderer.futon.alternatives.domain.AlternativeSearchEvent
+import io.github.landwarderer.futon.alternatives.domain.AlternativeSearchStatus
+import io.github.landwarderer.futon.alternatives.domain.AlternativeSortOrder
+import io.github.landwarderer.futon.alternatives.domain.AlternativeSourceScope
+import io.github.landwarderer.futon.alternatives.domain.AlternativeSourceScopeOptions
+import io.github.landwarderer.futon.alternatives.domain.AlternativesSearchOptions
 import io.github.landwarderer.futon.alternatives.domain.AlternativesUseCase
 import io.github.landwarderer.futon.alternatives.domain.MigrateUseCase
 import io.github.landwarderer.futon.core.model.chaptersCount
+import io.github.landwarderer.futon.core.model.contentTypeCompat
+import io.github.landwarderer.futon.core.model.primaryLanguage
 import io.github.landwarderer.futon.core.model.parcelable.ParcelableManga
 import io.github.landwarderer.futon.core.nav.AppRouter
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.prefs.ListMode
 import io.github.landwarderer.futon.core.ui.BaseViewModel
 import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
-import io.github.landwarderer.futon.core.util.ext.append
 import io.github.landwarderer.futon.core.util.ext.call
 import io.github.landwarderer.futon.core.util.ext.require
 import io.github.landwarderer.futon.list.domain.MangaListMapper
-import io.github.landwarderer.futon.list.ui.model.ButtonFooter
 import io.github.landwarderer.futon.list.ui.model.EmptyState
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingFooter
 import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.list.ui.model.MangaGridModel
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrDefault
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
+import java.util.Locale
 import javax.inject.Inject
+import kotlin.math.abs
 
 @HiltViewModel
 class AlternativesViewModel @Inject constructor(
@@ -48,8 +59,14 @@ class AlternativesViewModel @Inject constructor(
 
 	val manga = savedStateHandle.require<ParcelableManga>(AppRouter.KEY_MANGA).manga
 
-	private var includeDisabledSources = MutableStateFlow(false)
 	private val results = MutableStateFlow<List<MangaAlternativeModel>>(emptyList())
+	private val sourceSearchStatus = MutableStateFlow(AlternativeSearchStatus())
+	val options = MutableStateFlow(AlternativesSearchOptions(query = manga.title))
+	val referenceManga = MutableStateFlow(MangaAlternativeReference(manga))
+	private val _scopeOptions = MutableStateFlow<AlternativeSourceScopeOptions?>(null)
+	val scopeOptions = _scopeOptions.asStateFlow()
+	private var defaultSourceScope: AlternativeSourceScope = AlternativeSourceScope.Enabled
+	private var sourceScopeInitialized = false
 
 	private var migrationJob: Job? = null
 	private var searchJob: Job? = null
@@ -60,16 +77,29 @@ class AlternativesViewModel @Inject constructor(
 
 	val onMigrated = MutableEventFlow<Manga>()
 
+	val searchStatus: StateFlow<AlternativeSearchStatus> = combine(
+		sourceSearchStatus,
+		results,
+		options,
+	) { status, results, options ->
+		status.copy(resultsCount = results.count { !options.hideNoChapters || it.chaptersCount > 0 })
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, AlternativeSearchStatus())
+
 	val list: StateFlow<List<ListModel>> = combine(
 		results,
 		isLoading,
-		includeDisabledSources,
-	) { list, loading, includeDisabled ->
+		options,
+		referenceManga,
+	) { results, loading, options, reference ->
+		val filtered = results
+			.filterNot { options.hideNoChapters && it.chaptersCount == 0 }
+			.sortedWith(alternativeComparator(options, reference.manga, reference.chaptersCount))
 		when {
-			list.isEmpty() -> listOf(
-				when {
-					loading -> LoadingState()
-					else -> EmptyState(
+			filtered.isEmpty() -> listOf(
+				if (loading) {
+					LoadingState()
+				} else {
+					EmptyState(
 						icon = R.drawable.ic_empty_common,
 						textPrimary = R.string.nothing_found,
 						textSecondary = R.string.text_search_holder_secondary,
@@ -78,37 +108,63 @@ class AlternativesViewModel @Inject constructor(
 				},
 			)
 
-			loading -> list + LoadingFooter()
-			includeDisabled -> list
-			else -> list + ButtonFooter(R.string.search_disabled_sources)
+			loading -> filtered + LoadingFooter()
+			else -> filtered
 		}
 	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState()))
 
 	init {
-		doSearch(throughDisabledSources = false)
+		doSearch()
 	}
 
-	fun retry() {
-		searchJob?.cancel()
-		results.value = emptyList()
-		includeDisabledSources.value = false
-		doSearch(throughDisabledSources = false)
+	fun retry() = doSearch()
+
+	fun setQuery(query: String) {
+		val value = query.trim()
+		if (value.isEmpty() || value == options.value.query) return
+		updateSearchOptions { copy(query = value) }
 	}
 
-	fun continueSearch() {
-		if (includeDisabledSources.value) {
-			return
-		}
-		val prevJob = searchJob
-		searchJob = launchLoadingJob(Dispatchers.IO) {
-			includeDisabledSources.value = true
-			prevJob?.join()
-			doSearch(throughDisabledSources = true)
-		}
+	fun setSourceScope(scope: AlternativeSourceScope) {
+		if (scope == options.value.sourceScope || scopeOptions.value?.isAvailable(scope) != true) return
+		updateSearchOptions { copy(sourceScope = scope) }
 	}
+
+	fun setSameLanguageOnly(enabled: Boolean) {
+		if (enabled != options.value.sameLanguageOnly) updateSearchOptions { copy(sameLanguageOnly = enabled) }
+	}
+
+	fun setSameContentTypeOnly(enabled: Boolean) {
+		if (enabled != options.value.sameContentTypeOnly) updateSearchOptions { copy(sameContentTypeOnly = enabled) }
+	}
+
+	fun setHideNoChapters(enabled: Boolean) {
+		if (enabled != options.value.hideNoChapters) options.update { it.copy(hideNoChapters = enabled) }
+	}
+
+	fun setSortOrder(sortOrder: AlternativeSortOrder) {
+		if (sortOrder != options.value.sortOrder) options.update { it.copy(sortOrder = sortOrder) }
+	}
+
+	fun resetOptions() {
+		val defaults = AlternativesSearchOptions(query = manga.title, sourceScope = defaultSourceScope)
+		val current = options.value
+		if (current == defaults) return
+		val requiresSearch = current.query != defaults.query ||
+			current.sourceScope != defaults.sourceScope ||
+			current.sameLanguageOnly != defaults.sameLanguageOnly ||
+			current.sameContentTypeOnly != defaults.sameContentTypeOnly
+		options.value = defaults
+		if (requiresSearch) doSearch()
+	}
+
+	fun hasCustomOptions(): Boolean = !options.value.isDefaultFor(manga.title, defaultSourceScope)
+
+	fun defaultScopeForReset(): AlternativeSourceScope = defaultSourceScope
 
 	fun migrate(target: Manga) {
-		if (migrationJob?.isActive == true) {
+		val candidate = results.value.find { it.manga.id == target.id }
+		if (migrationJob?.isActive == true || candidate?.isMigrationEnabled != true || candidate.chaptersCount == 0) {
 			return
 		}
 		migrationJob = launchLoadingJob(Dispatchers.IO) {
@@ -117,20 +173,135 @@ class AlternativesViewModel @Inject constructor(
 		}
 	}
 
-	private fun doSearch(throughDisabledSources: Boolean) {
-		val prevJob = searchJob
+	private fun updateSearchOptions(block: AlternativesSearchOptions.() -> AlternativesSearchOptions) {
+		options.update(block)
+		doSearch()
+	}
+
+	private fun doSearch() {
+		results.update { current -> current.map { it.copy(isMigrationEnabled = false) } }
+		val previousJob = searchJob
 		searchJob = launchLoadingJob(Dispatchers.IO) {
-			prevJob?.cancelAndJoin()
-			val ref = mangaDetails.getOrDefault(manga)
-			val refCount = ref.chaptersCount()
-			alternativesUseCase.invoke(ref, throughDisabledSources)
-				.collect {
-					val model = MangaAlternativeModel(
-						mangaModel = mangaListMapper.toListModel(it, ListMode.GRID) as MangaGridModel,
-						referenceChapters = refCount,
-					)
-					results.append(model)
+			previousJob?.cancelAndJoin()
+			sourceSearchStatus.value = AlternativeSearchStatus(isRunning = true)
+			var receivedResult = false
+			try {
+				val reference = mangaDetails.getOrDefault(manga)
+				val referenceChapters = reference.chaptersCount()
+				referenceManga.value = MangaAlternativeReference(reference, referenceChapters)
+				if (!sourceScopeInitialized) {
+					val scopeOptions = alternativesUseCase.getSourceScopeOptions(reference.source)
+					defaultSourceScope = scopeOptions.defaultScope
+					_scopeOptions.value = scopeOptions
+					options.update { it.copy(sourceScope = defaultSourceScope) }
+					sourceScopeInitialized = true
 				}
+				val searchOptions = options.value
+				alternativesUseCase(reference, searchOptions).collect { event ->
+					when (event) {
+						is AlternativeSearchEvent.Progress -> sourceSearchStatus.update {
+							it.copy(
+								completedSources = maxOf(it.completedSources, event.completedSources),
+								totalSources = event.totalSources,
+							)
+						}
+
+						is AlternativeSearchEvent.Result -> {
+							if (!receivedResult) {
+								results.value = emptyList()
+								receivedResult = true
+							}
+							val model = MangaAlternativeModel(
+								mangaModel = mangaListMapper.toListModel(event.manga, ListMode.GRID) as MangaGridModel,
+								referenceChapters = referenceChapters,
+							)
+							results.update { current ->
+								current.filterNot { it.manga.id == model.manga.id } + model
+							}
+						}
+					}
+				}
+				if (!receivedResult) results.value = emptyList()
+			} finally {
+				sourceSearchStatus.update { it.copy(isRunning = false) }
+			}
 		}
+	}
+
+	private fun alternativeComparator(
+		options: AlternativesSearchOptions,
+		reference: Manga,
+		referenceChapters: Int,
+	): Comparator<MangaAlternativeModel> = Comparator { left, right ->
+		val primary = when (options.sortOrder) {
+			AlternativeSortOrder.BEST_MATCH -> compareValues(
+				right.manga.titleMatchScore(options.query),
+				left.manga.titleMatchScore(options.query),
+			).takeUnless { it == 0 } ?: compareValues(
+				right.chaptersCount > 0,
+				left.chaptersCount > 0,
+			).takeUnless { it == 0 } ?: compareValues(
+				right.manga.source.priority(reference.source),
+				left.manga.source.priority(reference.source),
+			)
+
+			AlternativeSortOrder.MOST_CHAPTERS -> compareValues(right.chaptersCount, left.chaptersCount)
+			AlternativeSortOrder.CLOSEST_CHAPTER_COUNT -> compareValues(
+				left.chapterDistanceFrom(referenceChapters),
+				right.chapterDistanceFrom(referenceChapters),
+			)
+			AlternativeSortOrder.SOURCE_PRIORITY -> compareValues(
+				right.manga.source.priority(reference.source),
+				left.manga.source.priority(reference.source),
+			)
+		}
+		primary.takeUnless { it == 0 }
+			?: compareValues(right.chaptersCount, left.chaptersCount).takeUnless { it == 0 }
+			?: left.manga.source.name.compareTo(right.manga.source.name, ignoreCase = true).takeUnless { it == 0 }
+			?: left.manga.title.compareTo(right.manga.title, ignoreCase = true).takeUnless { it == 0 }
+			?: left.manga.id.compareTo(right.manga.id)
+	}
+
+	private fun MangaAlternativeModel.chapterDistanceFrom(referenceChapters: Int): Int =
+		if (chaptersCount == 0) Int.MAX_VALUE else abs(chaptersCount - referenceChapters)
+
+	private fun Manga.titleMatchScore(query: String): Int {
+		val normalizedQuery = query.normalizeTitle()
+		if (normalizedQuery.isEmpty()) return 0
+		return (sequenceOf(title) + altTitles.asSequence()).maxOf { candidate ->
+			val normalizedCandidate = candidate.normalizeTitle()
+			when {
+				normalizedCandidate == normalizedQuery -> 100
+				normalizedCandidate.startsWith(normalizedQuery) || normalizedQuery.startsWith(normalizedCandidate) -> 85
+				normalizedCandidate.contains(normalizedQuery) || normalizedQuery.contains(normalizedCandidate) -> 75
+				else -> {
+					val queryTokens = normalizedQuery.splitToSequence(' ').filter(String::isNotEmpty).toSet()
+					val candidateTokens = normalizedCandidate.splitToSequence(' ').filter(String::isNotEmpty).toSet()
+					val total = maxOf(queryTokens.size, candidateTokens.size)
+					if (total == 0) 0 else queryTokens.intersect(candidateTokens).size * 60 / total
+				}
+			}
+		}
+	}
+
+	private fun String.normalizeTitle(): String = lowercase(Locale.ROOT)
+		.replace(NON_TITLE_CHARACTER, " ")
+		.trim()
+		.replace(MULTIPLE_SPACES, " ")
+
+	private fun MangaSource.priority(ref: MangaSource): Int {
+		var result = 0
+		val language = primaryLanguage
+		if (language != null) {
+			if (language == ref.primaryLanguage) result += 4 else if (language == Locale.getDefault().language) result += 2
+		}
+		val type = contentTypeCompat
+		if (type != null && type == ref.contentTypeCompat) result++
+		return result
+	}
+
+	private companion object {
+		val NON_TITLE_CHARACTER = Regex("[^\\p{L}\\p{N}]+")
+		val MULTIPLE_SPACES = Regex("\\s+")
 	}
 }

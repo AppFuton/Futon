@@ -25,6 +25,7 @@ import dagger.hilt.android.EntryPointAccessors
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.alternatives.ui.AlternativesActivity
+import io.github.landwarderer.futon.alternatives.ui.SourceReplacementActivity
 import io.github.landwarderer.futon.backups.ui.backup.BackupDialogFragment
 import io.github.landwarderer.futon.backups.ui.restore.RestoreDialogFragment
 import io.github.landwarderer.futon.bookmarks.ui.AllBookmarksActivity
@@ -179,7 +180,20 @@ class AppRouter private constructor(
     fun openAlternatives(manga: Manga) {
         startActivity(
             Intent(contextOrNull() ?: return, AlternativesActivity::class.java)
-                .putExtra(KEY_MANGA, ParcelableManga(manga)),
+                .putExtra(KEY_MANGA, ParcelableManga(manga, withDescription = false)),
+        )
+    }
+
+    fun openSourceReplacement(manga: Collection<Manga>) {
+        if (manga.isEmpty()) {
+            return
+        }
+        startActivity(
+            Intent(contextOrNull() ?: return, SourceReplacementActivity::class.java)
+                .putParcelableArrayListExtra(
+                    KEY_MANGA_LIST,
+                    manga.mapTo(ArrayList(manga.size)) { ParcelableManga(it, withDescription = false) },
+                ),
         )
     }
 

@@ -18,7 +18,6 @@ import coil3.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import io.github.landwarderer.futon.R
-import io.github.landwarderer.futon.alternatives.ui.AutoFixService
 import io.github.landwarderer.futon.core.exceptions.resolve.ExceptionResolver
 import io.github.landwarderer.futon.core.exceptions.resolve.SnackbarErrorObserver
 import io.github.landwarderer.futon.core.model.isLocal
@@ -26,7 +25,6 @@ import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.ListMode
 import io.github.landwarderer.futon.core.ui.BaseFragment
-import io.github.landwarderer.futon.core.ui.dialog.buildAlertDialog
 import io.github.landwarderer.futon.core.ui.list.FitHeightGridLayoutManager
 import io.github.landwarderer.futon.core.ui.list.FitHeightLinearLayoutManager
 import io.github.landwarderer.futon.core.ui.list.ListSelectionController
@@ -274,9 +272,10 @@ abstract class MangaListFragment :
 	@CallSuper
 	override fun onPrepareActionMode(controller: ListSelectionController, mode: ActionMode?, menu: Menu): Boolean {
 		val hasNoLocal = selectedItems.none { it.isLocal }
+		val hasSingleSource = selectedItems.distinctBy { it.source.name }.size == 1
 		val isSingleSelection = controller.count == 1
 		menu.findItem(R.id.action_save)?.isVisible = hasNoLocal
-		menu.findItem(R.id.action_fix)?.isVisible = hasNoLocal
+		menu.findItem(R.id.action_replace_source)?.isVisible = hasNoLocal && hasSingleSource
 		menu.findItem(R.id.action_edit_override)?.isVisible = isSingleSelection
 		return super.onPrepareActionMode(controller, mode, menu)
 	}
@@ -323,18 +322,9 @@ abstract class MangaListFragment :
 				true
 			}
 
-			R.id.action_fix -> {
-				val itemsSnapshot = selectedItemsIds
-				buildAlertDialog(context ?: return false, isCentered = true) {
-					setTitle(item.title)
-					setIcon(item.icon)
-					setMessage(R.string.manga_fix_prompt)
-					setNegativeButton(android.R.string.cancel, null)
-					setPositiveButton(R.string.fix) { _, _ ->
-						AutoFixService.start(context, itemsSnapshot)
-						mode?.finish()
-					}
-				}.show()
+			R.id.action_replace_source -> {
+				router.openSourceReplacement(selectedItems.toList())
+				mode?.finish()
 				true
 			}
 
