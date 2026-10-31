@@ -1057,6 +1057,13 @@
     <string name="about_onboarding_summary">Learn how to use Futon, dual modes, and source extensions</string>
     <string name="spotlight_switcher_tag">Use this to switch between manga and novels</string>
     <string name="spotlight_switcher_got_it">Got it</string>
+    <string name="e_ink">E-Ink</string>
+    <string name="flash_on_page_change">Flash on page change</string>
+    <string name="flash_on_page_change_summary">Refresh the screen with a short full-screen flash to reduce ghosting on E-Ink displays</string>
+    <string name="flash_duration">Flash duration</string>
+    <string name="flash_every">Flash every</string>
+    <string name="flash_with">Flash with</string>
+    <string name="milliseconds_pattern">%1$d ms</string>
     <string name="manga_unavailable_title">Content unavailable</string>
     <string name="manga_unavailable_message">\"%1$s\" could not be loaded from %2$s. It may have been removed or moved to another address.</string>
     <string name="manga_unavailable_message_no_source">\"%1$s\" could not be loaded. It may have been removed or moved to another address.</string>
