@@ -109,7 +109,7 @@ class HistoryListViewModel @Inject constructor(
 		isPaginationReady.set(true)
 	}.catch { e ->
 		emit(listOf(e.toErrorState(canRetry = false)))
-	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState()))
 
 	override fun onRefresh() = Unit
 

@@ -201,7 +201,7 @@ class TrackWorker @AssistedInject constructor(
 				is MangaUpdates.Failure -> {
 					val e = it.error?.findCloudFlareException()
 					if (e != null) {
-						captchaHandler.handle(e)
+						captchaHandler.handle(e, tryAutoResolve = false)
 					}
 				}
 

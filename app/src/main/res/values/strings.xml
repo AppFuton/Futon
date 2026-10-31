@@ -168,6 +168,7 @@
     <string name="silent">Silent</string>
     <string name="captcha_required">CAPTCHA required</string>
     <string name="captcha_solve">Solve</string>
+    <string name="captcha_solving">Solving captcha automatically…</string>
     <string name="clear_cookies">Clear cookies</string>
     <string name="cookies_cleared">All cookies were removed</string>
     <string name="clear_feed">Clear feed</string>
@@ -860,6 +861,10 @@
     <string name="simple">Simple</string>
     <string name="global_search">Global search</string>
     <string name="disable_captcha_notifications">Disable captcha notifications</string>
+    <string name="disable_captcha_auto_solve">Disable automatic CAPTCHA solving</string>
+    <string name="disable_captcha_auto_solve_summary">Don\'t try to solve CAPTCHA silently. You will be asked to solve it manually instead.</string>
+    <string name="captcha_auto_solve">Solve CAPTCHAs automatically (experimental)</string>
+    <string name="captcha_auto_solve_summary">Try to pass Cloudflare checks silently when you open a catalog, a manga or a chapter. It can still be turned off for a single source in its settings</string>
     <string name="disable_captcha_notifications_summary">You will not receive notifications about solving CAPTCHA for this source but this can lead to breaking background operations (checking for new chapters, obtaining recommendations, etc)</string>
     <string name="chapter_volume_number">Vol %1$s Chapter %2$s</string>
     <string name="chapter_number">Chapter %s</string>

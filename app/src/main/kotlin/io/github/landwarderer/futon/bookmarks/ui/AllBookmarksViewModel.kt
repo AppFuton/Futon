@@ -48,7 +48,7 @@ class AllBookmarksViewModel @Inject constructor(
 			}
 		}
 		.catch { e -> emit(listOf(e.toErrorState(canRetry = false))) }
-		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState()))
 
 	fun removeBookmarks(ids: Set<Long>) {
 		launchJob(Dispatchers.IO) {

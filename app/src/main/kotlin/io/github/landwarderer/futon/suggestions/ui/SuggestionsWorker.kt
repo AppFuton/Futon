@@ -319,7 +319,7 @@ class SuggestionsWorker @AssistedInject constructor(
 		list.take(MAX_SOURCE_RESULTS)
 	}.onFailure { e ->
 		if (e is CloudFlareException) {
-			captchaHandler.handle(e)
+			captchaHandler.handle(e, tryAutoResolve = false)
 		}
 		e.printStackTraceDebug("SuggestionsWorker::getList")
 	}.getOrDefault(emptyList())

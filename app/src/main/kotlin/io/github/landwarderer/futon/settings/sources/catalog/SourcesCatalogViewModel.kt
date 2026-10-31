@@ -67,7 +67,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		mihonExtensionManager.installedExtensions,
 	) { q, f, _, _ ->
 		buildSourcesList(f, q)
-	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState()))
 
 	init {
 		repository.clearNewSourcesBadge()

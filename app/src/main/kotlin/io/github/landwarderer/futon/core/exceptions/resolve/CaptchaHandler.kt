@@ -36,7 +36,6 @@ import io.github.landwarderer.futon.core.model.UnknownMangaSource
 import io.github.landwarderer.futon.core.model.getTitle
 import io.github.landwarderer.futon.core.model.isNsfw
 import io.github.landwarderer.futon.core.nav.AppRouter
-import io.github.landwarderer.futon.core.network.webview.WebViewExecutor
 import io.github.landwarderer.futon.core.parser.favicon.faviconUri
 import io.github.landwarderer.futon.core.prefs.SourceSettings
 import io.github.landwarderer.futon.core.util.ext.checkNotificationPermission
@@ -70,7 +69,7 @@ class CaptchaHandler @Inject constructor(
 	@LocalizedAppContext private val context: Context,
 	private val databaseProvider: Provider<MangaDatabase>,
 	private val coilProvider: Provider<ImageLoader>,
-	private val webViewExecutor: WebViewExecutor,
+	private val captchaAutoResolveCoordinator: CaptchaAutoResolveCoordinator,
 ) : EventListener() {
 
 	private val exceptionMap = MutableScatterMap<MangaSource, CloudFlareProtectedException>()
@@ -80,12 +79,19 @@ class CaptchaHandler @Inject constructor(
 	/** Sources whose captcha was just solved, by the user or automatically. */
 	val solvedSources: SharedFlow<MangaSource> = solvedSourcesFlow.asSharedFlow()
 
+	/**
+	 * Records [exception] and notifies the user about it.
+	 *
+	 * @param tryAutoResolve whether a silent solver may be started first. Background work must pass `false`:
+	 * the solver is an Activity and may only run for an explicit user action.
+	 */
 	@CheckResult
-	suspend fun handle(exception: CloudFlareException): Boolean = handleException(exception.source, exception, true)
+	suspend fun handle(exception: CloudFlareException, tryAutoResolve: Boolean): Boolean =
+		handleException(exception.source, exception, notify = true, tryAutoResolve = tryAutoResolve)
 
 	/** Called once the captcha of [source] has been solved. */
 	suspend fun discard(source: MangaSource) {
-		handleException(source, null, true)
+		handleException(source, null, notify = true, tryAutoResolve = false)
 		solvedSourcesFlow.emit(source)
 	}
 
@@ -95,15 +101,14 @@ class CaptchaHandler @Inject constructor(
 		if (e is CloudFlareException) {
 			val scope = request.lifecycle?.coroutineScope ?: processLifecycleScope
 			scope.launch {
-				if (
-					handleException(
-						source = e.source,
-						exception = e,
-						notify = request.extras[suppressCaptchaKey] != true,
-					)
-				) {
-					coilProvider.get().enqueue(request) // TODO check if ok
-				}
+				// Never auto-resolve from coil's error path: every failed favicon / cover load would queue up
+				// a solver. Auto-resolve only happens for explicit interactions (catalog, details, reader).
+				handleException(
+					source = e.source,
+					exception = e,
+					notify = request.extras[suppressCaptchaKey] != true,
+					tryAutoResolve = false,
+				)
 			}
 		}
 	}
@@ -112,11 +117,16 @@ class CaptchaHandler @Inject constructor(
 		source: MangaSource,
 		exception: CloudFlareException?,
 		notify: Boolean,
+		tryAutoResolve: Boolean,
 	): Boolean = withContext(Dispatchers.IO) {
 		if (source == UnknownMangaSource) {
 			return@withContext false
 		}
-		if (exception != null && webViewExecutor.tryResolveCaptcha(exception, RESOLVE_TIMEOUT)) {
+		if (
+			tryAutoResolve &&
+			exception is CloudFlareProtectedException &&
+			captchaAutoResolveCoordinator.resolveIfEnabled(exception)
+		) {
 			return@withContext true
 		}
 		mutex.withLock {
@@ -277,7 +287,12 @@ class CaptchaHandler @Inject constructor(
 		override fun onReceive(context: Context?, intent: Intent?) {
 			val sourceName = intent?.getStringExtra(AppRouter.KEY_SOURCE) ?: return
 			goAsync {
-				captchaHandler.handleException(MangaSource(sourceName), exception = null, notify = false)
+				captchaHandler.handleException(
+					source = MangaSource(sourceName),
+					exception = null,
+					notify = false,
+					tryAutoResolve = false,
+				)
 			}
 		}
 	}
@@ -297,6 +312,5 @@ class CaptchaHandler @Inject constructor(
 		private const val SETTINGS_ACTION_CODE = 3
 		private const val ACTION_DISCARD = "io.github.landwarderer.futon.CAPTCHA_DISCARD"
 		private const val SOLVED_BUFFER_CAPACITY = 8
-		private const val RESOLVE_TIMEOUT = 20_000L
 	}
 }

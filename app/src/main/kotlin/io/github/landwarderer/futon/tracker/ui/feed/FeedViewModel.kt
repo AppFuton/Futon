@@ -93,7 +93,7 @@ class FeedViewModel @Inject constructor(
 		result as List<ListModel>
 	}.catch { e ->
 		emit(listOf(e.toErrorState(canRetry = false)))
-	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState()))
 
 	init {
 		launchJob(Dispatchers.IO) {

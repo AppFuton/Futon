@@ -28,6 +28,7 @@ import dagger.multibindings.ElementsIntoSet
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.backups.domain.BackupObserver
 import io.github.landwarderer.futon.core.db.MangaDatabase
+import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaAutoResolveCoordinator
 import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaHandler
 import io.github.landwarderer.futon.core.image.AvifImageDecoder
 import io.github.landwarderer.futon.core.image.CbzFetcher
@@ -41,6 +42,7 @@ import io.github.landwarderer.futon.core.parser.favicon.FaviconFetcher
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.ui.image.CoilImageGetter
 import io.github.landwarderer.futon.core.ui.util.ActivityRecreationHandle
+import io.github.landwarderer.futon.core.ui.util.ForegroundActivityHolder
 import io.github.landwarderer.futon.core.util.FileSize
 import io.github.landwarderer.futon.core.util.ext.connectivityManager
 import io.github.landwarderer.futon.core.util.ext.isLowRamDevice
@@ -174,11 +176,15 @@ interface AppModule {
 			appProtectHelper: AppProtectHelper,
 			activityRecreationHandle: ActivityRecreationHandle,
 			screenshotPolicyHelper: ScreenshotPolicyHelper,
+			foregroundActivityHolder: ForegroundActivityHolder,
+			captchaAutoResolveCoordinator: CaptchaAutoResolveCoordinator,
 		): Set<@JvmSuppressWildcards Application.ActivityLifecycleCallbacks> = arraySetOf(
 			appProtectHelper,
 			activityRecreationHandle,
 			screenshotPolicyHelper,
-		) 
+			foregroundActivityHolder,
+			captchaAutoResolveCoordinator,
+		)
 
 		@Provides
 		@Singleton

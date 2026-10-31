@@ -20,6 +20,7 @@ import com.davemorrissey.labs.subscaleview.ImageSource
 import dagger.hilt.android.ActivityRetainedLifecycle
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import io.github.landwarderer.futon.core.LocalizedAppContext
+import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaAutoResolveCoordinator
 import io.github.landwarderer.futon.core.image.BitmapDecoderCompat
 import io.github.landwarderer.futon.core.network.CommonHeaders
 import io.github.landwarderer.futon.core.network.MangaHttpClient
@@ -91,6 +92,7 @@ class PageLoader @Inject constructor(
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 	private val imageProxyInterceptor: ImageProxyInterceptor,
 	private val downloadSlowdownDispatcher: DownloadSlowdownDispatcher,
+	private val captchaAutoResolveCoordinator: CaptchaAutoResolveCoordinator,
 ) {
 
 	val loaderScope = lifecycle.lifecycleScope + InternalErrorHandler() + Dispatchers.IO
@@ -183,7 +185,8 @@ class PageLoader @Inject constructor(
 
     suspend fun updateCache(page: MangaPage) {
         val progress = MutableStateFlow(PROGRESS_UNDEFINED)
-        loadPageImpl(page, progress, isPrefetch = false, skipCache = true)
+        // Runs when the reader is left, so it must never start a captcha solver.
+        loadPageImpl(page, progress, isPrefetch = false, skipCache = true, mayStartVerification = false)
     }
 
 	suspend fun loadPage(page: MangaPage, force: Boolean): Uri {
@@ -284,7 +287,19 @@ class PageLoader @Inject constructor(
 		progress: MutableStateFlow<Float>,
 		isPrefetch: Boolean,
 		skipCache: Boolean,
+		mayStartVerification: Boolean = !isPrefetch,
 	): Uri = semaphore.withPermit {
+		captchaAutoResolveCoordinator.runWithVerification(mayStartVerification) {
+			loadPageAttempt(page, progress, isPrefetch, skipCache)
+		}
+	}
+
+	private suspend fun loadPageAttempt(
+		page: MangaPage,
+		progress: MutableStateFlow<Float>,
+		isPrefetch: Boolean,
+		skipCache: Boolean,
+	): Uri {
 		val pageUrl = getPageUrl(page)
 		check(pageUrl.isNotBlank()) { "Cannot obtain full image url for $page" }
 		if (!skipCache) {

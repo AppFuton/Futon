@@ -45,6 +45,7 @@ import kotlin.coroutines.suspendCoroutine
 class ExceptionResolver private constructor(
     private val host: Host,
     private val settings: AppSettings,
+    private val captchaCoordinator: CaptchaAutoResolveCoordinator,
     private val scrobblerAuthHelperProvider: Provider<ScrobblerAuthHelper>,
 ) {
     private val continuations = MutableScatterMap<String, Continuation<Boolean>>(1)
@@ -63,9 +64,14 @@ class ExceptionResolver private constructor(
         host.router.showErrorDialog(e, url)
     }
 
-    suspend fun resolve(e: Throwable): Boolean = host.lifecycleScope.async {
+    /**
+     * @param tryAutoResolve whether a CloudFlare captcha may be solved silently first (see
+     * [CaptchaAutoResolveCoordinator]). Only pass `true` for an explicit user action such as opening a catalog
+     * or a manga; a "Solve" button press wants the visible solver.
+     */
+    suspend fun resolve(e: Throwable, tryAutoResolve: Boolean = false): Boolean = host.lifecycleScope.async {
         when (e) {
-            is CloudFlareProtectedException -> resolveCF(e)
+            is CloudFlareProtectedException -> resolveCF(e, tryAutoResolve)
             is AuthRequiredException -> resolveAuthException(e.source)
             is SSLException,
             is CertPathValidatorException -> {
@@ -123,9 +129,20 @@ class ExceptionResolver private constructor(
         browserActionContract.launch(e)
     }
 
-    private suspend fun resolveCF(e: CloudFlareProtectedException): Boolean = suspendCoroutine { cont ->
-        continuations[CloudFlareActivity.TAG] = cont
-        cloudflareContract.launch(e)
+    private suspend fun resolveCF(e: CloudFlareProtectedException, tryAutoResolve: Boolean): Boolean {
+        if (captchaCoordinator.isResolveActive()) {
+            // Never stack a visible solver on top of the silent one: wait for it instead.
+            return captchaCoordinator.awaitActiveResolve() == true
+        }
+        if (tryAutoResolve) {
+            // Delegated to the singleton coordinator: it owns the solver lifecycle, so the result is delivered
+            // even if this screen dies while the solver is still running.
+            return captchaCoordinator.resolveIfEnabled(e)
+        }
+        return suspendCoroutine { cont ->
+            continuations[CloudFlareActivity.TAG] = cont
+            cloudflareContract.launch(e)
+        }
     }
 
     private suspend fun resolveAuthException(source: MangaSource): Boolean = suspendCoroutine { cont ->
@@ -165,18 +182,21 @@ class ExceptionResolver private constructor(
 
     class Factory @Inject constructor(
         private val settings: AppSettings,
+        private val captchaCoordinator: CaptchaAutoResolveCoordinator,
         private val scrobblerAuthHelperProvider: Provider<ScrobblerAuthHelper>,
     ) {
 
         fun create(fragment: Fragment) = ExceptionResolver(
             host = Host.FragmentHost(fragment),
             settings = settings,
+            captchaCoordinator = captchaCoordinator,
             scrobblerAuthHelperProvider = scrobblerAuthHelperProvider,
         )
 
         fun create(activity: FragmentActivity) = ExceptionResolver(
             host = Host.ActivityHost(activity),
             settings = settings,
+            captchaCoordinator = captchaCoordinator,
             scrobblerAuthHelperProvider = scrobblerAuthHelperProvider,
         )
     }

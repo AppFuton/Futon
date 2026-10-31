@@ -424,6 +424,9 @@ class AppSettings internal constructor(
 	val isAdBlockEnabled: Boolean
 		get() = prefs.getBoolean(KEY_ADBLOCK, false)
 
+	val isCaptchaAutoSolveEnabled: Boolean
+		get() = prefs.getBoolean(KEY_CAPTCHA_AUTO_SOLVE, false)
+
 	var userSpecifiedMangaDirectories: Set<File>
 		get() {
 			val set = prefs.getStringSet(KEY_LOCAL_MANGA_DIRS, emptySet()).orEmpty()
@@ -835,6 +838,7 @@ class AppSettings internal constructor(
 		const val TRACK_FAVOURITES = "favourites"
 
 		const val KEY_ADBLOCK = "adblock"
+		const val KEY_CAPTCHA_AUTO_SOLVE = "captcha_auto_solve"
 		const val KEY_LIST_MODE = "list_mode_2"
 		const val KEY_LIST_MODE_HISTORY = "list_mode_history"
 		const val KEY_LIST_MODE_FAVORITES = "list_mode_favorites"

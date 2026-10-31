@@ -231,6 +231,13 @@
 			android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
 			android:windowSoftInputMode="adjustResize" />
 		<activity
+			android:name="io.github.landwarderer.futon.browser.cloudflare.CloudFlareHiddenActivity"
+			android:autoRemoveFromRecents="true"
+			android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+			android:excludeFromRecents="true"
+			android:theme="@style/Theme.Futon.CloudFlareHidden"
+			android:windowSoftInputMode="adjustNothing" />
+		<activity
 			android:name="io.github.landwarderer.futon.settings.sources.auth.SourceAuthActivity"
 			android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
 			android:windowSoftInputMode="adjustResize" />

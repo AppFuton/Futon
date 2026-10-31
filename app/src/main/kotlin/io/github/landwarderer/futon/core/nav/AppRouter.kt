@@ -30,6 +30,7 @@ import io.github.landwarderer.futon.backups.ui.restore.RestoreDialogFragment
 import io.github.landwarderer.futon.bookmarks.ui.AllBookmarksActivity
 import io.github.landwarderer.futon.browser.BrowserActivity
 import io.github.landwarderer.futon.browser.cloudflare.CloudFlareActivity
+import io.github.landwarderer.futon.browser.cloudflare.CloudFlareHiddenActivity
 import io.github.landwarderer.futon.core.exceptions.CloudFlareProtectedException
 import io.github.landwarderer.futon.core.image.CoilMemoryCacheKey
 import io.github.landwarderer.futon.core.model.FavouriteCategory
@@ -727,14 +728,20 @@ class AppRouter private constructor(
                     }
                 }
 
-        fun cloudFlareResolveIntent(context: Context, exception: CloudFlareProtectedException): Intent =
-            Intent(context, CloudFlareActivity::class.java).apply {
+        fun cloudFlareResolveIntent(
+            context: Context,
+            exception: CloudFlareProtectedException,
+            hidden: Boolean = false,
+        ): Intent {
+            val activityClass = if (hidden) CloudFlareHiddenActivity::class.java else CloudFlareActivity::class.java
+            return Intent(context, activityClass).apply {
                 data = exception.url.toUri()
                 putExtra(KEY_SOURCE, exception.source.name)
                 exception.headers[CommonHeaders.USER_AGENT]?.let {
                     putExtra(KEY_USER_AGENT, it)
                 }
             }
+        }
 
         fun browserIntent(
             context: Context,

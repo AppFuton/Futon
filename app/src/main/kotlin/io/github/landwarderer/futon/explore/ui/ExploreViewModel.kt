@@ -200,7 +200,7 @@ class ExploreViewModel @Inject constructor(
 
 	private fun getLoadingStateList() = listOf(
 		ExploreButtons(isRandomLoading.value),
-		LoadingState,
+		LoadingState(),
 	)
 
 	private fun getSuggestionFlow() = isSuggestionsEnabled.mapLatest { isEnabled ->
