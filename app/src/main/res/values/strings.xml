@@ -1046,4 +1046,5 @@
     <string name="spotlight_switcher_tag">Use this to switch between manga and novels</string>
     <string name="spotlight_switcher_got_it">Got it</string>
     <string name="update_removed">Update removed</string>
+    <string name="recently_read_manga">Recently read manga</string>
 </resources>

@@ -36,6 +36,7 @@ import io.github.landwarderer.futon.core.exceptions.CloudFlareException
 import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaHandler
 import io.github.landwarderer.futon.core.model.ids
 import io.github.landwarderer.futon.core.nav.AppRouter
+import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.TrackerDownloadStrategy
 import io.github.landwarderer.futon.core.prefs.TriStateOption
@@ -44,9 +45,11 @@ import io.github.landwarderer.futon.core.util.ext.checkNotificationPermission
 import io.github.landwarderer.futon.core.util.ext.onEachIndexed
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.trySetForeground
-import io.github.landwarderer.futon.download.ui.worker.DownloadTask
-import io.github.landwarderer.futon.download.ui.worker.DownloadWorker
+import io.github.landwarderer.futon.download.data.repository.DownloadQueueRepository
+import io.github.landwarderer.futon.history.data.HistoryRepository
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
+import io.github.landwarderer.futon.local.domain.EnforceStorageQuotaUseCase
+import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.parsers.util.toIntUp
 import io.github.landwarderer.futon.settings.work.PeriodicWorkScheduler
@@ -56,6 +59,7 @@ import io.github.landwarderer.futon.tracker.domain.model.MangaTracking
 import io.github.landwarderer.futon.tracker.domain.model.MangaUpdates
 import io.github.landwarderer.futon.tracker.work.TrackerNotificationHelper.NotificationInfo
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -65,7 +69,10 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Provider
@@ -83,10 +90,14 @@ class TrackWorker @AssistedInject constructor(
 	private val checkNewChaptersUseCase: CheckNewChaptersUseCase,
 	private val workManager: WorkManager,
 	private val localRepositoryLazy: Lazy<LocalMangaRepository>,
-	private val downloadSchedulerLazy: Lazy<DownloadWorker.Scheduler>,
+	private val mangaDataRepositoryLazy: Lazy<MangaDataRepository>,
+	private val downloadQueueRepositoryLazy: Lazy<DownloadQueueRepository>,
+	private val historyRepositoryLazy: Lazy<HistoryRepository>,
+	private val enforceStorageQuotaUseCaseLazy: Lazy<EnforceStorageQuotaUseCase>,
 ) : CoroutineWorker(context, workerParams) {
 
 	private val notificationManager by lazy { NotificationManagerCompat.from(applicationContext) }
+	private var isStorageQuotaReached: Boolean? = null
 
 	override suspend fun doWork(): Result {
 		notificationHelper.updateChannels()
@@ -253,25 +264,79 @@ class TrackWorker @AssistedInject constructor(
 		if (!mangaUpdates.isValid || mangaUpdates.newChapters.isEmpty()) {
 			return
 		}
-		when (settings.trackerDownloadStrategy) {
-			TrackerDownloadStrategy.DISABLED -> Unit
-			TrackerDownloadStrategy.DOWNLOADED -> {
-				val localManga = localRepositoryLazy.get().findSavedManga(mangaUpdates.manga)
-				if (localManga != null) {
-					val task = DownloadTask(
-						mangaId = mangaUpdates.manga.id,
-						isPaused = false,
-						isSilent = false,
-						chaptersIds = mangaUpdates.newChapters.ids().toLongArray(),
-						destination = null,
-						format = null,
-						allowMeteredNetwork = settings.allowDownloadOnMeteredNetwork != TriStateOption.DISABLED,
-						requiresCharging = false,
-					)
-					downloadSchedulerLazy.get().schedule(setOf(mangaUpdates.manga to task))
+		val strategy = settings.trackerDownloadStrategy
+		if (strategy == TrackerDownloadStrategy.DISABLED) {
+			return
+		}
+		val manga = mangaUpdates.manga
+		val localManga = localRepositoryLazy.get().findSavedManga(manga, withDetails = true)
+		val shouldDownload = when (strategy) {
+			TrackerDownloadStrategy.DISABLED -> false
+			TrackerDownloadStrategy.DOWNLOADED -> localManga != null
+			TrackerDownloadStrategy.RECENTLY_READ -> isReadRecently(manga)
+		}
+		if (!shouldDownload) {
+			return
+		}
+		val savedChapters = localManga?.manga?.chapters?.ids().orEmpty()
+		val chapters = mangaUpdates.newChapters
+			.filterNot { it.id in savedChapters }
+			.let {
+				// Only the newest few for recently read manga: a dormant series that backfills its archive
+				// would otherwise queue hundreds of chapters at once. Downloaded manga keep every new
+				// chapter, as before - the ones left out would never be offered again.
+				if (strategy == TrackerDownloadStrategy.RECENTLY_READ) {
+					it.takeLast(TrackerDownloadStrategy.MAX_CHAPTERS_PER_RUN)
+				} else {
+					it
 				}
 			}
+		if (chapters.isEmpty() || !hasFreeSpaceForDownload(manga) || isStorageQuotaReached()) {
+			return
 		}
+		// the download worker resolves the chapters from the database, which must know the new ones
+		mangaDataRepositoryLazy.get().storeManga(manga, replaceExisting = true)
+		// Through the download queue, so the off-peak, charging and Wi-Fi rules apply
+		downloadQueueRepositoryLazy.get().addToQueue(
+			manga = manga,
+			chaptersIds = chapters.ids().toLongArray(),
+			wifiOnly = settings.allowDownloadOnMeteredNetwork == TriStateOption.DISABLED,
+			chargingOnly = settings.isDownloadOnlyOnChargingEnabled,
+			offPeakOnly = settings.isDownloadOffPeakEnabled,
+			isPaused = false,
+		)
+	}
+
+	private suspend fun isReadRecently(manga: Manga): Boolean {
+		val lastRead = historyRepositoryLazy.get().getOne(manga)?.updatedAt ?: return false
+		val threshold = Instant.now().minus(TrackerDownloadStrategy.RECENT_READ_WINDOW_DAYS, ChronoUnit.DAYS)
+		return lastRead.isAfter(threshold)
+	}
+
+	/**
+	 * Auto-download is unattended, so it must not be the thing that fills the device.
+	 * Checks the volume this manga would actually be written to; a directory whose free space
+	 * cannot be read (reported as zero) does not block the download.
+	 */
+	private suspend fun hasFreeSpaceForDownload(manga: Manga): Boolean = runCatchingCancellable {
+		val dir = localRepositoryLazy.get().getOutputDir(manga, null) ?: return@runCatchingCancellable false
+		val available = runInterruptible(Dispatchers.IO) { dir.usableSpace }
+		available == 0L || available >= TrackerDownloadStrategy.MIN_FREE_SPACE_BYTES
+	}.getOrDefault(true)
+
+	/**
+	 * Reaching the storage quota makes the download worker evict the oldest downloaded chapters,
+	 * which an unattended download should not do: skip auto-downloads until there is room again.
+	 * Computed once per run, as it walks the whole local storage.
+	 */
+	private suspend fun isStorageQuotaReached(): Boolean {
+		isStorageQuotaReached?.let { return it }
+		val usage = runCatchingCancellable {
+			enforceStorageQuotaUseCaseLazy.get().getUsage()
+		}.getOrNull()
+		val result = usage != null && usage.currentBytes >= usage.totalBytes
+		isStorageQuotaReached = result
+		return result
 	}
 
 	@Reusable
