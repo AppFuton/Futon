@@ -7,11 +7,11 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.parcelable.ParcelableManga
 import io.github.landwarderer.futon.core.nav.AppRouter
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
-import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.call
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.require
+import io.github.landwarderer.futon.details.domain.RelatedMangaUseCase
 import io.github.landwarderer.futon.list.domain.MangaListMapper
 import io.github.landwarderer.futon.list.ui.MangaListViewModel
 import io.github.landwarderer.futon.list.ui.model.EmptyState
@@ -34,15 +34,14 @@ import javax.inject.Inject
 @HiltViewModel
 class RelatedListViewModel @Inject constructor(
 	savedStateHandle: SavedStateHandle,
-	mangaRepositoryFactory: MangaRepository.Factory,
 	settings: AppSettings,
+	private val relatedMangaUseCase: RelatedMangaUseCase,
 	private val mangaListMapper: MangaListMapper,
 	mangaDataRepository: MangaDataRepository,
 	@LocalStorageChanges localStorageChanges: SharedFlow<LocalManga?>,
 ) : MangaListViewModel(settings, mangaDataRepository, localStorageChanges) {
 
 	private val seed = savedStateHandle.require<ParcelableManga>(AppRouter.KEY_MANGA).manga
-	private val repository = mangaRepositoryFactory.create(seed.source)
 	private val mangaList = MutableStateFlow<List<Manga>?>(null)
 	private val listError = MutableStateFlow<Throwable?>(null)
 	private var loadingJob: Job? = null
@@ -79,7 +78,8 @@ class RelatedListViewModel @Inject constructor(
 		return launchLoadingJob(Dispatchers.IO) {
 			try {
 				listError.value = null
-				mangaList.value = repository.getRelated(seed)
+				// Same path as the details screen row: the source's own related list, then tag matches.
+				mangaList.value = relatedMangaUseCase(seed).orEmpty()
 			} catch (e: CancellationException) {
 				throw e
 			} catch (e: Throwable) {

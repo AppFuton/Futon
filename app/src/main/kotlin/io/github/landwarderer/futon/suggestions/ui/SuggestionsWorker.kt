@@ -39,6 +39,7 @@ import dagger.assisted.AssistedInject
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.exceptions.CloudFlareException
 import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaHandler
+import io.github.landwarderer.futon.core.model.MangaHistory
 import io.github.landwarderer.futon.core.model.distinctById
 import io.github.landwarderer.futon.core.model.getLocale
 import io.github.landwarderer.futon.core.model.isNsfw
@@ -56,7 +57,6 @@ import io.github.landwarderer.futon.core.util.ext.getQuantityStringSafe
 import io.github.landwarderer.futon.core.util.ext.mangaSourceExtra
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.sanitize
-import io.github.landwarderer.futon.core.util.ext.takeMostFrequent
 import io.github.landwarderer.futon.core.util.ext.toBitmapOrNull
 import io.github.landwarderer.futon.core.util.ext.trySetForeground
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
@@ -72,7 +72,9 @@ import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.parsers.util.sizeOrZero
 import io.github.landwarderer.futon.settings.work.PeriodicWorkScheduler
 import io.github.landwarderer.futon.suggestions.domain.MangaSuggestion
+import io.github.landwarderer.futon.suggestions.domain.SuggestionRanking
 import io.github.landwarderer.futon.suggestions.domain.SuggestionRepository
+import io.github.landwarderer.futon.suggestions.domain.TagStatistics
 import io.github.landwarderer.futon.suggestions.domain.TagsBlacklist
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.channelFlow
@@ -82,6 +84,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.pow
@@ -101,6 +104,7 @@ class SuggestionsWorker @AssistedInject constructor(
 	private val workManager: WorkManager,
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 	private val sourcesRepository: MangaSourcesRepository,
+	private val tagStatistics: TagStatistics,
 ) : CoroutineWorker(appContext, params) {
 
 	private val notificationManager by lazy { NotificationManagerCompat.from(appContext) }
@@ -178,16 +182,32 @@ class SuggestionsWorker @AssistedInject constructor(
 	}
 
 	private suspend fun doWorkImpl(): Int {
-		val seed = (
-			historyRepository.getList(0, 20) +
-				favouritesRepository.getLastManga(20)
-			).distinctById()
+		val history = historyRepository.getList(0, 20)
+		val favourites = favouritesRepository.getLastManga(20)
+		val favouriteIds = favourites.mapTo(HashSet()) { it.id }
+		// Opened, barely read and left for weeks: what the reader turned away from, not a taste to
+		// echo. A favourite is never that, however little of it has been read.
+		val droppedIds = history.filter { manga ->
+			manga.id !in favouriteIds && historyRepository.getOne(manga)?.isDropped() == true
+		}.mapTo(HashSet()) { it.id }
+		val seed = (history + favourites).distinctById().filterNot { it.id in droppedIds }
 		val sources = getSources()
 		if (seed.isEmpty() || sources.isEmpty()) {
 			return 0
 		}
 		val tagsBlacklist = TagsBlacklist(appSettings.suggestionsTagsBlacklist, TAG_EQ_THRESHOLD)
-		val tags = seed.flatMap { it.tags.map { x -> x.title } }.takeMostFrequent(10)
+		// The reader's most telling tags rather than their most frequent: frequency alone always
+		// crowns `action`, and a source searched for `action` answers with its best-sellers.
+		val statistics = runCatchingCancellable { tagStatistics.snapshot() }
+			.onFailure { it.printStackTraceDebug("SuggestionsWorker::tagStatistics") }
+			.getOrNull()
+		val tags = SuggestionRanking.distinctiveTags(
+			seedTags = seed.flatMap { manga ->
+				manga.tags.filterNot { it in tagsBlacklist }.map { x -> x.title }
+			},
+			rarity = { title -> statistics?.rarity(title) ?: 1.0 },
+			limit = 10,
+		)
 
 		val semaphore = Semaphore(MAX_PARALLELISM)
 		val producer = channelFlow {
@@ -269,14 +289,26 @@ class SuggestionsWorker @AssistedInject constructor(
 		val availableOrders = repository.sortOrders
 		val order = preferredSortOrders.first { it in availableOrders }
 		val availableTags = repository.getFilterOptions().availableTags
-		val tag = tags.firstNotNullOfOrNull { title ->
+		val matched = tags.mapNotNull { title ->
 			availableTags.find { x -> x !in blacklist && x.title.almostEquals(title, TAG_EQ_THRESHOLD) }
-		}
-		val list = repository.getList(
+		}.distinct()
+		// A source carrying none of the reader's tags used to be searched with no tag at all, which
+		// is its whole catalogue, newest or most popular first - nothing to do with the reader.
+		val first = matched.firstOrNull() ?: return@runCatchingCancellable emptyList()
+		// Two telling tags together find what is actually alike; one alone casts a wide net
+		val narrow = if (repository.filterCapabilities.isMultipleTagsSupported) matched.take(2).toSet() else setOf(first)
+		var list = repository.getList(
 			offset = 0,
 			order = order,
-			filter = MangaListFilter(tags = setOfNotNull(tag)),
+			filter = MangaListFilter(tags = narrow),
 		).asArrayList()
+		if (list.isEmpty() && narrow.size > 1) {
+			list = repository.getList(
+				offset = 0,
+				order = order,
+				filter = MangaListFilter(tags = setOf(first)),
+			).asArrayList()
+		}
 		if (appSettings.isSuggestionsExcludeNsfw) {
 			list.removeAll { it.isNsfw() }
 		}
@@ -396,6 +428,8 @@ class SuggestionsWorker @AssistedInject constructor(
 		return (weight / maxWeight).pow(2.0).toFloat()
 	}
 
+	private fun MangaHistory.isDropped(): Boolean = SuggestionRanking.isDropped(percent, updatedAt, Instant.now())
+
 	private fun Iterable<String>.inexactIndexOf(element: String, threshold: Float): Int {
 		forEachIndexed { i, t ->
 			if (t.almostEquals(element, threshold)) {
@@ -472,11 +506,12 @@ class SuggestionsWorker @AssistedInject constructor(
 		const val RATING_MIN = 0.5f
 		const val SETTINGS_ACTION_CODE = 4
 
+		// Popularity last: it hands back the same best-sellers whatever the reader likes
 		val preferredSortOrders = listOf(
 			SortOrder.UPDATED,
 			SortOrder.NEWEST,
-			SortOrder.POPULARITY,
 			SortOrder.RATING,
+			SortOrder.POPULARITY,
 		)
 	}
 }
