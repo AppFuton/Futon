@@ -211,15 +211,16 @@ class SuggestionsWorker @AssistedInject constructor(
 					relevance = computeRelevance(manga.tags, tags),
 				)
 			}.toList()
-			.sortedBy { it.relevance }
+			.sortedByDescending { it.relevance }
 			.take(MAX_RESULTS)
 		suggestionRepository.replace(suggestions)
-		if (appSettings.isSuggestionsNotificationAvailable
+		if (suggestions.isNotEmpty()
+			&& appSettings.isSuggestionsNotificationAvailable
 			&& applicationContext.checkNotificationPermission(MANGA_CHANNEL_ID)
 		) {
 			for (i in 0..3) {
 				try {
-					val manga = suggestions[Random.nextInt(0, suggestions.size / 3)]
+					val manga = suggestions[Random.nextInt(0, (suggestions.size / 3).coerceAtLeast(1))]
 					val details = mangaRepositoryFactory.create(manga.manga.source)
 						.getDetails(manga.manga)
 					if (details.chapters.isNullOrEmpty()) {
