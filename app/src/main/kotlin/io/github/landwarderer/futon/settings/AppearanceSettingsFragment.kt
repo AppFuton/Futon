@@ -1,5 +1,6 @@
 package io.github.landwarderer.futon.settings
 
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
@@ -10,22 +11,26 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.ListPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import androidx.preference.TwoStatePreference
-import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.names
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import dagger.hilt.android.AndroidEntryPoint
+import org.koitharu.kotatsu.parsers.util.toTitleCase
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.os.AppShortcutManager
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.ColorScheme
 import io.github.landwarderer.futon.core.prefs.HomeBackgroundFont
+import io.github.landwarderer.futon.core.prefs.ImportedThemeFile
 import io.github.landwarderer.futon.core.prefs.ListMode
 import io.github.landwarderer.futon.core.prefs.ProgressIndicatorMode
 import io.github.landwarderer.futon.core.prefs.ScreenshotsPolicy
@@ -40,9 +45,6 @@ import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.setDefaultValueCompat
 import io.github.landwarderer.futon.core.util.ext.sortedWithSafe
 import io.github.landwarderer.futon.core.util.ext.toList
-import org.koitharu.kotatsu.parsers.util.mapToSet
-import org.koitharu.kotatsu.parsers.util.names
-import org.koitharu.kotatsu.parsers.util.toTitleCase
 import io.github.landwarderer.futon.settings.protect.ProtectSetupActivity
 import io.github.landwarderer.futon.settings.utils.ActivityListPreference
 import io.github.landwarderer.futon.settings.utils.MultiSummaryProvider
@@ -212,9 +214,6 @@ class AppearanceSettingsFragment :
                 settings.selectedCustomThemeId = themes[index].id
                 findPreference<ThemeChooserPreference>(AppSettings.KEY_COLOR_THEME)?.value =
                     ColorScheme.CUSTOM.name
-                // Force restart in case the preference value didn't change (was already CUSTOM)
-                // so the newly selected theme is actually applied
-                postRestart()
                 updateCustomThemeSummaries()
                 dialog.dismiss()
             }
@@ -223,28 +222,33 @@ class AppearanceSettingsFragment :
     }
 
     private fun importCustomTheme(uri: Uri) {
+        val appContext = context?.applicationContext ?: return
         viewLifecycleOwner.lifecycleScope.launch {
             val result = runCatchingCancellable {
                 // Read from ContentResolver on IO thread to avoid blocking the main thread
                 // when importing from cloud storage providers (Drive, Nextcloud, etc.)
-                val json = withContext(Dispatchers.IO) { readThemeFile(uri) }
+                val json = withContext(Dispatchers.IO) { readThemeFile(appContext, uri) }
                 val imported = settings.importCustomThemes(json)
                 settings.selectedCustomThemeId = imported.last().id
                 findPreference<ThemeChooserPreference>(AppSettings.KEY_COLOR_THEME)?.value =
                     ColorScheme.CUSTOM.name
                 findPreference<ThemeChooserPreference>(AppSettings.KEY_COLOR_THEME)?.refresh()
                 updateCustomThemeSummaries()
-                Toast.makeText(requireContext(), R.string.custom_theme_imported, Toast.LENGTH_SHORT).show()
+                context?.let { ctx ->
+                    Toast.makeText(ctx, R.string.custom_theme_imported, Toast.LENGTH_SHORT).show()
+                }
             }
             result.onFailure {
                 it.printStackTraceDebug()
-                Toast.makeText(requireContext(), R.string.custom_theme_import_failed, Toast.LENGTH_LONG).show()
+                context?.let { ctx ->
+                    Toast.makeText(ctx, R.string.custom_theme_import_failed, Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
 
-    private fun readThemeFile(uri: Uri): String {
-        val input = requireContext().contentResolver.openInputStream(uri)
+    private fun readThemeFile(context: Context, uri: Uri): String {
+        val input = context.contentResolver.openInputStream(uri)
             ?: throw IllegalArgumentException("Cannot open theme file")
         return input.bufferedReader(Charsets.UTF_8).use { reader ->
             val result = StringBuilder()
@@ -252,7 +256,7 @@ class AppearanceSettingsFragment :
             while (true) {
                 val length = reader.read(buffer)
                 if (length < 0) break
-                require(result.length + length <= io.github.landwarderer.futon.core.prefs.ImportedThemeFile.MAX_FILE_SIZE) {
+                require(result.length + length <= ImportedThemeFile.MAX_FILE_SIZE) {
                     "Theme file is too large"
                 }
                 result.append(buffer, 0, length)
@@ -264,7 +268,9 @@ class AppearanceSettingsFragment :
     private fun confirmDeleteCustomTheme() {
         val selected = settings.selectedCustomTheme
         if (selected == null) {
-            Toast.makeText(requireContext(), R.string.custom_themes_none, Toast.LENGTH_SHORT).show()
+            context?.let { ctx ->
+                Toast.makeText(ctx, R.string.custom_themes_none, Toast.LENGTH_SHORT).show()
+            }
             return
         }
         MaterialAlertDialogBuilder(requireContext())
@@ -273,7 +279,7 @@ class AppearanceSettingsFragment :
             .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 settings.deleteCustomTheme(selected.id)
-                if (settings.colorScheme == ColorScheme.CUSTOM) {
+                if (settings.selectedCustomTheme == null && settings.colorScheme == ColorScheme.CUSTOM) {
                     findPreference<ThemeChooserPreference>(AppSettings.KEY_COLOR_THEME)?.value =
                         ColorScheme.default.name
                 }
@@ -288,7 +294,10 @@ class AppearanceSettingsFragment :
         val emptySummary = getString(R.string.custom_themes_none)
         findPreference<Preference>(KEY_CUSTOM_THEMES_MANAGEMENT)?.summary =
             customTheme?.displayName ?: emptySummary
-        findPreference<Preference>(KEY_CUSTOM_THEME_DELETE)?.summary = customTheme?.displayName ?: emptySummary
+        findPreference<Preference>(KEY_CUSTOM_THEME_DELETE)?.apply {
+            summary = customTheme?.displayName ?: emptySummary
+            isEnabled = customTheme != null
+        }
     }
 
     private fun initLocalePicker(preference: ListPreference) {

@@ -15,6 +15,8 @@ data class ImportedTheme(
 
 object ImportedThemeFile {
 	const val MAX_FILE_SIZE = 256 * 1024
+	private val ID_SANITIZATION_REGEX = Regex("[^\\p{L}\\p{N}]+")
+	private val HEX_COLOR_REGEX = Regex("^(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
 
 	fun parseImport(source: String): List<ImportedTheme> {
 		require(source.length <= MAX_FILE_SIZE) { "Theme file is too large" }
@@ -28,7 +30,9 @@ object ImportedThemeFile {
 	fun mergeStored(current: String, imported: List<ImportedTheme>): String {
 		val root = runCatching { JSONObject(current) }.getOrElse { JSONObject() }
 		for (theme in imported) {
-			root.put(theme.id, JSONObject(theme.json))
+			val obj = JSONObject(theme.json)
+			obj.put("display_name", theme.displayName)
+			root.put(theme.id, obj)
 		}
 		return root.toString()
 	}
@@ -38,16 +42,16 @@ object ImportedThemeFile {
 		val keys = root.keys()
 		while (keys.hasNext()) {
 			val sourceName = keys.next()
+			val theme = root.optJSONObject(sourceName) ?: continue
 			val id = sourceName.trim().lowercase(Locale.ROOT)
-				.replace(Regex("[^\\p{L}\\p{N}]+"), "_")
+				.replace(ID_SANITIZATION_REGEX, "_")
 				.trim('_')
 			require(id.isNotBlank() && id.length <= 80) { "Theme name is missing or too long" }
 
-			val theme = root.getJSONObject(sourceName)
-			val base = theme.getString("base").lowercase(Locale.ROOT)
+			val base = theme.optString("base").lowercase(Locale.ROOT)
 			require(base == "light" || base == "dark") { "Theme '$sourceName' has an unsupported base" }
-			val colours = theme.getJSONObject("colours")
-			val scheme = theme.getJSONObject("colour_scheme")
+			val colours = theme.optJSONObject("colours") ?: throw IllegalArgumentException("Theme '$sourceName' has no colours")
+			val scheme = theme.optJSONObject("colour_scheme") ?: throw IllegalArgumentException("Theme '$sourceName' has no colour_scheme")
 			require(colours.length() in 1..100) { "Theme '$sourceName' has no usable colours" }
 			require(scheme.length() in 1..100) { "Theme '$sourceName' has no colour roles" }
 
@@ -68,12 +72,13 @@ object ImportedThemeFile {
 				}
 				roleNames[role] = colourName
 			}
-			val primaryName = roleNames["primary"]
+			val primaryName = roleNames["primary"] ?: roleNames["colorPrimary"]
 				?: throw IllegalArgumentException("Theme '$sourceName' has no primary colour")
-			val onPrimary = roleNames["on_primary"]?.let(parsedColours::get)
+			val onPrimary = (roleNames["on_primary"] ?: roleNames["onPrimary"])?.let(parsedColours::get)
 			val displayName = theme.optString("display_name").trim().ifEmpty {
 				sourceName.replace('_', ' ').replaceFirstChar { it.uppercase() }
 			}
+			theme.put("display_name", displayName)
 
 			result += ImportedTheme(
 				id = id,
@@ -90,10 +95,14 @@ object ImportedThemeFile {
 
 	private fun parseArgb(value: String): Int {
 		val digits = value.trim().removePrefix("0x").removePrefix("0X").removePrefix("#")
-		require(digits.matches(Regex("[0-9a-fA-F]{6}([0-9a-fA-F]{2})?"))) {
-			"Invalid ARGB colour value"
+		require(HEX_COLOR_REGEX.matches(digits)) {
+			"Invalid hex colour value: $value"
 		}
-		val argb = if (digits.length == 6) "FF$digits" else digits
-		return argb.toLong(16).toInt()
+		val fullHex = when (digits.length) {
+			3 -> "FF${digits[0]}${digits[0]}${digits[1]}${digits[1]}${digits[2]}${digits[2]}"
+			6 -> "FF$digits"
+			else -> digits
+		}
+		return fullHex.toLong(16).toInt()
 	}
 }

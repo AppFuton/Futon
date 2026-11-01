@@ -38,7 +38,7 @@ enum class ColorScheme(
 
 		fun getAvailableList(includeCustom: Boolean = false): List<ColorScheme> {
 			val list = ColorScheme.entries.toMutableList()
-			if (!includeCustom) {
+			if (!includeCustom || !DynamicColors.isDynamicColorAvailable()) {
 				list.remove(CUSTOM)
 			}
 			if (!DynamicColors.isDynamicColorAvailable()) {

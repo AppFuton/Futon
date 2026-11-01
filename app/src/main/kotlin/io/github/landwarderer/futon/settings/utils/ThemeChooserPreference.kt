@@ -32,9 +32,16 @@ class ThemeChooserPreference @JvmOverloads constructor(
 	defStyleRes: Int = R.style.Preference_ThemeChooser,
 ) : Preference(context, attrs, defStyleAttr, defStyleRes) {
 
-	private val settings = AppSettings(context)
+	private val settings = AppSettings(context.applicationContext)
 	private val entries: List<ColorScheme>
-		get() = ColorScheme.getAvailableList(includeCustom = settings.importedThemes.isNotEmpty())
+		get() {
+			val available = ColorScheme.getAvailableList(includeCustom = settings.importedThemes.isNotEmpty())
+			return if (currentValue == ColorScheme.CUSTOM && !available.contains(ColorScheme.CUSTOM)) {
+				available + ColorScheme.CUSTOM
+			} else {
+				available
+			}
+		}
 	private var currentValue: ColorScheme = ColorScheme.default
 	private val lastScrollPosition = intArrayOf(-1)
 	private val itemClickListener = View.OnClickListener {
@@ -73,12 +80,14 @@ class ThemeChooserPreference @JvmOverloads constructor(
 			) else 0
 			item.textViewTitle.text = customTheme?.displayName ?: themedContext.getString(theme.titleResId)
 			if (customTheme != null) {
-				// Tint the preview shapes with the user's seed color instead of flattening
-				// the card background (which would erase shape_1/shape_2 visual indicators).
-				// Leave textViewTitle using its default ?android:attr/textColorPrimary so the
-				// label stays legible regardless of light/dark mode.
-				item.shape1.backgroundTintList = android.content.res.ColorStateList.valueOf(customTheme.primaryColor)
-				item.shape2.backgroundTintList = android.content.res.ColorStateList.valueOf(customTheme.primaryColor)
+				item.shapePrimary.backgroundTintList =
+					android.content.res.ColorStateList.valueOf(customTheme.primaryColor)
+				customTheme.onPrimaryColor?.let { onPrimary ->
+					item.shape1.backgroundTintList =
+						android.content.res.ColorStateList.valueOf(onPrimary)
+					item.shape2.backgroundTintList =
+						android.content.res.ColorStateList.valueOf(onPrimary)
+				}
 			}
 			item.root.tag = theme
 			item.card.tag = theme

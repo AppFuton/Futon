@@ -84,9 +84,6 @@ class AppSettings internal constructor(
 	val colorScheme: ColorScheme
 		get() = prefs.getEnumValue(KEY_COLOR_THEME, ColorScheme.default)
 
-	@Volatile
-	private var cachedImportedThemes: List<ImportedTheme>? = null
-
 	/** Parsed imported themes, cached in memory and invalidated on write. */
 	val importedThemes: List<ImportedTheme>
 		get() = cachedImportedThemes ?: ImportedThemeFile
@@ -113,7 +110,12 @@ class AppSettings internal constructor(
 		prefs.edit {
 			putString(KEY_CUSTOM_THEMES, ImportedThemeFile.mergeStored("{}", themes))
 			if (selectedCustomThemeId == id) {
-				remove(KEY_CUSTOM_THEME)
+				val nextThemeId = themes.firstOrNull()?.id
+				if (nextThemeId != null) {
+					putString(KEY_CUSTOM_THEME, nextThemeId)
+				} else {
+					remove(KEY_CUSTOM_THEME)
+				}
 			}
 		}
 		cachedImportedThemes = null
@@ -796,6 +798,9 @@ class AppSettings internal constructor(
 	}
 
 	companion object {
+
+		@Volatile
+		private var cachedImportedThemes: List<ImportedTheme>? = null
 
 		const val TRACK_HISTORY = "history"
 		const val TRACK_FAVOURITES = "favourites"
