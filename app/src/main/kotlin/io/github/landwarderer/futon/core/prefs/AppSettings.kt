@@ -200,7 +200,7 @@ class AppSettings internal constructor(
 
 	@get:FloatRange(0.0, 1.0)
 	var readerDoublePagesSensitivity: Float
-		get() = prefs.getFloat(KEY_READER_DOUBLE_PAGES_SENSITIVITY, 0.5f)
+		get() = getFloatCompat(KEY_READER_DOUBLE_PAGES_SENSITIVITY, 0.5f)
 		set(@FloatRange(0.0, 1.0) value) = prefs.edit { putFloat(KEY_READER_DOUBLE_PAGES_SENSITIVITY, value) }
 
 	val readerScreenOrientation: Int
@@ -506,8 +506,8 @@ class AppSettings internal constructor(
 	var readerColorFilter: ReaderColorFilter?
 		get() = runCatching {
 			ReaderColorFilter(
-				brightness = prefs.getFloat(KEY_CF_BRIGHTNESS, ReaderColorFilter.EMPTY.brightness),
-				contrast = prefs.getFloat(KEY_CF_CONTRAST, ReaderColorFilter.EMPTY.contrast),
+				brightness = getFloatCompat(KEY_CF_BRIGHTNESS, ReaderColorFilter.EMPTY.brightness),
+				contrast = getFloatCompat(KEY_CF_CONTRAST, ReaderColorFilter.EMPTY.contrast),
 				isInverted = prefs.getBoolean(KEY_CF_INVERTED, ReaderColorFilter.EMPTY.isInverted),
 				isGrayscale = prefs.getBoolean(KEY_CF_GRAYSCALE, ReaderColorFilter.EMPTY.isGrayscale),
 				isBookBackground = prefs.getBoolean(KEY_CF_BOOK, ReaderColorFilter.EMPTY.isBookBackground),
@@ -594,7 +594,7 @@ class AppSettings internal constructor(
 
 	@get:FloatRange(from = 0.0, to = 1.0)
 	var readerAutoscrollSpeed: Float
-		get() = prefs.getFloat(KEY_READER_AUTOSCROLL_SPEED, 0f)
+		get() = getFloatCompat(KEY_READER_AUTOSCROLL_SPEED, 0f)
 		set(@FloatRange(from = 0.0, to = 1.0) value) = prefs.edit {
 			putFloat(
 				KEY_READER_AUTOSCROLL_SPEED,
@@ -794,6 +794,24 @@ class AppSettings internal constructor(
 			connectivityManager.restrictBackgroundStatus == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED
 		} else {
 			false
+		}
+	}
+
+	// Float preferences restored from a JSON backup may come back as another type
+	private fun getFloatCompat(key: String, defaultValue: Float): Float = try {
+		prefs.getFloat(key, defaultValue)
+	} catch (_: ClassCastException) {
+		val fixedValue = when (val rawValue = prefs.all[key]) {
+			is Number -> rawValue.toFloat()
+			is String -> rawValue.toFloatOrNull()
+			else -> null
+		}
+		if (fixedValue == null || !fixedValue.isFinite()) {
+			prefs.edit { remove(key) }
+			defaultValue
+		} else {
+			prefs.edit { putFloat(key, fixedValue) }
+			fixedValue
 		}
 	}
 
