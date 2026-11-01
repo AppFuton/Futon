@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.bookmarks.domain.BookmarksRepository
 import io.github.landwarderer.futon.core.model.getPreferredBranch
+import io.github.landwarderer.futon.core.model.isNsfw
 import io.github.landwarderer.futon.core.nav.MangaIntent
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.ListMode
@@ -154,8 +155,15 @@ class DetailsViewModel @Inject constructor(
 
 	val relatedManga: StateFlow<List<MangaListModel>> = manga.mapLatest {
 		if (it != null && settings.isRelatedMangaEnabled) {
+			val related = relatedMangaUseCase(it).orEmpty().let { list ->
+				if (settings.isNsfwContentDisabled) {
+					list.filterNot { manga -> manga.isNsfw() }
+				} else {
+					list
+				}
+			}
 			mangaListMapper.toListModelList(
-				manga = relatedMangaUseCase(it).orEmpty(),
+				manga = related,
 				mode = ListMode.GRID,
 			)
 		} else {
