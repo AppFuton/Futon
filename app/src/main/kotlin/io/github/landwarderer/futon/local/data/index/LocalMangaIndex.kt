@@ -11,6 +11,7 @@ import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.input.LocalMangaParser
 import io.github.landwarderer.futon.local.domain.model.LocalManga
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
@@ -41,40 +42,25 @@ class LocalMangaIndex @Inject constructor(
 	}
 
 	suspend fun update() = mutex.withLock {
-		println("LocalMangaIndex: Starting update")
-		runCatchingCancellable {
-			db.withTransaction {
-				val dao = db.getLocalMangaIndexDao()
-				dao.clear()
-				localMangaRepositoryProvider.get()
-					.getRawListAsFlow()
-					.collect { 
-						println("LocalMangaIndex: Found manga ${it.manga.title} at ${it.file.path}")
-						upsert(it) 
-					}
-			}
-			currentVersion = VERSION
-			println("LocalMangaIndex: Update completed")
-		}.onFailure {
-			it.printStackTraceDebug("LocalMangaIndex::update")
-		}
+		rebuild()
 	}
 
 	suspend fun updateIfRequired() {
 		if (isUpdateRequired()) {
-			update()
+			mutex.withLock {
+				// The first build may have finished while this caller was waiting for it
+				if (isUpdateRequired()) {
+					rebuild()
+				}
+			}
 		}
 	}
 
 	suspend fun get(mangaId: Long, withDetails: Boolean): LocalManga? {
 		updateIfRequired()
-		var path = db.getLocalMangaIndexDao().findPath(mangaId)
-		if (path == null && mutex.isLocked) { // wait for updating complete
-			path = mutex.withLock { db.getLocalMangaIndexDao().findPath(mangaId) }
-		}
-		if (path == null) {
-			return null
-		}
+		// A rebuild in progress leaves the previous index in place until it commits, so a miss here
+		// is an answer rather than a reason to wait for the whole storage scan
+		val path = db.getLocalMangaIndexDao().findPath(mangaId) ?: return null
 		return runCatchingCancellable {
 			LocalMangaParser(File(path)).getManga(withDetails)
 		}.onFailure {
@@ -102,6 +88,36 @@ class LocalMangaIndex @Inject constructor(
 			dao.findTags(isNsfw = false)
 		} else {
 			dao.findTags()
+		}
+	}
+
+	/**
+	 * Scans local storage first and writes the index afterwards, in one short transaction.
+	 *
+	 * The scan opens every archive and folder in every storage directory: minutes on a large library
+	 * or slow storage, and forever if a read hangs. It used to run inside the transaction, holding
+	 * SQLite's only write connection the whole time. Every other transaction queued behind it, and so
+	 * did every newly subscribed Room Flow, since subscribing installs triggers through the writer.
+	 * Those waits block threads of Room's 4-thread executor, and once it is exhausted nothing can be
+	 * read at all - history, favourites and sources stay empty. This runs on every cold start.
+	 */
+	private suspend fun rebuild() {
+		println("LocalMangaIndex: Starting update")
+		runCatchingCancellable {
+			val found = localMangaRepositoryProvider.get()
+				.getRawListAsFlow()
+				.toList()
+			db.withTransaction {
+				db.getLocalMangaIndexDao().clear()
+				found.forEach {
+					println("LocalMangaIndex: Found manga ${it.manga.title} at ${it.file.path}")
+					upsert(it)
+				}
+			}
+			currentVersion = VERSION
+			println("LocalMangaIndex: Update completed")
+		}.onFailure {
+			it.printStackTraceDebug("LocalMangaIndex::update")
 		}
 	}
 
