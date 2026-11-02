@@ -19,6 +19,9 @@ import androidx.core.view.OnApplyWindowInsetsListener
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentManager
 import androidx.viewbinding.ViewBinding
+import androidx.appcompat.R as appcompatR
+import com.google.android.material.color.DynamicColors
+import com.google.android.material.color.DynamicColorsOptions
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -26,10 +29,10 @@ import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.exceptions.resolve.ExceptionResolver
 import io.github.landwarderer.futon.core.nav.AppRouter
+import io.github.landwarderer.futon.core.prefs.ColorScheme
 import io.github.landwarderer.futon.core.ui.util.ActionModeDelegate
 import io.github.landwarderer.futon.core.util.ext.isWebViewUnavailable
 import io.github.landwarderer.futon.main.ui.protect.ScreenshotPolicyHelper
-import androidx.appcompat.R as appcompatR
 
 abstract class BaseActivity<B : ViewBinding> :
 	AppCompatActivity(),
@@ -60,7 +63,27 @@ abstract class BaseActivity<B : ViewBinding> :
 	override fun onCreate(savedInstanceState: Bundle?) {
 		val settings = entryPoint.settings
 		isAmoledTheme = settings.isAmoledTheme
-		setTheme(settings.colorScheme.styleResId)
+		val importedTheme = settings.selectedCustomTheme.takeIf {
+			settings.colorScheme == ColorScheme.CUSTOM && DynamicColors.isDynamicColorAvailable()
+		}
+		val colorScheme = when {
+			importedTheme == null && settings.colorScheme == ColorScheme.CUSTOM -> ColorScheme.default
+			else -> settings.colorScheme
+		}
+		setTheme(colorScheme.styleResId)
+		if (importedTheme != null) {
+			val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+			setTheme(
+				if (isNightMode) R.style.ThemeOverlay_Futon_Custom_Dark
+				else R.style.ThemeOverlay_Futon_Custom_Light,
+			)
+			DynamicColors.applyToActivityIfAvailable(
+				this,
+				DynamicColorsOptions.Builder()
+					.setContentBasedSource(importedTheme.primaryColor)
+					.build(),
+			)
+		}
 		if (isAmoledTheme) {
 			setTheme(R.style.ThemeOverlay_Futon_Amoled)
 		}
@@ -69,6 +92,7 @@ abstract class BaseActivity<B : ViewBinding> :
 		enableEdgeToEdge()
 		super.onCreate(savedInstanceState)
 	}
+
 
 	override fun onPostCreate(savedInstanceState: Bundle?) {
 		super.onPostCreate(savedInstanceState)

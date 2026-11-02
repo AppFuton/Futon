@@ -19,6 +19,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.prefs.ColorScheme
+import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.databinding.ItemColorSchemeBinding
 import io.github.landwarderer.futon.databinding.PreferenceThemeBinding
 import java.lang.ref.WeakReference
@@ -31,7 +32,16 @@ class ThemeChooserPreference @JvmOverloads constructor(
 	defStyleRes: Int = R.style.Preference_ThemeChooser,
 ) : Preference(context, attrs, defStyleAttr, defStyleRes) {
 
-	private val entries = ColorScheme.getAvailableList()
+	private val settings = AppSettings(context.applicationContext)
+	private val entries: List<ColorScheme>
+		get() {
+			val available = ColorScheme.getAvailableList(includeCustom = settings.importedThemes.isNotEmpty())
+			return if (currentValue == ColorScheme.CUSTOM && !available.contains(ColorScheme.CUSTOM)) {
+				available + ColorScheme.CUSTOM
+			} else {
+				available
+			}
+		}
 	private var currentValue: ColorScheme = ColorScheme.default
 	private val lastScrollPosition = intArrayOf(-1)
 	private val itemClickListener = View.OnClickListener {
@@ -53,18 +63,32 @@ class ThemeChooserPreference @JvmOverloads constructor(
 		}
 		binding.linear.removeAllViews()
 		for (theme in entries) {
-			val context = ContextThemeWrapper(context, theme.styleResId)
-			val item =
-				ItemColorSchemeBinding.inflate(LayoutInflater.from(context), binding.linear, false)
+			val customTheme = settings.selectedCustomTheme.takeIf { theme == ColorScheme.CUSTOM }
+			val styleResId = when {
+				theme == ColorScheme.CUSTOM && customTheme?.isDark == true -> R.style.ThemeOverlay_Futon_Custom_Dark
+				else -> theme.styleResId
+			}
+			val themedContext = ContextThemeWrapper(context, styleResId)
+			val item = ItemColorSchemeBinding.inflate(LayoutInflater.from(themedContext), binding.linear, false)
 			if (binding.linear.isEmpty()) {
 				item.root.updatePaddingRelative(start = 0)
 			}
 			val isSelected = theme == currentValue
 			item.card.isChecked = isSelected
-			item.card.strokeWidth = if (isSelected) context.resources.getDimensionPixelSize(
+			item.card.strokeWidth = if (isSelected) themedContext.resources.getDimensionPixelSize(
 				materialR.dimen.m3_comp_outlined_card_outline_width,
 			) else 0
-			item.textViewTitle.setText(theme.titleResId)
+			item.textViewTitle.text = customTheme?.displayName ?: themedContext.getString(theme.titleResId)
+			if (customTheme != null) {
+				item.shapePrimary.backgroundTintList =
+					android.content.res.ColorStateList.valueOf(customTheme.primaryColor)
+				customTheme.onPrimaryColor?.let { onPrimary ->
+					item.shape1.backgroundTintList =
+						android.content.res.ColorStateList.valueOf(onPrimary)
+					item.shape2.backgroundTintList =
+						android.content.res.ColorStateList.valueOf(onPrimary)
+				}
+			}
 			item.root.tag = theme
 			item.card.tag = theme
 			item.imageViewCheck.isVisible = theme == currentValue
@@ -122,6 +146,9 @@ class ThemeChooserPreference @JvmOverloads constructor(
 		super.onRestoreInstanceState(state.superState)
 		lastScrollPosition[0] = state.scrollPosition
 	}
+
+	/** Externally refresh this preference's view when custom-theme data has changed. */
+	fun refresh() = notifyChanged()
 
 	private fun setValueInternal(enumName: String, notifyChanged: Boolean) {
 		val newValue = ColorScheme.safeValueOf(enumName) ?: return
