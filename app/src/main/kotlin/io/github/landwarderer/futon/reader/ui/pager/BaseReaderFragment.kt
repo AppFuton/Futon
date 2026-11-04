@@ -68,19 +68,11 @@ abstract class BaseReaderFragment<B : ViewBinding> : BaseFragment<B>(), ZoomCont
 	 */
 	@MainThread
 	protected fun notifyVisiblePagesChanged(lowerPos: Int, upperPos: Int) {
-		// NO_POSITION means nothing is laid out yet; clamping it to 0 would report the first loaded page
-		if (lowerPos < 0 || upperPos < 0) {
-			return
-		}
 		val adapter = readerAdapter ?: return
-		val lastIndex = adapter.itemCount - 1
-		if (lastIndex < 0) {
-			return
-		}
-		// only the upper bound is clamped: a double-page spread can end one past the last page
+		val positions = visibleAdapterPositions(lowerPos, upperPos, adapter.itemCount) ?: return
 		viewModel.onCurrentPageChanged(
-			adapter.getItemOrNull(lowerPos.coerceAtMost(lastIndex)),
-			adapter.getItemOrNull(upperPos.coerceAtMost(lastIndex)),
+			adapter.getItemOrNull(positions.first),
+			adapter.getItemOrNull(positions.last),
 		)
 	}
 
