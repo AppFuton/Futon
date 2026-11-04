@@ -14,13 +14,14 @@ import io.github.landwarderer.futon.core.exceptions.resolve.ExceptionResolver
 import io.github.landwarderer.futon.core.ui.util.ActionModeDelegate
 
 abstract class BaseFragment<B : ViewBinding> :
+	ExceptionResolver.Owner,
 	OnApplyWindowInsetsListener,
 	Fragment() {
 
 	var viewBinding: B? = null
 		private set
 
-	protected lateinit var exceptionResolver: ExceptionResolver
+	final override lateinit var exceptionResolver: ExceptionResolver
 		private set
 
 	protected val actionModeDelegate: ActionModeDelegate

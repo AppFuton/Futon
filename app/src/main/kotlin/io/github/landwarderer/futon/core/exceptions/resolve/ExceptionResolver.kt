@@ -163,6 +163,12 @@ class ExceptionResolver private constructor(
         }.show()
     }
 
+    /** A screen that owns a resolver, so error observers created without one can still offer the fix. */
+    interface Owner {
+
+        val exceptionResolver: ExceptionResolver
+    }
+
     class Factory @Inject constructor(
         private val settings: AppSettings,
         private val scrobblerAuthHelperProvider: Provider<ScrobblerAuthHelper>,

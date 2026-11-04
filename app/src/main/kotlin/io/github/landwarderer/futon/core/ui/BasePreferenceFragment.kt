@@ -34,11 +34,12 @@ import com.google.android.material.R as materialR
 
 @AndroidEntryPoint
 abstract class BasePreferenceFragment(@StringRes private val titleId: Int) :
+	ExceptionResolver.Owner,
 	PreferenceFragmentCompat(),
 	OnApplyWindowInsetsListener,
 	RecyclerViewOwner {
 
-	protected lateinit var exceptionResolver: ExceptionResolver
+	final override lateinit var exceptionResolver: ExceptionResolver
 		private set
 
 	@Inject

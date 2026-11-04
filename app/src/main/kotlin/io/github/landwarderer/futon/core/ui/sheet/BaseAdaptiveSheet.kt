@@ -32,12 +32,13 @@ import io.github.landwarderer.futon.core.ui.util.ActionModeDelegate
 import com.google.android.material.R as materialR
 
 abstract class BaseAdaptiveSheet<B : ViewBinding> : AppCompatDialogFragment(),
+	ExceptionResolver.Owner,
 	OnApplyWindowInsetsListener {
 
 	private var waitingForDismissAllowingStateLoss = false
 	private var isFitToContentsDisabled = false
 
-	protected lateinit var exceptionResolver: ExceptionResolver
+	final override lateinit var exceptionResolver: ExceptionResolver
 		private set
 
 	var viewBinding: B? = null
