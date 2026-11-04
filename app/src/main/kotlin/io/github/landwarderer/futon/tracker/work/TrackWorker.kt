@@ -110,6 +110,12 @@ class TrackWorker @AssistedInject constructor(
 	private var isStorageQuotaReached: Boolean? = null
 
 	override suspend fun doWork(): Result {
+		if (isExpiredManualRun()) {
+			// A manual check the system stopped (job time limit, doze, process death) is put back in the
+			// queue by WorkManager and may only run again hours later. Nobody is waiting for it any more,
+			// and with the tracker set to manual it looks like an automatic check: drop it instead.
+			return Result.success()
+		}
 		notificationHelper.updateChannels()
 		trySetForeground()
 		// Full run when manually triggered (TAG_ONESHOT), regardless of whether the
@@ -129,6 +135,12 @@ class TrackWorker @AssistedInject constructor(
 				notificationManager.cancel(WORKER_NOTIFICATION_ID)
 			}
 		}
+	}
+
+	private fun isExpiredManualRun(): Boolean {
+		if (TAG_ONESHOT !in tags) return false
+		val requestedAt = inputData.getLong(KEY_REQUESTED_AT, 0L)
+		return requestedAt > 0L && System.currentTimeMillis() - requestedAt > MANUAL_RUN_EXPIRY_MS
 	}
 
 	private suspend fun doWorkImpl(isFullRun: Boolean, recheckSource: MangaSource?): Result {
@@ -274,6 +286,8 @@ class TrackWorker @AssistedInject constructor(
 			workManager.createCancelPendingIntent(id),
 		)
 		setProgress(max, progress, max == 0)
+		// Never outlive a worker that was killed before it could cancel this notification
+		setTimeoutAfter(WORKER_NOTIFICATION_TIMEOUT_MS)
 		setSmallIcon(android.R.drawable.stat_notify_sync)
 		setForegroundServiceBehavior(
 			if (TAG_ONESHOT in tags) {
@@ -422,6 +436,7 @@ class TrackWorker @AssistedInject constructor(
 			val request = OneTimeWorkRequestBuilder<TrackWorker>()
 				.setConstraints(constraints)
 				.addTag(TAG_ONESHOT)
+				.setInputData(workDataOf(KEY_REQUESTED_AT to System.currentTimeMillis()))
 				.setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
 				.build()
 			workManager.enqueue(request)
@@ -465,6 +480,9 @@ class TrackWorker @AssistedInject constructor(
 		const val TAG_ONESHOT = "tracking_oneshot"
 		const val TAG_RECHECK = "tracking_recheck"
 		const val KEY_SOURCE = "source"
+		const val KEY_REQUESTED_AT = "requested_at"
+		val MANUAL_RUN_EXPIRY_MS = TimeUnit.MINUTES.toMillis(30)
+		val WORKER_NOTIFICATION_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(10)
 		const val MAX_PARALLELISM = 6
 		const val MAX_PER_SOURCE_PARALLELISM = 2
 		val BATCH_SIZE = if (BuildConfig.DEBUG) 20 else 46
