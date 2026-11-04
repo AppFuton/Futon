@@ -2,6 +2,7 @@ package io.github.landwarderer.futon.reader.ui.pager
 
 import android.os.Bundle
 import android.view.View
+import androidx.annotation.MainThread
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.activityViewModels
 import androidx.viewbinding.ViewBinding
@@ -61,16 +62,25 @@ abstract class BaseReaderFragment<B : ViewBinding> : BaseFragment<B>(), ZoomCont
 		super.onDestroyView()
 	}
 
-	/** Resolve adapter positions against the adapter's own items, which may lag behind the view model content. */
+	/**
+	 * Resolve adapter positions against the adapter's own items, which may lag behind the view model content.
+	 * Must be called on the main thread, while the positions still match the adapter's current list.
+	 */
+	@MainThread
 	protected fun notifyVisiblePagesChanged(lowerPos: Int, upperPos: Int) {
+		// NO_POSITION means nothing is laid out yet; clamping it to 0 would report the first loaded page
+		if (lowerPos < 0 || upperPos < 0) {
+			return
+		}
 		val adapter = readerAdapter ?: return
 		val lastIndex = adapter.itemCount - 1
 		if (lastIndex < 0) {
 			return
 		}
+		// only the upper bound is clamped: a double-page spread can end one past the last page
 		viewModel.onCurrentPageChanged(
-			adapter.getItemOrNull(lowerPos.coerceIn(0, lastIndex)),
-			adapter.getItemOrNull(upperPos.coerceIn(0, lastIndex)),
+			adapter.getItemOrNull(lowerPos.coerceAtMost(lastIndex)),
+			adapter.getItemOrNull(upperPos.coerceAtMost(lastIndex)),
 		)
 	}
 
