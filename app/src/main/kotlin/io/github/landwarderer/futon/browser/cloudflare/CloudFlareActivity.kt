@@ -23,6 +23,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.yield
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -38,6 +39,7 @@ import io.github.landwarderer.futon.core.network.webview.CF_STATE_JS
 import io.github.landwarderer.futon.core.parser.ParserMangaRepository
 import io.github.landwarderer.futon.core.util.ext.getDisplayMessage
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
+import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
@@ -262,6 +264,7 @@ open class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 			MANUAL_FALLBACK_DELAY_MS
 		}
 		var consecutivePasses = 0
+		var lastState: String? = null
 		val requiredStablePasses = if (isHiddenAutoResolveActivity && autoRecreateCount > 0) {
 			HIDDEN_RECREATED_STABLE_PASSES
 		} else {
@@ -281,7 +284,12 @@ open class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 					markClearanceUpdateObserved()
 				}
 			}
-			if (probeChallengeState() == CF_STATE_OK) {
+			val state = probeChallengeState()
+			if (state != lastState) {
+				Log.d(TAG, "Challenge state: $state")
+				lastState = state
+			}
+			if (state == CF_STATE_OK) {
 				consecutivePasses++
 				if (consecutivePasses >= requiredStablePasses) {
 					finishSuccess()
@@ -337,32 +345,38 @@ open class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 		invalidateOptionsMenu()
 	}
 
-	private suspend fun probeChallengeState(): String = suspendCancellableCoroutine { cont ->
-		viewBinding.webView.evaluateJavascript(CF_STATE_JS) { raw ->
-			if (cont.isActive) {
-				cont.resume(raw?.removeSurrounding("\"") ?: CF_STATE_WAIT)
+	/** A WebView busy navigating may never answer [evaluateJavascript]: count that as still waiting. */
+	private suspend fun probeChallengeState(): String = withTimeoutOrNull(PROBE_TIMEOUT_MS) {
+		suspendCancellableCoroutine { cont ->
+			viewBinding.webView.evaluateJavascript(CF_STATE_JS) { raw ->
+				if (cont.isActive) {
+					cont.resume(raw?.removeSurrounding("\"") ?: CF_STATE_WAIT)
+				}
 			}
 		}
-	}
+	} ?: CF_STATE_WAIT
 
 	private fun finishSuccess() {
 		if (pendingResult == RESULT_OK) return
 		pendingResult = RESULT_OK
 		resolveJob?.cancel()
 		rememberAlignedUserAgent()
-		lifecycleScope.launch {
-			// Persist the final cookie state before the WebView is destroyed and the parser retries.
-			CookieManager.getInstance().flush()
-			val source = intent?.getStringExtra(AppRouter.KEY_SOURCE)
-			if (source != null) {
+		// Persist the final cookie state before the WebView is destroyed and the parser retries.
+		CookieManager.getInstance().flush()
+		val source = intent?.getStringExtra(AppRouter.KEY_SOURCE)
+		if (source != null) {
+			// Not tied to this Activity: discard() waits for the captcha lock and rebuilds the remaining
+			// captcha notifications, favicons included. Closing must not wait for that, and closing (or the
+			// user tapping X meanwhile) must not cancel it, or the solve is never reported.
+			processLifecycleScope.launch {
 				runCatchingCancellable {
 					captchaHandler.discard(MangaSource(source))
 				}.onFailure {
 					it.printStackTraceDebug("CloudFlareActivity::finishSuccess")
 				}
 			}
-			finishAfterTransition()
 		}
+		finishAfterTransition()
 	}
 
 	override fun onTitleChanged(title: CharSequence, subtitle: CharSequence?) {
@@ -475,6 +489,7 @@ open class CloudFlareActivity : BaseBrowserActivity(), CloudFlareCallback {
 		private const val VIEWPORT_POLL_INTERVAL_MS = 16L
 		private const val VIEWPORT_FOCUS_TIMEOUT_MS = 2_000L
 		private const val RESOLVE_POLL_INTERVAL_MS = 800L
+		private const val PROBE_TIMEOUT_MS = 2_000L
 		private const val AUTO_RETRY_DELAY_MS = 6_000L
 		private const val MANUAL_FALLBACK_DELAY_MS = 15_000L
 		private const val CLEARANCE_RECREATE_GRACE_MS = 500L
