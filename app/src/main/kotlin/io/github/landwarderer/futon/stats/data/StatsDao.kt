@@ -34,6 +34,9 @@ abstract class StatsDao {
 	@Query("SELECT COUNT(*) FROM stats WHERE manga_id = :mangaId")
 	abstract fun observeRowCount(mangaId: Long): Flow<Int>
 
+	@Query("UPDATE OR IGNORE stats SET manga_id = :newMangaId WHERE manga_id = :oldMangaId")
+	abstract suspend fun move(oldMangaId: Long, newMangaId: Long)
+
 	@Upsert
 	abstract suspend fun upsert(entity: StatsEntity)
 
