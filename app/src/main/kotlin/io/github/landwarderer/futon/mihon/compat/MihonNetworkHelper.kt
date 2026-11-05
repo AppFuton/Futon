@@ -4,6 +4,7 @@ import android.util.Log
 import eu.kanade.tachiyomi.network.NetworkHelper
 import io.github.landwarderer.futon.core.exceptions.CloudFlareBlockedException
 import io.github.landwarderer.futon.core.exceptions.InteractiveActionRequiredException
+import io.github.landwarderer.futon.core.model.UnknownMangaSource
 import io.github.landwarderer.futon.core.network.webview.WebViewExecutor
 import io.github.landwarderer.futon.mihon.model.toMangaSource
 import io.github.landwarderer.futon.mihon.parsers.model.ContentSource
@@ -136,18 +137,13 @@ class MihonNetworkHelper(
                             ),
                         )
                     } else {
-                        val source = request.tag(ContentSource::class.java)
-                        if (source == null) {
-                            Log.w("MihonNetwork", "Missing ContentSource tag for host=$host")
-                            response.closeThrowing(CloudFlareBlockedException(url = challengeUrl, source = null))
-                        } else {
-                            response.closeThrowing(
-                                InteractiveActionRequiredException(
-                                    source = source.toMangaSource(),
-                                    url = challengeUrl,
-                                ),
-                            )
-                        }
+                        val source = request.tag(ContentSource::class.java)?.toMangaSource() ?: UnknownMangaSource
+                        response.closeThrowing(
+                            InteractiveActionRequiredException(
+                                source = source,
+                                url = challengeUrl,
+                            ),
+                        )
                     }
                 }
 
