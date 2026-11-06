@@ -69,6 +69,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
@@ -116,6 +117,12 @@ class TrackWorker @AssistedInject constructor(
 			// and with the tracker set to manual it looks like an automatic check: drop it instead.
 			return Result.success()
 		}
+		if (TAG_RECHECK in tags && runAttemptCount < MAX_RECHECK_DEFERRALS && isOtherCheckRunning()) {
+			// That check records the tracks it skipped at the captcha only when it ends. Starting now would
+			// only find the track that hit the captcha, and the rest of the source would be marked as blocked
+			// right after, waiting for another solve: come back once it is done.
+			return Result.retry()
+		}
 		notificationHelper.updateChannels()
 		trySetForeground()
 		// Full run when manually triggered (TAG_ONESHOT), regardless of whether the
@@ -135,6 +142,13 @@ class TrackWorker @AssistedInject constructor(
 				notificationManager.cancel(WORKER_NOTIFICATION_ID)
 			}
 		}
+	}
+
+	private suspend fun isOtherCheckRunning(): Boolean {
+		val query = WorkQuery.Builder.fromTags(listOf(TAG, TAG_ONESHOT))
+			.addStates(listOf(WorkInfo.State.RUNNING))
+			.build()
+		return workManager.getWorkInfosFlow(query).first().any { it.id != id }
 	}
 
 	private fun isExpiredManualRun(): Boolean {
@@ -454,6 +468,7 @@ class TrackWorker @AssistedInject constructor(
 				.setConstraints(constraints)
 				.setInputData(workDataOf(KEY_SOURCE to source.name))
 				.addTag(TAG_RECHECK)
+				.setBackoffCriteria(BackoffPolicy.LINEAR, RECHECK_DEFER_SECONDS, TimeUnit.SECONDS)
 				.setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
 				.build()
 			workManager.enqueueUniqueWork("${TAG_RECHECK}_${source.name}", ExistingWorkPolicy.KEEP, request)
@@ -481,6 +496,8 @@ class TrackWorker @AssistedInject constructor(
 		const val TAG_RECHECK = "tracking_recheck"
 		const val KEY_SOURCE = "source"
 		const val KEY_REQUESTED_AT = "requested_at"
+		const val MAX_RECHECK_DEFERRALS = 15
+		const val RECHECK_DEFER_SECONDS = 60L
 		val MANUAL_RUN_EXPIRY_MS = TimeUnit.MINUTES.toMillis(30)
 		val WORKER_NOTIFICATION_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(10)
 		const val MAX_PARALLELISM = 6
