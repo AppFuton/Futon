@@ -35,6 +35,7 @@ import io.github.landwarderer.futon.core.util.ext.isWebViewUnavailable
 import io.github.landwarderer.futon.main.ui.protect.ScreenshotPolicyHelper
 
 abstract class BaseActivity<B : ViewBinding> :
+	ExceptionResolver.Owner,
 	AppCompatActivity(),
 	OnApplyWindowInsetsListener,
 	ScreenshotPolicyHelper.ContentContainer {
@@ -44,7 +45,7 @@ abstract class BaseActivity<B : ViewBinding> :
 	lateinit var viewBinding: B
 		private set
 
-	protected lateinit var exceptionResolver: ExceptionResolver
+	final override lateinit var exceptionResolver: ExceptionResolver
 		private set
 
 	@JvmField
