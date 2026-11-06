@@ -16,6 +16,8 @@ sealed interface MangaUpdates {
 		val branch: String?,
 		val newChapters: List<MangaChapter>,
 		val isValid: Boolean,
+		/** Compared with the chapter the previous check ended on: everything after it appeared since. */
+		val isAnchoredOnTrack: Boolean = false,
 	) : MangaUpdates {
 
 		fun isNotEmpty() = newChapters.isNotEmpty()

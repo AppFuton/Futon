@@ -169,7 +169,7 @@ class CheckNewChaptersUseCase @Inject constructor(
 		}
 		val chapters = manga.getChapters(branch)
 		compareAgainst(manga, branch, chapters, track.lastChapterId)?.let {
-			return it
+			return it.copy(isAnchoredOnTrack = true)
 		}
 		// lastChapterId is stale (not in the fresh list) -> prefer the date baseline.
 		compareByDate(manga, branch, chapters, track.lastChapterDate?.toEpochMilli() ?: 0L)?.let {
@@ -232,7 +232,12 @@ class CheckNewChaptersUseCase @Inject constructor(
 
 	/**
 	 * Drops "new" chapters the user has already read (here or in a similar-titled manga from
-	 * another source) and chapters too old to be a genuine update.
+	 * another source) and, unless the comparison started from the chapter the previous check ended on,
+	 * chapters too old to be a genuine update.
+	 *
+	 * The age limit keeps a first check, anchored on the reading position or a date, from reporting a
+	 * whole backlog. Chapters after the previous check's last chapter appeared since that check whatever
+	 * date the source gives them, and the track moves past whatever is dropped here, so they must stay.
 	 */
 	private fun MangaUpdates.Success.filterReadAndStaleChapters(
 		chapters: List<MangaChapter>,
@@ -248,7 +253,8 @@ class CheckNewChaptersUseCase @Inject constructor(
 		)
 		val minChapterDate = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_STALE_CHAPTER_DAYS)
 		val filtered = newChapters.filter { chapter ->
-			chapter.isAfterReadPosition(chapters, readChapters) && chapter.isRecentEnough(minChapterDate)
+			chapter.isAfterReadPosition(chapters, readChapters) &&
+				(isAnchoredOnTrack || chapter.isRecentEnough(minChapterDate))
 		}
 		return if (filtered.size == newChapters.size) this else copy(newChapters = filtered)
 	}
