@@ -97,13 +97,10 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 	abstract suspend fun clear()
 
 	/**
-	 * Resets every unread counter and rebases each track on the reading position, so the next check reports the
-	 * chapters after it again instead of losing them behind the newest chapter.
+	 * Resets every unread counter. The tracks keep their baseline: rebasing them on the reading position would make
+	 * the next check report every chapter after it as new again.
 	 */
-	@Query(
-		"UPDATE tracks SET chapters_new = 0, last_chapter_id = COALESCE(" +
-			"(SELECT chapter_id FROM history WHERE history.manga_id = tracks.manga_id AND history.deleted_at = 0), 0)",
-	)
+	@Query("UPDATE tracks SET chapters_new = 0")
 	abstract suspend fun clearCounters()
 
 	@Query("UPDATE tracks SET chapters_new = 0 WHERE manga_id = :mangaId")
