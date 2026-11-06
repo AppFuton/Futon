@@ -52,6 +52,7 @@ import io.github.landwarderer.futon.download.data.repository.DownloadQueueReposi
 import io.github.landwarderer.futon.history.data.HistoryRepository
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.domain.EnforceStorageQuotaUseCase
+import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
@@ -66,6 +67,7 @@ import io.github.landwarderer.futon.tracker.work.TrackerNotificationHelper.Notif
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -75,7 +77,9 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
@@ -188,6 +192,7 @@ class TrackWorker @AssistedInject constructor(
 		val sourceSemaphores = HashMap<MangaSource, Semaphore>()
 		// Sources that failed in a way every other request of this run would repeat, with that failure
 		val blockedSources = ConcurrentHashMap<MangaSource, MangaUpdates.Failure>()
+		val pacers = ConcurrentHashMap<MangaSource, SourcePacer>()
 		val skipped = ConcurrentHashMap<MangaSource, MutableList<Long>>()
 		val notifications = channelFlow<MangaUpdates?> {
 			for (track in tracks) {
@@ -201,16 +206,7 @@ class TrackWorker @AssistedInject constructor(
 							send(null)
 							return@withPermit
 						}
-						val updates = semaphore.withPermit {
-							runCatchingCancellable {
-								checkNewChaptersUseCase.invoke(track)
-							}.getOrElse { error ->
-								MangaUpdates.Failure(
-									manga = track.manga,
-									error = error,
-								)
-							}
-						}
+						val updates = checkPaced(track, pacers.getOrPut(source) { SourcePacer() }, semaphore)
 						if (updates is MangaUpdates.Failure && updates.isSourceBlocked()) {
 							blockedSources.putIfAbsent(source, updates)
 						}
@@ -251,6 +247,77 @@ class TrackWorker @AssistedInject constructor(
 			trackingRepository.saveSkipped(ids, failure)
 		}
 		return notifications
+	}
+
+	/**
+	 * Checks [track], riding out a short rate limit instead of giving up on its source.
+	 *
+	 * When the source answers "too many requests" with a short wait, the source switches to paced mode for the
+	 * rest of the run: its manga are checked one at a time, the first after the server's wait plus a margin, the
+	 * following ones [PACED_INTERVAL_MS] apart, and a manga that is rate limited again is retried after the new
+	 * wait. Only a long wait, repeated rate limiting or too much waiting in total ends with the failure, which
+	 * then blocks the source for the rest of the run.
+	 */
+	private suspend fun checkPaced(track: MangaTracking, pacer: SourcePacer, semaphore: Semaphore): MangaUpdates {
+		var retries = 0
+		while (true) {
+			val updates = if (pacer.isPaced) {
+				pacer.mutex.withLock {
+					delay(pacer.nextRequestAt - System.currentTimeMillis())
+					check(track, semaphore).also {
+						pacer.nextRequestAt = maxOf(pacer.nextRequestAt, System.currentTimeMillis() + PACED_INTERVAL_MS)
+					}
+				}
+			} else {
+				check(track, semaphore)
+			}
+			val retryDelay = (updates as? MangaUpdates.Failure)?.rateLimitDelay() ?: return updates
+			if (
+				retryDelay > MAX_SHORT_RETRY_DELAY_MS ||
+				retries >= MAX_RATE_LIMIT_RETRIES ||
+				pacer.totalWaitMs + retryDelay > MAX_RATE_LIMIT_WAIT_MS
+			) {
+				return updates
+			}
+			retries++
+			val wait = retryDelay + retryDelay / 10 // the server's wait plus 10%, so the first retry isn't early
+			pacer.mutex.withLock {
+				pacer.totalWaitMs += wait
+				pacer.nextRequestAt = maxOf(pacer.nextRequestAt, System.currentTimeMillis() + wait)
+				pacer.isPaced = true
+			}
+		}
+	}
+
+	private suspend fun check(track: MangaTracking, semaphore: Semaphore): MangaUpdates = semaphore.withPermit {
+		runCatchingCancellable {
+			checkNewChaptersUseCase.invoke(track)
+		}.getOrElse { error ->
+			MangaUpdates.Failure(
+				manga = track.manga,
+				error = error,
+			)
+		}
+	}
+
+	/** How long the source asked to wait, or null if this failure is not rate limiting. */
+	private fun MangaUpdates.Failure.rateLimitDelay(): Long? {
+		val e = error as? TooManyRequestExceptions ?: return null
+		return e.getRetryDelay().takeIf { it >= 0L } ?: DEFAULT_RETRY_DELAY_MS
+	}
+
+	/** Rate-limit state of one source during a run. */
+	private class SourcePacer {
+
+		val mutex = Mutex()
+
+		@Volatile
+		var isPaced = false
+
+		@Volatile
+		var nextRequestAt = 0L
+
+		var totalWaitMs = 0L
 	}
 
 	override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -497,6 +564,11 @@ class TrackWorker @AssistedInject constructor(
 		const val KEY_SOURCE = "source"
 		const val KEY_REQUESTED_AT = "requested_at"
 		const val MAX_RECHECK_DEFERRALS = 15
+		const val MAX_SHORT_RETRY_DELAY_MS = 60_000L
+		const val DEFAULT_RETRY_DELAY_MS = 15_000L
+		const val PACED_INTERVAL_MS = 3_000L
+		const val MAX_RATE_LIMIT_RETRIES = 3
+		const val MAX_RATE_LIMIT_WAIT_MS = 5 * 60_000L
 		const val RECHECK_DEFER_SECONDS = 60L
 		val MANUAL_RUN_EXPIRY_MS = TimeUnit.MINUTES.toMillis(30)
 		val WORKER_NOTIFICATION_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(10)
