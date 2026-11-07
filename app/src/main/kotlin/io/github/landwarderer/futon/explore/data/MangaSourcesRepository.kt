@@ -146,10 +146,7 @@ class MangaSourcesRepository @Inject constructor(
 		result.addAll(lnPluginManager.getInstalledSources())
 		result.addAll(mihonExtensionManager.getMihonMangaSources())
 		val enabled = dao.findAllEnabledNames()
-		for (name in enabled) {
-			val source = name.toMangaSourceOrNull() ?: continue
-			result.remove(source)
-		}
+		result.removeAll { it.name in enabled }
 		return result
 	}
 
@@ -515,15 +512,12 @@ class MangaSourcesRepository @Inject constructor(
 	}
 
 	private suspend fun getNewSources(): MutableSet<out MangaSource> {
-		val entities = dao.findAll()
+		val entityNames = dao.findAll().mapTo(HashSet()) { it.source }
 		val result = HashSet<MangaSource>()
-        result.addAll(MangaParserSource.entries)
-        result.addAll(io.github.landwarderer.futon.novel.data.source.NovelParserSource.entries)
-        result.addAll(lnPluginManager.getInstalledSources())
-        result.addAll(mihonExtensionManager.getMihonMangaSources())
-		for (e in entities) {
-			result.remove(e.toMangaSource() ?: continue)
-		}
+		MangaParserSource.entries.filterTo(result) { it.name !in entityNames }
+		NovelParserSource.entries.filterTo(result) { it.name !in entityNames }
+		lnPluginManager.getInstalledSources().filterTo(result) { it.name !in entityNames }
+		mihonExtensionManager.getMihonMangaSources().filterTo(result) { it.name !in entityNames }
 		return result
 	}
 
@@ -603,7 +597,7 @@ class MangaSourcesRepository @Inject constructor(
 			if (source.isBroken) {
 				continue
 			}
-			if (source is MangaParserSource || source is MihonMangaSource || source is NovelParserSource || source is LnPluginSource) {
+			if (source is MangaParserSource || source is MihonMangaSource || source is NovelParserSource || source is LnPluginSource || (source is AnonymousMangaSource && LnPluginSource.isLnReaderSource(source.name))) {
 				result.add(
 					MangaSourceInfo(
 						mangaSource = source,

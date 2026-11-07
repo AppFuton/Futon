@@ -34,6 +34,12 @@ class NovelPluginsAdapter(
         holder.bind(getItem(position))
     }
 
+    override fun onViewRecycled(holder: ViewHolder) {
+        super.onViewRecycled(holder)
+        holder.binding.imageViewIcon.disposeImage()
+        holder.binding.progressBar.isVisible = false
+    }
+
     inner class ViewHolder(
         private val binding: ItemNovelPluginBinding,
     ) : RecyclerView.ViewHolder(binding.root) {

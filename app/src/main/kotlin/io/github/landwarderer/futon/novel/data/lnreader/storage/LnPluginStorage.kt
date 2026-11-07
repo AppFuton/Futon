@@ -58,8 +58,12 @@ class LnPluginStorage @Inject constructor(
 	}
 
 	suspend fun getInstalledPlugins(): List<LnPlugin> = withContext(Dispatchers.IO) {
-		val dirs = baseDir.listFiles { f -> f.isDirectory } ?: return@withContext emptyList()
-		dirs.mapNotNull { dir ->
+		getInstalledPluginsSync()
+	}
+
+	fun getInstalledPluginsSync(): List<LnPlugin> {
+		val dirs = baseDir.listFiles { f -> f.isDirectory } ?: return emptyList()
+		return dirs.mapNotNull { dir ->
 			val metaFile = File(dir, "meta.json")
 			val scriptFile = File(dir, "index.js")
 			if (!metaFile.exists() || !scriptFile.exists()) return@mapNotNull null
@@ -68,6 +72,17 @@ class LnPluginStorage @Inject constructor(
 				LnPlugin.fromJson(json, isInstalled = true)
 			}.getOrNull()
 		}
+	}
+
+	fun getPlugin(pluginId: String): LnPlugin? {
+		val dir = getPluginDir(pluginId)
+		val metaFile = File(dir, "meta.json")
+		val scriptFile = File(dir, "index.js")
+		if (!metaFile.exists() || !scriptFile.exists()) return null
+		return runCatching {
+			val json = JSONObject(metaFile.readText(Charsets.UTF_8))
+			LnPlugin.fromJson(json, isInstalled = true)
+		}.getOrNull()
 	}
 }
 

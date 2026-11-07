@@ -13,6 +13,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import java.io.IOException
+import eu.kanade.tachiyomi.network.awaitSuccess
 import io.github.landwarderer.futon.core.network.BaseHttpClient
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnPlugin
@@ -30,7 +31,9 @@ class LnPluginManager @Inject constructor(
 	val storage: LnPluginStorage,
 ) {
 	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-	private val _installedPlugins = MutableStateFlow<List<LnPlugin>>(emptyList())
+	private val _installedPlugins = MutableStateFlow<List<LnPlugin>>(
+		runCatching { storage.getInstalledPluginsSync() }.getOrDefault(emptyList()),
+	)
 	val installedPlugins: StateFlow<List<LnPlugin>> = _installedPlugins.asStateFlow()
 
 	init {
@@ -60,9 +63,8 @@ class LnPluginManager @Inject constructor(
 			val request = Request.Builder().url(repoUrl).build()
 			val installedMap = storage.getInstalledPlugins().associateBy { it.id }
 
-			val responseBody = httpClient.newCall(request).execute().use { response ->
-				if (!response.isSuccessful) throw IOException("HTTP ${response.code} fetching plugins: $repoUrl")
-				response.body?.string().orEmpty()
+			val responseBody = httpClient.newCall(request).awaitSuccess().use { response ->
+				response.body.string()
 			}
 
 			val jsonArray = JSONArray(responseBody)
@@ -91,9 +93,8 @@ class LnPluginManager @Inject constructor(
 	suspend fun installPlugin(plugin: LnPlugin): Boolean = withContext(Dispatchers.IO) {
 		try {
 			val request = Request.Builder().url(plugin.url).build()
-			val script = httpClient.newCall(request).execute().use { response ->
-				if (!response.isSuccessful) throw IOException("Failed to download plugin from ${plugin.url}")
-				response.body?.string() ?: throw IOException("Empty response body")
+			val script = httpClient.newCall(request).awaitSuccess().use { response ->
+				response.body.string()
 			}
 			storage.savePlugin(plugin, script)
 			refreshInstalledPlugins()
@@ -119,13 +120,18 @@ class LnPluginManager @Inject constructor(
 	}
 
 	fun getInstalledSources(): List<LnPluginSource> {
-		return installedPlugins.value.map { LnPluginSource(it) }
+		val list = installedPlugins.value.ifEmpty {
+			storage.getInstalledPluginsSync()
+		}
+		return list.map { LnPluginSource(it) }
 	}
 
 	fun getPluginSource(sourceName: String): LnPluginSource? {
 		if (!LnPluginSource.isLnReaderSource(sourceName)) return null
 		val pluginId = LnPluginSource.extractPluginId(sourceName)
-		val plugin = installedPlugins.value.find { it.id == pluginId } ?: return null
+		val plugin = installedPlugins.value.find { it.id == pluginId }
+			?: storage.getPlugin(pluginId)
+			?: return null
 		return LnPluginSource(plugin)
 	}
 

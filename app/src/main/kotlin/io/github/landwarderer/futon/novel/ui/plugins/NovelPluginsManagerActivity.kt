@@ -80,6 +80,13 @@ class NovelPluginsManagerActivity : BaseActivity<ActivityNovelPluginsManagerBind
         addMenuProvider(PluginSearchMenuProvider())
     }
 
+    override fun onDestroy() {
+        viewBinding.swipeRefresh.isRefreshing = false
+        viewBinding.loadingState.root.isVisible = false
+        viewBinding.recyclerView.adapter = null
+        super.onDestroy()
+    }
+
     override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
         val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
         viewBinding.appbar.updatePadding(

@@ -23,6 +23,14 @@ data class LnPluginSource(
 	val contentType: ContentType
 		get() = ContentType.NOVEL
 
+	override fun equals(other: Any?): Boolean {
+		if (this === other) return true
+		if (other !is MangaSource) return false
+		return name == other.name
+	}
+
+	override fun hashCode(): Int = name.hashCode()
+
 	companion object {
 		const val PREFIX = "lnreader:"
 

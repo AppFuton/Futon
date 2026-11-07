@@ -7,6 +7,8 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import io.github.landwarderer.futon.core.model.MangaSource
+import io.github.landwarderer.futon.core.model.isNovelSource
 
 class LnPluginModelTest {
 
@@ -61,6 +63,51 @@ class LnPluginModelTest {
 		assertNull(plugin.customCssUrl)
 		assertFalse(plugin.isInstalled)
 		assertFalse(plugin.hasUpdate)
+	}
+
+	@Test
+	fun testLnPluginSourceIsNovelSource() {
+		val plugin = LnPlugin(
+			id = "allnovel",
+			name = "AllNovel",
+			site = "https://allnovel.net",
+			lang = "en",
+			version = "2.3.6",
+			url = "https://raw.githubusercontent.com/test/allnovel.js",
+			iconUrl = "https://raw.githubusercontent.com/test/allnovel.png",
+		)
+		val source = LnPluginSource(plugin)
+
+		assertEquals("lnreader:allnovel", source.name)
+		assertEquals("AllNovel", source.title)
+		assertTrue(source.isNovelSource)
+	}
+
+	@Test
+	fun testLnPluginSourceEquality() {
+		val plugin1 = LnPlugin(
+			id = "allnovel",
+			name = "AllNovel",
+			site = "https://allnovel.net",
+			lang = "en",
+			version = "2.3.6",
+			url = "https://raw.githubusercontent.com/test/allnovel.js",
+			iconUrl = "https://raw.githubusercontent.com/test/allnovel.png",
+			isInstalled = false,
+		)
+		val plugin2 = plugin1.copy(isInstalled = true, hasUpdate = true)
+
+		val source1 = LnPluginSource(plugin1)
+		val source2 = LnPluginSource(plugin2)
+
+		assertEquals(source1, source2)
+		assertEquals(source1.hashCode(), source2.hashCode())
+	}
+
+	@Test
+	fun testAnonymousLnReaderSourceIsNovelSource() {
+		val source = MangaSource("lnreader:allnovelfull", "AllNovelFull")
+		assertTrue(source.isNovelSource)
 	}
 }
 
