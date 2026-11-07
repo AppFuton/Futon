@@ -91,6 +91,29 @@ class AppBackupAgentTest {
 	}
 
 	@Test
+	fun restoreReplacesEnabledSources() = runTest {
+		val dao = database.getSourcesDao()
+		dao.setEnabled("MANGADEX", true)
+		dao.setEnabled("MANGAPARK", true)
+
+		val agent = AppBackupAgent()
+		val backup = agent.createBackupFile(
+			context = InstrumentationRegistry.getInstrumentation().targetContext,
+			repository = backupRepository,
+		)
+
+		// as after a fresh install, where other sources are enabled by default
+		dao.setEnabled("MANGADEX", false)
+		dao.setEnabled("NHENTAI", true)
+
+		backup.inputStream().use {
+			agent.restoreBackupFile(it.fd, backup.length(), backupRepository)
+		}
+
+		assertEquals(setOf("MANGADEX", "MANGAPARK"), dao.findAllEnabledNames().toSet())
+	}
+
+	@Test
 	fun restoreOldBackup() {
 		val agent = AppBackupAgent()
 		val backup = File.createTempFile("backup_", ".tmp")

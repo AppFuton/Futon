@@ -198,9 +198,13 @@ class AppSettings internal constructor(
 		get() = prefs.getBoolean(KEY_READER_DOUBLE_FOLDABLE, false)
 		set(value) = prefs.edit { putBoolean(KEY_READER_DOUBLE_FOLDABLE, value) }
 
+	var isReaderDoubleCoverPage: Boolean
+		get() = prefs.getBoolean(KEY_READER_DOUBLE_COVER_PAGE, false)
+		set(value) = prefs.edit { putBoolean(KEY_READER_DOUBLE_COVER_PAGE, value) }
+
 	@get:FloatRange(0.0, 1.0)
 	var readerDoublePagesSensitivity: Float
-		get() = prefs.getFloat(KEY_READER_DOUBLE_PAGES_SENSITIVITY, 0.5f)
+		get() = getFloatCompat(KEY_READER_DOUBLE_PAGES_SENSITIVITY, 0.5f)
 		set(@FloatRange(0.0, 1.0) value) = prefs.edit { putFloat(KEY_READER_DOUBLE_PAGES_SENSITIVITY, value) }
 
 	val readerScreenOrientation: Int
@@ -224,6 +228,18 @@ class AppSettings internal constructor(
 
 	val isReaderOptimizationEnabled: Boolean
 		get() = prefs.getBoolean(KEY_READER_OPTIMIZE, false)
+
+	val isEInkFlashEnabled: Boolean
+		get() = prefs.getBoolean(KEY_EINK_FLASH, false)
+
+	val eInkFlashDuration: Int
+		get() = prefs.getInt(KEY_EINK_FLASH_DURATION, 300).coerceIn(100, 1000)
+
+	val eInkFlashEvery: Int
+		get() = prefs.getInt(KEY_EINK_FLASH_EVERY, 1).coerceAtLeast(1)
+
+	val eInkFlashColor: EInkFlashColor
+		get() = prefs.getEnumValue(KEY_EINK_FLASH_COLOR, EInkFlashColor.WHITE)
 
 	val readerControls: Set<ReaderControl>
 		get() = prefs.getStringSet(KEY_READER_CONTROLS, null)?.mapNotNullTo(EnumSet.noneOf(ReaderControl::class.java)) {
@@ -254,6 +270,17 @@ class AppSettings internal constructor(
 
 	val trackerDownloadStrategy: TrackerDownloadStrategy
 		get() = prefs.getEnumValue(KEY_TRACKER_DOWNLOAD, TrackerDownloadStrategy.DISABLED)
+
+	val isTrackerCaptchaRecheckEnabled: Boolean
+		get() = prefs.getBoolean(KEY_TRACKER_CAPTCHA_RECHECK, true)
+
+	var isTrackerUnstuckMigrationDone: Boolean
+		get() = prefs.getBoolean(KEY_TRACKER_UNSTUCK_MIGRATION, false)
+		set(value) = prefs.edit { putBoolean(KEY_TRACKER_UNSTUCK_MIGRATION, value) }
+
+	var isTrackerProgressRefreshDone: Boolean
+		get() = prefs.getBoolean(KEY_TRACKER_PROGRESS_REFRESH, false)
+		set(value) = prefs.edit { putBoolean(KEY_TRACKER_PROGRESS_REFRESH, value) }
 
 	var notificationSound: Uri
 		get() = prefs.getString(KEY_NOTIFICATIONS_SOUND, null)?.toUriOrNull()
@@ -348,6 +375,14 @@ class AppSettings internal constructor(
 	val isDynamicShortcutsEnabled: Boolean
 		get() = prefs.getBoolean(KEY_SHORTCUTS, true)
 
+	/**
+	 * Keep adult manga out of the launcher's long-press shortcuts.
+	 *
+	 * Defaults to `true`: the home screen is visible to anyone holding the phone.
+	 */
+	val isShortcutsNsfwDisabled: Boolean
+		get() = prefs.getBoolean(KEY_SHORTCUTS_NO_NSFW, true)
+
 	val isUnstableUpdatesAllowed: Boolean
 		get() = prefs.getBoolean(KEY_UPDATES_UNSTABLE, false)
 
@@ -404,6 +439,11 @@ class AppSettings internal constructor(
 		get() = prefs.getBoolean(KEY_SOURCES_ENABLED_ALL, false)
 		set(value) = prefs.edit { putBoolean(KEY_SOURCES_ENABLED_ALL, value) }
 
+	/** Id of the active source preset, or 0 when the regular enabled sources are used. */
+	var activeSourcePresetId: Long
+		get() = getLongCompat(KEY_ACTIVE_SOURCE_PRESET, 0L)
+		set(value) = prefs.edit { putLong(KEY_ACTIVE_SOURCE_PRESET, value) }
+
 	val isPagesNumbersEnabled: Boolean
 		get() = prefs.getBoolean(KEY_PAGES_NUMBERS, false)
 
@@ -412,6 +452,9 @@ class AppSettings internal constructor(
 
 	val isAdBlockEnabled: Boolean
 		get() = prefs.getBoolean(KEY_ADBLOCK, false)
+
+	val isCaptchaAutoSolveEnabled: Boolean
+		get() = prefs.getBoolean(KEY_CAPTCHA_AUTO_SOLVE, false)
 
 	var userSpecifiedMangaDirectories: Set<File>
 		get() {
@@ -506,8 +549,8 @@ class AppSettings internal constructor(
 	var readerColorFilter: ReaderColorFilter?
 		get() = runCatching {
 			ReaderColorFilter(
-				brightness = prefs.getFloat(KEY_CF_BRIGHTNESS, ReaderColorFilter.EMPTY.brightness),
-				contrast = prefs.getFloat(KEY_CF_CONTRAST, ReaderColorFilter.EMPTY.contrast),
+				brightness = getFloatCompat(KEY_CF_BRIGHTNESS, ReaderColorFilter.EMPTY.brightness),
+				contrast = getFloatCompat(KEY_CF_CONTRAST, ReaderColorFilter.EMPTY.contrast),
 				isInverted = prefs.getBoolean(KEY_CF_INVERTED, ReaderColorFilter.EMPTY.isInverted),
 				isGrayscale = prefs.getBoolean(KEY_CF_GRAYSCALE, ReaderColorFilter.EMPTY.isGrayscale),
 				isBookBackground = prefs.getBoolean(KEY_CF_BOOK, ReaderColorFilter.EMPTY.isBookBackground),
@@ -594,7 +637,7 @@ class AppSettings internal constructor(
 
 	@get:FloatRange(from = 0.0, to = 1.0)
 	var readerAutoscrollSpeed: Float
-		get() = prefs.getFloat(KEY_READER_AUTOSCROLL_SPEED, 0f)
+		get() = getFloatCompat(KEY_READER_AUTOSCROLL_SPEED, 0f)
 		set(@FloatRange(from = 0.0, to = 1.0) value) = prefs.edit {
 			putFloat(
 				KEY_READER_AUTOSCROLL_SPEED,
@@ -786,7 +829,7 @@ class AppSettings internal constructor(
         if (!isMerge) {
             clear()
         }
-		putAll(m)
+		putAll(normalizeImportedPreferences(m))
 	}
 
 	private fun isBackgroundNetworkRestricted(): Boolean {
@@ -794,6 +837,54 @@ class AppSettings internal constructor(
 			connectivityManager.restrictBackgroundStatus == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED
 		} else {
 			false
+		}
+	}
+
+	// Long preferences restored from a JSON backup come back as Integer (or String)
+	private fun getLongCompat(key: String, defaultValue: Long): Long = try {
+		prefs.getLong(key, defaultValue)
+	} catch (_: ClassCastException) {
+		val fixedValue = when (val rawValue = prefs.all[key]) {
+			is Number -> rawValue.toLong()
+			is String -> rawValue.toLongOrNull()
+			else -> null
+		}
+		if (fixedValue == null) {
+			prefs.edit { remove(key) }
+			defaultValue
+		} else {
+			prefs.edit { putLong(key, fixedValue) }
+			fixedValue
+		}
+	}
+
+	private fun normalizeImportedPreferences(values: Map<String, *>): Map<String, *> {
+		val fixedValue = when (val rawValue = values[KEY_ACTIVE_SOURCE_PRESET] ?: return values) {
+			is Long -> return values
+			is Number -> rawValue.toLong()
+			is String -> rawValue.toLongOrNull() ?: return values
+			else -> return values
+		}
+		return HashMap(values).apply {
+			put(KEY_ACTIVE_SOURCE_PRESET, fixedValue)
+		}
+	}
+
+	// Float preferences restored from a JSON backup may come back as another type
+	private fun getFloatCompat(key: String, defaultValue: Float): Float = try {
+		prefs.getFloat(key, defaultValue)
+	} catch (_: ClassCastException) {
+		val fixedValue = when (val rawValue = prefs.all[key]) {
+			is Number -> rawValue.toFloat()
+			is String -> rawValue.toFloatOrNull()
+			else -> null
+		}
+		if (fixedValue == null || !fixedValue.isFinite()) {
+			prefs.edit { remove(key) }
+			defaultValue
+		} else {
+			prefs.edit { putFloat(key, fixedValue) }
+			fixedValue
 		}
 	}
 
@@ -806,6 +897,7 @@ class AppSettings internal constructor(
 		const val TRACK_FAVOURITES = "favourites"
 
 		const val KEY_ADBLOCK = "adblock"
+		const val KEY_CAPTCHA_AUTO_SOLVE = "captcha_auto_solve"
 		const val KEY_LIST_MODE = "list_mode_2"
 		const val KEY_LIST_MODE_HISTORY = "list_mode_history"
 		const val KEY_LIST_MODE_FAVORITES = "list_mode_favorites"
@@ -831,6 +923,7 @@ class AppSettings internal constructor(
 		const val KEY_READER_DOUBLE_PAGES = "reader_double_pages"
 		const val KEY_READER_DOUBLE_PAGES_SENSITIVITY = "reader_double_pages_sensitivity_2"
 		const val KEY_READER_DOUBLE_FOLDABLE = "reader_double_foldable"
+		const val KEY_READER_DOUBLE_COVER_PAGE = "reader_double_cover_page"
 		const val KEY_READER_ZOOM_BUTTONS = "reader_zoom_buttons"
 		const val KEY_READER_CONTROL_LTR = "reader_taps_ltr"
 		const val KEY_READER_NAVIGATION_INVERTED = "reader_navigation_inverted"
@@ -846,6 +939,9 @@ class AppSettings internal constructor(
 		const val KEY_TRACKER_NOTIFICATIONS = "tracker_notifications"
 		const val KEY_TRACKER_NO_NSFW = "tracker_no_nsfw"
 		const val KEY_TRACKER_DOWNLOAD = "tracker_download"
+		const val KEY_TRACKER_CAPTCHA_RECHECK = "tracker_captcha_recheck"
+		const val KEY_TRACKER_UNSTUCK_MIGRATION = "tracker_unstuck_migration"
+		const val KEY_TRACKER_PROGRESS_REFRESH = "tracker_progress_refresh"
 		const val KEY_NOTIFICATIONS_SETTINGS = "notifications_settings"
 		const val KEY_NOTIFICATIONS_SOUND = "notifications_sound"
 		const val KEY_NOTIFICATIONS_VIBRATE = "notifications_vibrate"
@@ -909,8 +1005,13 @@ class AppSettings internal constructor(
 		const val KEY_READER_BACKGROUND = "reader_background"
 		const val KEY_READER_SCREEN_ON = "reader_screen_on"
 		const val KEY_SHORTCUTS = "dynamic_shortcuts"
+		const val KEY_SHORTCUTS_NO_NSFW = "shortcuts_no_nsfw"
 		const val KEY_READER_TAP_ACTIONS = "reader_tap_actions"
 		const val KEY_READER_OPTIMIZE = "reader_optimize"
+		const val KEY_EINK_FLASH = "eink_flash"
+		const val KEY_EINK_FLASH_DURATION = "eink_flash_duration"
+		const val KEY_EINK_FLASH_EVERY = "eink_flash_every"
+		const val KEY_EINK_FLASH_COLOR = "eink_flash_color"
 		const val KEY_LOCAL_LIST_ORDER = "local_order"
 		const val KEY_HISTORY_ORDER = "history_order"
 		const val KEY_FAVORITES_ORDER = "fav_order"
@@ -969,6 +1070,7 @@ class AppSettings internal constructor(
 		const val KEY_MODE_SWITCHER_SPOTLIGHT_SHOWN = "mode_switcher_spotlight_shown"
 		const val KEY_ABOUT_ONBOARDING = "about_onboarding"
 		const val KEY_SOURCES_ENABLED_ALL = "sources_enabled_all"
+		const val KEY_ACTIVE_SOURCE_PRESET = "active_source_preset"
 		const val KEY_QUICK_FILTER = "quick_filter"
 		const val KEY_COLLAPSE_DESCRIPTION = "description_collapse"
 		const val KEY_BACKUP_TG_ENABLED = "backup_periodic_tg_enabled"

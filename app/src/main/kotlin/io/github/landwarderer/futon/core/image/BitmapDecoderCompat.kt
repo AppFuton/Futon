@@ -7,6 +7,9 @@ import android.graphics.ImageDecoder
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.createBitmap
+import com.awxkee.jxlcoder.JxlCoder
+import com.awxkee.jxlcoder.PreferredColorConfig
+import com.awxkee.jxlcoder.ScaleMode
 import com.davemorrissey.labs.subscaleview.decoder.ImageDecodeException
 import io.github.landwarderer.futon.core.util.MimeTypes
 import io.github.landwarderer.futon.core.util.ext.MimeType
@@ -15,6 +18,9 @@ import io.github.landwarderer.futon.core.util.ext.readByteBuffer
 import io.github.landwarderer.futon.core.util.ext.toByteBuffer
 import io.github.landwarderer.futon.core.util.ext.toMimeTypeOrNull
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import okio.BufferedSource
+import okio.ByteString
+import okio.ByteString.Companion.toByteString
 import okio.IOException
 import okio.buffer
 import okio.source
@@ -28,14 +34,31 @@ import java.nio.ByteBuffer
 object BitmapDecoderCompat {
 
 	private const val FORMAT_AVIF = "avif"
+	private const val FORMAT_JXL = "jxl"
+
+	/** A bare JPEG XL codestream. */
+	private val JXL_CODESTREAM = byteArrayOf(0xFF.toByte(), 0x0A).toByteString()
+
+	/** The signature box that opens a JPEG XL in its ISOBMFF container. */
+	private val JXL_CONTAINER = byteArrayOf(
+		0x00, 0x00, 0x00, 0x0C, 0x4A, 0x58, 0x4C, 0x20, 0x0D, 0x0A, 0x87.toByte(), 0x0A,
+	).toByteString()
+
+	private const val JXL_HEADER_SIZE = 12
 
 	@Blocking
-	fun decode(file: File): Bitmap = when (val format = probeMimeType(file)?.subtype) {
-		FORMAT_AVIF -> file.source().buffer().use { decodeAvif(it.readByteBuffer()) }
-		else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-			ImageDecoder.decodeBitmap(ImageDecoder.createSource(file))
-		} else {
-			checkBitmapNotNull(BitmapFactory.decodeFile(file.absolutePath), format)
+	fun decode(file: File): Bitmap {
+		// By content, not name: sites serve JPEG XL under .jpg URLs to browsers that accept it
+		if (isJxl(file)) {
+			return decodeJxl(file.readBytes())
+		}
+		return when (val format = probeMimeType(file)?.subtype) {
+			FORMAT_AVIF -> file.source().buffer().use { decodeAvif(it.readByteBuffer()) }
+			else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+				ImageDecoder.decodeBitmap(ImageDecoder.createSource(file))
+			} else {
+				checkBitmapNotNull(BitmapFactory.decodeFile(file.absolutePath), format)
+			}
 		}
 	}
 
@@ -45,17 +68,53 @@ object BitmapDecoderCompat {
 		if (format == FORMAT_AVIF) {
 			return decodeAvif(stream.toByteBuffer())
 		}
+		if (format == FORMAT_JXL) {
+			return decodeJxl(stream.readBytes(), isMutable)
+		}
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+			val input = if (stream.markSupported()) stream else stream.buffered()
+			input.mark(JXL_HEADER_SIZE)
+			val header = ByteArray(JXL_HEADER_SIZE)
+			val headerSize = input.readNBytesCompat(header)
+			input.reset()
+			if (isJxl(header.toByteString(0, headerSize))) {
+				return decodeJxl(input.readBytes(), isMutable)
+			}
 			val opts = BitmapFactory.Options()
 			opts.inMutable = isMutable
-			return checkBitmapNotNull(BitmapFactory.decodeStream(stream, null, opts), format)
+			return checkBitmapNotNull(BitmapFactory.decodeStream(input, null, opts), format)
 		}
 		val byteBuffer = stream.toByteBuffer()
-		return if (AvifDecoder.isAvifImage(byteBuffer)) {
-			decodeAvif(byteBuffer)
-		} else {
-			ImageDecoder.decodeBitmap(ImageDecoder.createSource(byteBuffer), DecoderConfigListener(isMutable))
+		return when {
+			AvifDecoder.isAvifImage(byteBuffer) -> decodeAvif(byteBuffer)
+			isJxl(byteBuffer) -> decodeJxl(ByteArray(byteBuffer.remaining()).also { byteBuffer.duplicate().get(it) }, isMutable)
+			else -> ImageDecoder.decodeBitmap(ImageDecoder.createSource(byteBuffer), DecoderConfigListener(isMutable))
 		}
+	}
+
+	/** Checks the signature without consuming it, which is what Coil's decoder factories need. */
+	fun isJxl(source: BufferedSource): Boolean =
+		source.rangeEquals(0, JXL_CONTAINER) || source.rangeEquals(0, JXL_CODESTREAM)
+
+	@Blocking
+	fun isJxl(file: File): Boolean = runCatchingCancellable {
+		file.source().buffer().use { isJxl(it) }
+	}.getOrDefault(false)
+
+	/**
+	 * Free memory to ask for before decoding [file].
+	 *
+	 * Twice the file size is the rule for the formats this was written for. A JPEG XL is often a tenth
+	 * of the PNG it decodes to, so for one that guess is read from the header instead.
+	 */
+	@Blocking
+	fun estimateDecodedSize(file: File): Long {
+		val guess = file.length() * 2
+		if (!isJxl(file) || !JxlSupport.isAvailable) {
+			return guess
+		}
+		val size = runCatchingCancellable { JxlCoder.getSize(file.readBytes()) }.getOrNull() ?: return guess
+		return maxOf(guess, size.width.toLong() * size.height * 4)
 	}
 
 	@Blocking
@@ -67,12 +126,15 @@ object BitmapDecoderCompat {
 			BitmapRegionDecoder.newInstance(inoutStream, false)
 		}
 	} catch (e: IOException) {
-		e.printStackTraceDebug("DecoderConfigListener::createRegionDecoder")
+		e.printStackTraceDebug()
 		null
 	}
 
 	@Blocking
 	fun probeMimeType(file: File): MimeType? {
+		if (isJxl(file)) {
+			return MimeTypes.JXL
+		}
 		return MimeTypes.probeMimeType(file) ?: detectBitmapType(file)
 	}
 
@@ -104,6 +166,40 @@ object BitmapDecoderCompat {
 			throw ImageDecodeException(null, FORMAT_AVIF)
 		}
 		return bitmap
+	}
+
+	private fun decodeJxl(bytes: ByteArray, isMutable: Boolean = false): Bitmap {
+		if (!JxlSupport.isAvailable) {
+			throw ImageDecodeException(null, FORMAT_JXL, "JPEG XL is not supported on this device")
+		}
+		// 8-bit RGBA whatever the source depth: a HARDWARE or F16 bitmap cannot be re-encoded to PNG
+		// by the reader's conversion fallback the same way
+		val bitmap = JxlCoder.decode(bytes, PreferredColorConfig.RGBA_8888, ScaleMode.FIT)
+		if (!isMutable || bitmap.isMutable) {
+			return bitmap
+		}
+		return bitmap.copy(Bitmap.Config.ARGB_8888, true).also { bitmap.recycle() }
+	}
+
+	private fun isJxl(header: ByteString): Boolean =
+		header.startsWith(JXL_CONTAINER) || header.startsWith(JXL_CODESTREAM)
+
+	private fun isJxl(buffer: ByteBuffer): Boolean {
+		val size = minOf(buffer.remaining(), JXL_HEADER_SIZE)
+		val header = ByteArray(size).also { buffer.duplicate().get(it) }
+		return isJxl(header.toByteString())
+	}
+
+	private fun InputStream.readNBytesCompat(buffer: ByteArray): Int {
+		var total = 0
+		while (total < buffer.size) {
+			val read = read(buffer, total, buffer.size - total)
+			if (read < 0) {
+				break
+			}
+			total += read
+		}
+		return total
 	}
 
 	@RequiresApi(Build.VERSION_CODES.P)

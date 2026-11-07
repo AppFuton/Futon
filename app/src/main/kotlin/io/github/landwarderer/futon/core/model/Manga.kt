@@ -125,6 +125,23 @@ fun Manga.getPreferredBranch(history: MangaHistory?): String? {
 	return groups.maxByOrNull { it.value.size }?.key
 }
 
+/**
+ * Finds [previous], a chapter of an earlier load of this list, again after the source gave it a new id.
+ *
+ * Some sources derive chapter ids from data that changes between two loads of the same chapter: a mirror host
+ * in the chapter link, a scanlation group name, a re-upload. The same chapter is the one with the same link in
+ * the same branch, else the only one with the same volume and number in that branch, else the only one with the
+ * same link. Returns null rather than a guess when that is ambiguous.
+ */
+fun List<MangaChapter>.findSameChapter(previous: MangaChapter): MangaChapter? {
+	firstOrNull { it.url == previous.url && it.branch == previous.branch }?.let { return it }
+	singleOrNull {
+		it.branch == previous.branch && it.volume == previous.volume && it.number == previous.number &&
+			(previous.number > 0f || it.title == previous.title) // 0 often means "no number"
+	}?.let { return it }
+	return singleOrNull { it.url == previous.url }
+}
+
 val Manga.isLocal: Boolean
 	get() = source == LocalMangaSource || source == LocalNovelSource
 

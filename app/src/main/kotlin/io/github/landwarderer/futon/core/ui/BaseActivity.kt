@@ -61,36 +61,46 @@ abstract class BaseActivity<B : ViewBinding> :
 		super.attachBaseContext(newBase)
 	}
 
+	/**
+	 * If true (default), apply the app's color-scheme theme overlay on top of the manifest theme.
+	 * Override to false for activities whose manifest theme must be preserved as-is.
+	 */
+	protected open val applyColorSchemeTheme: Boolean = true
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		val settings = entryPoint.settings
 		isAmoledTheme = settings.isAmoledTheme
-		val importedTheme = settings.selectedCustomTheme.takeIf {
-			settings.colorScheme == ColorScheme.CUSTOM && DynamicColors.isDynamicColorAvailable()
-		}
-		val colorScheme = when {
-			importedTheme == null && settings.colorScheme == ColorScheme.CUSTOM -> ColorScheme.default
-			else -> settings.colorScheme
-		}
-		setTheme(colorScheme.styleResId)
-		if (importedTheme != null) {
-			val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-			setTheme(
-				if (isNightMode) R.style.ThemeOverlay_Futon_Custom_Dark
-				else R.style.ThemeOverlay_Futon_Custom_Light,
-			)
-			DynamicColors.applyToActivityIfAvailable(
-				this,
-				DynamicColorsOptions.Builder()
-					.setContentBasedSource(importedTheme.primaryColor)
-					.build(),
-			)
-		}
-		if (isAmoledTheme) {
-			setTheme(R.style.ThemeOverlay_Futon_Amoled)
+		if (applyColorSchemeTheme) {
+			val importedTheme = settings.selectedCustomTheme.takeIf {
+				settings.colorScheme == ColorScheme.CUSTOM && DynamicColors.isDynamicColorAvailable()
+			}
+			val colorScheme = when {
+				importedTheme == null && settings.colorScheme == ColorScheme.CUSTOM -> ColorScheme.default
+				else -> settings.colorScheme
+			}
+			setTheme(colorScheme.styleResId)
+			if (importedTheme != null) {
+				val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+				setTheme(
+					if (isNightMode) R.style.ThemeOverlay_Futon_Custom_Dark
+					else R.style.ThemeOverlay_Futon_Custom_Light,
+				)
+				DynamicColors.applyToActivityIfAvailable(
+					this,
+					DynamicColorsOptions.Builder()
+						.setContentBasedSource(importedTheme.primaryColor)
+						.build(),
+				)
+			}
+			if (isAmoledTheme) {
+				setTheme(R.style.ThemeOverlay_Futon_Amoled)
+			}
 		}
 		putDataToExtras(intent)
 		exceptionResolver = entryPoint.exceptionResolverFactory.create(this)
-		enableEdgeToEdge()
+		if (applyColorSchemeTheme) {
+			enableEdgeToEdge()
+		}
 		super.onCreate(savedInstanceState)
 	}
 

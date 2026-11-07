@@ -10,7 +10,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.bookmarks.domain.Bookmark
 import io.github.landwarderer.futon.bookmarks.domain.BookmarksRepository
+import io.github.landwarderer.futon.core.exceptions.CloudFlareProtectedException
 import io.github.landwarderer.futon.core.exceptions.EmptyMangaException
+import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaAutoResolveCoordinator
 import io.github.landwarderer.futon.core.model.LocalMangaSource
 import io.github.landwarderer.futon.core.model.MangaHistory
 import io.github.landwarderer.futon.core.model.getPreferredBranch
@@ -25,6 +27,7 @@ import io.github.landwarderer.futon.core.prefs.observeAsFlow
 import io.github.landwarderer.futon.core.prefs.observeAsStateFlow
 import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.core.util.ext.call
+import io.github.landwarderer.futon.core.util.ext.findCloudFlareException
 import io.github.landwarderer.futon.core.util.ext.firstNotNull
 import io.github.landwarderer.futon.core.util.ext.requireValue
 import io.github.landwarderer.futon.details.data.MangaDetails
@@ -68,6 +71,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -83,9 +87,11 @@ import javax.inject.Inject
 
 private const val BOUNDS_PAGE_OFFSET = 2
 private const val PREFETCH_LIMIT = 10
+private const val MAX_DETAILS_VERIFICATION_RETRIES = 2L
 
 @HiltViewModel
 class ReaderViewModel @Inject constructor(
+    private val captchaAutoResolveCoordinator: CaptchaAutoResolveCoordinator,
     private val savedStateHandle: SavedStateHandle,
     private val dataRepository: MangaDataRepository,
     private val historyRepository: HistoryRepository,
@@ -476,7 +482,14 @@ class ReaderViewModel @Inject constructor(
             var deferredDetails: MangaDetails? = null
             var savedPageCount = 0
             try {
+                captchaAutoResolveCoordinator.awaitActiveResolve()
                 detailsLoadUseCase(intent, force = false)
+                    .retryWhen { cause, attempt ->
+                        // Opening the reader is an explicit action: solve the captcha silently and retry.
+                        val cf = cause.findCloudFlareException()
+                        attempt < MAX_DETAILS_VERIFICATION_RETRIES && cf is CloudFlareProtectedException &&
+                            captchaAutoResolveCoordinator.resolveIfEnabled(cf)
+                    }
                     .collect { details ->
                         loadedDetails = details
                         if (mangaDetails.value == null) {

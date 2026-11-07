@@ -33,6 +33,13 @@ class SuggestionRepository @Inject constructor(
 		}
 	}
 
+	/** The stored suggestions, best first, with their tags. */
+	suspend fun getTopList(limit: Int): List<Manga> {
+		return db.getSuggestionDao().getTopManga(limit).map {
+			it.toManga()
+		}
+	}
+
 	suspend fun getRandomList(limit: Int): List<Manga> {
 		return db.getSuggestionDao().getRandom(limit).map {
 			it.toManga()

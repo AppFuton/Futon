@@ -30,7 +30,14 @@ class TrackEntity(
 	@ColumnInfo(name = "last_error") val lastError: String?,
 ) {
 
-	@IntDef(RESULT_NONE, RESULT_HAS_UPDATE, RESULT_NO_UPDATE, RESULT_FAILED, RESULT_EXTERNAL_MODIFICATION)
+	@IntDef(
+		RESULT_NONE,
+		RESULT_HAS_UPDATE,
+		RESULT_NO_UPDATE,
+		RESULT_FAILED,
+		RESULT_EXTERNAL_MODIFICATION,
+		RESULT_CAPTCHA,
+	)
 	@Retention(AnnotationRetention.SOURCE)
 	annotation class TrackerResult
 
@@ -41,6 +48,9 @@ class TrackEntity(
 		const val RESULT_NO_UPDATE = 2
 		const val RESULT_FAILED = 3
 		const val RESULT_EXTERNAL_MODIFICATION = 4
+
+		/** The source asked for a captcha: the track is checked again once the captcha is solved. */
+		const val RESULT_CAPTCHA = 5
 
 		fun create(mangaId: Long) = TrackEntity(
 			mangaId = mangaId,

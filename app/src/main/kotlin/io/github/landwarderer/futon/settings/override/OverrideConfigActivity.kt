@@ -13,6 +13,7 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filterNotNull
 import io.github.landwarderer.futon.R
+import io.github.landwarderer.futon.alternatives.ui.covers.AlternativeCoversActivity
 import io.github.landwarderer.futon.core.ui.BaseActivity
 import io.github.landwarderer.futon.core.ui.model.MangaOverride
 import io.github.landwarderer.futon.core.util.ext.consumeAll
@@ -34,6 +35,11 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), View
 
 	private val pickCoverFileLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument(), this)
 	private val pickPageLauncher = registerForActivityResult(PageImagePickContract(), this)
+	private val pickAlternativeCoverLauncher = registerForActivityResult(AlternativeCoversActivity.Contract()) { cover ->
+		if (cover != null) {
+			viewModel.updateCover(cover.url, cover.source)
+		}
+	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -42,6 +48,7 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), View
 		viewBinding.buttonDone.setOnClickListener(this)
 		viewBinding.buttonPickFile.setOnClickListener(this)
 		viewBinding.buttonPickPage.setOnClickListener(this)
+		viewBinding.buttonPickAlternative.setOnClickListener(this)
 		viewBinding.buttonResetCover.setOnClickListener(this)
 		viewBinding.layoutName.setEndIconOnClickListener(this)
 		viewModel.data.filterNotNull().observe(this, ::onDataChanged)
@@ -93,6 +100,10 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), View
 			R.id.button_pick_page -> {
 				val manga = viewModel.data.value?.first
 				pickPageLauncher.launch(manga)
+			}
+
+			R.id.button_pick_alternative -> {
+				viewModel.data.value?.first?.let(pickAlternativeCoverLauncher::launch)
 			}
 		}
 	}

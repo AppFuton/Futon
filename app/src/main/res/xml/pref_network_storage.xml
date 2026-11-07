@@ -78,4 +78,10 @@
         android:summary="@string/adblock_summary"
         android:title="@string/adblock" />
 
+    <SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:key="captcha_auto_solve"
+        android:summary="@string/captcha_auto_solve_summary"
+        android:title="@string/captcha_auto_solve" />
+
 </PreferenceScreen>

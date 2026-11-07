@@ -67,6 +67,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			updateFilers(it.first, it.second, it.third)
 		}
 		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this))
+		viewModel.activePreset.observe(this) { preset ->
+			supportActionBar?.subtitle = preset?.title
+		}
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
@@ -95,11 +98,19 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	override fun onItemClick(item: SourceCatalogItem.Source, view: View) {
-		router.openList(item.source, null, null, item.source.getTitle(this))
+		if (viewModel.isPresetMode) {
+			viewModel.togglePresetSource(item.source)
+		} else {
+			router.openList(item.source, null, null, item.source.getTitle(this))
+		}
 	}
 
 	override fun onItemLongClick(item: SourceCatalogItem.Source, view: View): Boolean {
-		viewModel.addSource(item.source)
+		if (viewModel.isPresetMode) {
+			viewModel.togglePresetSource(item.source)
+		} else {
+			viewModel.addSource(item.source)
+		}
 		return false
 	}
 

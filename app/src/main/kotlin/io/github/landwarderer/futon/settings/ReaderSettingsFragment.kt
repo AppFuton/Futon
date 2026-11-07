@@ -16,6 +16,7 @@ import io.github.landwarderer.futon.core.model.ZoomMode
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.ChapterCompletionMode
+import io.github.landwarderer.futon.core.prefs.EInkFlashColor
 import io.github.landwarderer.futon.settings.reader.SmartResumeThresholdDialog
 import io.github.landwarderer.futon.settings.utils.HelpSwitchPreference
 import io.github.landwarderer.futon.core.prefs.ReaderAnimation
@@ -23,6 +24,7 @@ import io.github.landwarderer.futon.core.prefs.ReaderBackground
 import io.github.landwarderer.futon.core.prefs.ReaderControl
 import io.github.landwarderer.futon.core.prefs.ReaderMode
 import io.github.landwarderer.futon.core.ui.BasePreferenceFragment
+import io.github.landwarderer.futon.core.util.ext.getQuantityStringSafe
 import io.github.landwarderer.futon.core.util.ext.setDefaultValueCompat
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.names
@@ -71,6 +73,18 @@ class ReaderSettingsFragment :
 			summaryProvider = MultiSummaryProvider(R.string.disabled)
 		}
 		findPreference<SliderPreference>(AppSettings.KEY_WEBTOON_ZOOM_OUT)?.summaryProvider = PercentSummaryProvider()
+		findPreference<SliderPreference>(AppSettings.KEY_EINK_FLASH_DURATION)?.summaryProvider =
+			FlashDurationSummaryProvider
+		findPreference<SliderPreference>(AppSettings.KEY_EINK_FLASH_EVERY)?.summaryProvider =
+			FlashEverySummaryProvider
+		findPreference<ListPreference>(AppSettings.KEY_EINK_FLASH_COLOR)?.run {
+			entries = arrayOf(
+				getString(R.string.color_white),
+				getString(R.string.color_black),
+			)
+			entryValues = EInkFlashColor.entries.names()
+			setDefaultValueCompat(EInkFlashColor.WHITE.name)
+		}
 		updateReaderModeDependency()
         findPreference<EditTextPreference>(AppSettings.KEY_SMART_RESUME_PERCENTAGE)?.summaryProvider =
             Preference.SummaryProvider<EditTextPreference> {
@@ -149,4 +163,19 @@ class ReaderSettingsFragment :
         findPreference<Preference>(AppSettings.KEY_SMART_RESUME_PERCENTAGE)?.isVisible = percentage
         findPreference<Preference>(AppSettings.KEY_SMART_RESUME_PAGES)?.isVisible = !percentage
     }
+
+	private object FlashDurationSummaryProvider : Preference.SummaryProvider<SliderPreference> {
+
+		override fun provideSummary(preference: SliderPreference): CharSequence {
+			return preference.context.getString(R.string.milliseconds_pattern, preference.value)
+		}
+	}
+
+	private object FlashEverySummaryProvider : Preference.SummaryProvider<SliderPreference> {
+
+		override fun provideSummary(preference: SliderPreference): CharSequence {
+			val value = preference.value
+			return preference.context.resources.getQuantityStringSafe(R.plurals.pages, value, value)
+		}
+	}
 }

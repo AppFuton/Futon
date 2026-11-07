@@ -80,7 +80,7 @@ class SuggestionsViewModel @Inject constructor(
 		loadingCounter.decrement()
 	}.catch {
 		emit(listOf(it.toErrorState(canRetry = false)))
-	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState()))
 
 	override fun onRefresh() = Unit
 

@@ -21,6 +21,7 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.exceptions.BadBackupFormatException
 import io.github.landwarderer.futon.core.exceptions.CaughtException
 import io.github.landwarderer.futon.core.exceptions.CloudFlareBlockedException
+import io.github.landwarderer.futon.core.exceptions.CloudFlareException
 import io.github.landwarderer.futon.core.exceptions.CloudFlareProtectedException
 import io.github.landwarderer.futon.core.exceptions.EmptyHistoryException
 import io.github.landwarderer.futon.core.exceptions.EmptyMangaException
@@ -158,6 +159,31 @@ fun Throwable.getDisplayIcon(): Int = when (this) {
     is InteractiveActionRequiredException -> R.drawable.ic_interaction_large
     else -> R.drawable.ic_error_large
 }
+
+/**
+ * Whether this error (or any of its causes) means the manga itself is missing from its source.
+ * Deliberately narrower than [getDisplayMessage]'s 404 mapping, so callers can offer to look for
+ * the title on another source.
+ */
+fun Throwable.isContentNotFound(): Boolean = generateSequence(this) { it.cause?.takeIf { c -> c !== it } }
+    .take(32)
+    .any { e ->
+        when (e) {
+            is NotFoundException,
+            is ContentUnavailableException -> true
+
+            is HttpException -> e.response.code == HttpURLConnection.HTTP_NOT_FOUND
+            is HttpStatusException -> e.statusCode == HttpURLConnection.HTTP_NOT_FOUND
+            is eu.kanade.tachiyomi.network.HttpException -> e.code == HttpURLConnection.HTTP_NOT_FOUND
+            else -> false
+        }
+    }
+
+/** Walks the exception cause chain and returns the first [CloudFlareException] found, or `null`. */
+fun Throwable.findCloudFlareException(): CloudFlareException? =
+	generateSequence(this) { it.cause?.takeIf { c -> c !== it } }
+		.filterIsInstance<CloudFlareException>()
+		.firstOrNull()
 
 fun Throwable.getCauseUrl(): String? = when (this) {
     is ParseException -> url

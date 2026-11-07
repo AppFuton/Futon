@@ -2,6 +2,7 @@ package io.github.landwarderer.futon.search.ui.suggestion
 
 import android.text.TextWatcher
 import android.widget.TextView
+import io.github.landwarderer.futon.core.model.FavouriteCategory
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
@@ -18,4 +19,11 @@ interface SearchSuggestionListener : TextWatcher, TextView.OnEditorActionListene
 	fun onSourceClick(source: MangaSource)
 
 	fun onTagClick(tag: MangaTag)
+
+	fun onScopeChanged(isScoped: Boolean)
+
+	fun onFavouriteCategoryClick(category: FavouriteCategory)
+
+	/** Expands the single "favourites" entry into every list. */
+	fun onFavouritesGroupClick()
 }

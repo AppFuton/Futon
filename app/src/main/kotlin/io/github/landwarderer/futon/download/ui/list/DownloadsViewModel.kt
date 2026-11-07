@@ -80,8 +80,8 @@ class DownloadsViewModel @Inject constructor(
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 
 	val items = works.map {
-		it?.toUiList() ?: listOf(LoadingState)
-	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
+		it?.toUiList() ?: listOf(LoadingState())
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState()))
 
 	val hasPausedWorks = works.map {
 		it?.any { x -> x.canResume } == true

@@ -1,6 +1,7 @@
 package io.github.landwarderer.futon.history.data
 
 import dagger.Reusable
+import io.github.landwarderer.futon.core.db.LibrarySearchQuery
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.db.entity.toManga
 import io.github.landwarderer.futon.core.db.entity.toMangaTags
@@ -21,8 +22,9 @@ class HistoryLocalObserver @Inject constructor(
 	fun observeAll(
 		order: ListSortOrder,
 		filterOptions: Set<ListFilterOption>,
-		limit: Int
-	) = db.getHistoryDao().observeAll(order, filterOptions, limit).mapToLocal()
+		limit: Int,
+		search: LibrarySearchQuery = LibrarySearchQuery.EMPTY,
+	) = db.getHistoryDao().observeAll(order, filterOptions, limit, search).mapToLocal()
 
 	override fun toManga(e: HistoryWithManga) = e.manga.toManga(e.tags.toMangaTags(), null)
 

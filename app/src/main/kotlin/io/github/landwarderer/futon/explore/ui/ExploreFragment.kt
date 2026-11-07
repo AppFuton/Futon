@@ -11,6 +11,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.appcompat.view.ActionMode
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.viewModels
@@ -42,6 +43,7 @@ import io.github.landwarderer.futon.databinding.FragmentExploreBinding
 import io.github.landwarderer.futon.explore.ui.adapter.ExploreAdapter
 import io.github.landwarderer.futon.explore.ui.adapter.ExploreListEventListener
 import io.github.landwarderer.futon.explore.ui.model.MangaSourceItem
+import io.github.landwarderer.futon.explore.ui.preset.SourcePresetListActivity
 import io.github.landwarderer.futon.list.ui.adapter.TypedListSpacingDecoration
 import io.github.landwarderer.futon.list.ui.model.ListHeader
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -83,7 +85,7 @@ class ExploreFragment :
 			addItemDecoration(TypedListSpacingDecoration(context, false))
 			checkNotNull(sourceSelectionController).attachToRecyclerView(this)
 		}
-		addMenuProvider(ExploreMenuProvider(router))
+		addMenuProvider(ExploreMenuProvider(binding.root.context, router))
 		viewModel.content.observe(viewLifecycleOwner, checkNotNull(exploreAdapter))
 		viewModel.onError.observeEvent(viewLifecycleOwner, SnackbarErrorObserver(binding.recyclerView, this))
 		viewModel.onOpenManga.observeEvent(viewLifecycleOwner, ::onOpenManga)
@@ -115,6 +117,9 @@ class ExploreFragment :
 	override fun onListHeaderClick(item: ListHeader, view: View) {
 		if (item.payload == R.id.nav_suggestions) {
 			router.openSuggestions()
+		} else if (viewModel.isPresetActive) {
+			// A preset's sources are picked in the catalog, which switches to preset mode.
+			router.openSourcesCatalog()
 		} else if (viewModel.isAllSourcesEnabled.value) {
 			router.openManageSources()
 		} else {
@@ -129,7 +134,28 @@ class ExploreFragment :
 			R.id.button_more -> router.openSuggestions()
 			R.id.button_downloads -> router.openDownloads()
 			R.id.button_random -> viewModel.openRandom()
+			R.id.button_presets -> startActivity(SourcePresetListActivity.newIntent(v.context))
+			R.id.button_presets_dropdown -> showPresetsPopup(v)
 		}
+	}
+
+	private fun showPresetsPopup(anchor: View) {
+		val presets = viewModel.presets.value
+		val activeId = viewModel.activePresetId
+		val popup = PopupMenu(anchor.context, anchor)
+		popup.menu.add(Menu.NONE, 0, 0, R.string.default_sources).isChecked = presets.none { it.id == activeId }
+		presets.forEachIndexed { index, preset ->
+			popup.menu.add(Menu.NONE, index + 1, index + 1, preset.title).isChecked = preset.id == activeId
+		}
+		popup.menu.setGroupCheckable(Menu.NONE, true, true)
+		popup.setOnMenuItemClickListener { menuItem ->
+			val preset = presets.getOrNull(menuItem.itemId - 1)
+			viewModel.setActivePreset(
+				if (preset == null || preset.id == activeId) 0L else preset.id,
+			)
+			true
+		}
+		popup.show()
 	}
 
 	override fun onItemClick(item: MangaSourceItem, view: View) {
@@ -171,8 +197,8 @@ class ExploreFragment :
 		menu.findItem(R.id.action_shortcut).isVisible = isSingleSelection
 		menu.findItem(R.id.action_pin).isVisible = selectedSources.all { !it.isPinned }
 		menu.findItem(R.id.action_unpin).isVisible = selectedSources.all { it.isPinned }
-		menu.findItem(R.id.action_disable)?.isVisible = !viewModel.isAllSourcesEnabled.value &&
-			selectedSources.all { it.mangaSource is MangaParserSource }
+		menu.findItem(R.id.action_disable)?.isVisible = viewModel.isPresetActive ||
+			(!viewModel.isAllSourcesEnabled.value && selectedSources.all { it.mangaSource is MangaParserSource })
 		menu.findItem(R.id.action_delete)?.isVisible = selectedSources.all { it.mangaSource is ExternalMangaSource }
 		return super.onPrepareActionMode(controller, mode, menu)
 	}

@@ -12,10 +12,12 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.await
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.util.ext.awaitUniqueWorkInfoByName
 import io.github.landwarderer.futon.core.util.ext.awaitWorkInfosByTag
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.download.data.repository.DownloadQueueRepository
@@ -54,7 +56,18 @@ class DownloadSchedulerWorker @AssistedInject constructor(
                 return@runCatchingCancellable Result.success()
             }
 
+            // A manga whose previous queued download has not finished yet (e.g. still waiting for its
+            // network or charging constraints) must wait: its work is unique per manga and enqueued with
+            // KEEP, so a second request would be silently discarded together with its chapters.
+            val busyMangaIds = queue.mapTo(HashSet()) { it.mangaId }.filterTo(HashSet()) { mangaId ->
+                workManager.awaitUniqueWorkInfoByName(uniqueWorkName(mangaId)).any { !it.state.isFinished }
+            }
+            if (busyMangaIds.isNotEmpty()) {
+                Log.d("DownloadScheduler", "Waiting for unfinished downloads of manga $busyMangaIds")
+            }
+
             val nextItem = queue.firstOrNull { 
+                if (it.mangaId in busyMangaIds) return@firstOrNull false
                 if (it.isPaused && !force) return@firstOrNull false
                 if (force) return@firstOrNull true
 
@@ -78,6 +91,10 @@ class DownloadSchedulerWorker @AssistedInject constructor(
 
             if (nextItem == null) {
                 scheduleAlarmCheck()
+                if (queue.any { it.mangaId in busyMangaIds }) {
+                    // after the alarm check, which may replace the pending check with a longer delay
+                    scheduleNextCheck(30, TimeUnit.SECONDS)
+                }
                 return@runCatchingCancellable Result.success()
             }
 
@@ -113,11 +130,12 @@ class DownloadSchedulerWorker @AssistedInject constructor(
 
             Log.d("DownloadScheduler", "Enqueuing download for manga ${nextItem.mangaId}")
             workManager.enqueueUniqueWork(
-                "download_${nextItem.mangaId}",
+                uniqueWorkName(nextItem.mangaId),
                 ExistingWorkPolicy.KEEP,
                 downloadRequest
-            )
+            ).await()
 
+            // Only once the work is safely stored, or the chapters would be lost
             downloadQueueRepository.removeFromQueue(nextItem.id)
 
             // Schedule next check to process the rest of the queue
@@ -219,6 +237,8 @@ class DownloadSchedulerWorker @AssistedInject constructor(
         const val TAG_QUEUED_DOWNLOAD = "queued_download_"
         const val WORK_NAME_SCHEDULER = "download_scheduler_periodic"
         const val KEY_FORCE = "force"
+
+        private fun uniqueWorkName(mangaId: Long) = "download_$mangaId"
 
         fun enqueue(workManager: WorkManager, delay: Long = 0, force: Boolean = false) {
             Log.d("DownloadScheduler", "Enqueuing scheduler with delay: $delay ms, force=$force")
