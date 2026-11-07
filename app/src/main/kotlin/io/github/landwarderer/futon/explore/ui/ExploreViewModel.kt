@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.MangaSourceInfo
+import io.github.landwarderer.futon.core.model.isNovel
 import io.github.landwarderer.futon.core.model.isNovelSource
 import io.github.landwarderer.futon.core.os.AppShortcutManager
 import io.github.landwarderer.futon.core.prefs.AppSettings
