@@ -2,6 +2,7 @@ package io.github.landwarderer.futon.reader.ui.pager
 
 import android.os.Bundle
 import android.view.View
+import androidx.annotation.MainThread
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.activityViewModels
 import androidx.viewbinding.ViewBinding
@@ -59,6 +60,20 @@ abstract class BaseReaderFragment<B : ViewBinding> : BaseFragment<B>(), ZoomCont
 		viewModel.saveCurrentState(getCurrentState())
 		readerAdapter = null
 		super.onDestroyView()
+	}
+
+	/**
+	 * Resolve adapter positions against the adapter's own items, which may lag behind the view model content.
+	 * Must be called on the main thread, while the positions still match the adapter's current list.
+	 */
+	@MainThread
+	protected fun notifyVisiblePagesChanged(lowerPos: Int, upperPos: Int) {
+		val adapter = readerAdapter ?: return
+		val positions = visibleAdapterPositions(lowerPos, upperPos, adapter.itemCount) ?: return
+		viewModel.onCurrentPageChanged(
+			adapter.getItemOrNull(positions.first),
+			adapter.getItemOrNull(positions.last),
+		)
 	}
 
 	protected fun requireAdapter() = checkNotNull(readerAdapter) {

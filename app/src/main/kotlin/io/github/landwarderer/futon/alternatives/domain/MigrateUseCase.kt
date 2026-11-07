@@ -67,6 +67,7 @@ constructor(
 					val newHistory = makeNewHistory(oldDetails, newDetails, oldHistory)
 					historyDao.delete(oldDetails.id)
 					historyDao.upsert(newHistory)
+					database.getStatsDao().move(oldDetails.id, newDetails.id)
 					newHistory
 				} else {
 					null

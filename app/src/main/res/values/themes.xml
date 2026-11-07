@@ -84,6 +84,8 @@
 
 	<!-- Monet theme only support S+ -->
 	<style name="ThemeOverlay.Futon.Monet" parent="ThemeOverlay.Material3.DynamicColors.Light" />
+	<style name="ThemeOverlay.Futon.Custom.Light" parent="ThemeOverlay.Material3.Light" />
+	<style name="ThemeOverlay.Futon.Custom.Dark" parent="ThemeOverlay.Material3.Dark" />
 
 	<!-- Expressive Monet theme -->
 	<style name="ThemeOverlay.Futon.Expressive" parent="ThemeOverlay.Material3Expressive.DynamicColors.DayNight">

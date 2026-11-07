@@ -126,7 +126,7 @@ class WebtoonReaderFragment : BaseReaderFragment<FragmentReaderWebtoonBinding>()
 		firstVisiblePosition: Int,
 		lastVisiblePosition: Int,
 	) {
-		viewModel.onCurrentPageChanged(firstVisiblePosition, lastVisiblePosition)
+		notifyVisiblePagesChanged(firstVisiblePosition, lastVisiblePosition)
 	}
 
 	override suspend fun onPagesChanged(pages: List<ReaderPage>, pendingState: ReaderState?) = coroutineScope {
@@ -150,7 +150,7 @@ class WebtoonReaderFragment : BaseReaderFragment<FragmentReaderWebtoonBinding>()
 							?.restoreScroll(pendingState.scroll)
 					}
 				}
-				viewModel.onCurrentPageChanged(position, position)
+				notifyVisiblePagesChanged(position, position)
 			} else {
 				Snackbar.make(requireView(), R.string.not_found_404, Snackbar.LENGTH_SHORT)
 					.show()
