@@ -14,6 +14,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
@@ -25,6 +26,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.await
+import androidx.work.workDataOf
 import dagger.Lazy
 import dagger.Reusable
 import dagger.assisted.Assisted
@@ -32,40 +34,59 @@ import dagger.assisted.AssistedInject
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.db.MangaDatabase
-import io.github.landwarderer.futon.core.exceptions.CloudFlareException
+import io.github.landwarderer.futon.core.model.MangaSource
 import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaHandler
 import io.github.landwarderer.futon.core.model.ids
 import io.github.landwarderer.futon.core.nav.AppRouter
+import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.TrackerDownloadStrategy
 import io.github.landwarderer.futon.core.prefs.TriStateOption
 import io.github.landwarderer.futon.core.util.ext.awaitUniqueWorkInfoByName
 import io.github.landwarderer.futon.core.util.ext.checkNotificationPermission
+import io.github.landwarderer.futon.core.util.ext.findCloudFlareException
 import io.github.landwarderer.futon.core.util.ext.onEachIndexed
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.trySetForeground
-import io.github.landwarderer.futon.download.ui.worker.DownloadTask
-import io.github.landwarderer.futon.download.ui.worker.DownloadWorker
+import io.github.landwarderer.futon.download.data.repository.DownloadQueueRepository
+import io.github.landwarderer.futon.history.data.HistoryRepository
 import io.github.landwarderer.futon.local.data.LocalMangaRepository
+import io.github.landwarderer.futon.local.domain.EnforceStorageQuotaUseCase
+import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.parsers.util.toIntUp
 import io.github.landwarderer.futon.settings.work.PeriodicWorkScheduler
 import io.github.landwarderer.futon.tracker.domain.CheckNewChaptersUseCase
 import io.github.landwarderer.futon.tracker.domain.GetTracksUseCase
+import io.github.landwarderer.futon.tracker.domain.TrackingRepository
 import io.github.landwarderer.futon.tracker.domain.model.MangaTracking
 import io.github.landwarderer.futon.tracker.domain.model.MangaUpdates
 import io.github.landwarderer.futon.tracker.work.TrackerNotificationHelper.NotificationInfo
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Provider
@@ -81,18 +102,40 @@ class TrackWorker @AssistedInject constructor(
 	private val settings: AppSettings,
 	private val getTracksUseCase: GetTracksUseCase,
 	private val checkNewChaptersUseCase: CheckNewChaptersUseCase,
+	private val trackingRepository: TrackingRepository,
 	private val workManager: WorkManager,
 	private val localRepositoryLazy: Lazy<LocalMangaRepository>,
-	private val downloadSchedulerLazy: Lazy<DownloadWorker.Scheduler>,
+	private val mangaDataRepositoryLazy: Lazy<MangaDataRepository>,
+	private val downloadQueueRepositoryLazy: Lazy<DownloadQueueRepository>,
+	private val historyRepositoryLazy: Lazy<HistoryRepository>,
+	private val enforceStorageQuotaUseCaseLazy: Lazy<EnforceStorageQuotaUseCase>,
 ) : CoroutineWorker(context, workerParams) {
 
 	private val notificationManager by lazy { NotificationManagerCompat.from(applicationContext) }
+	private var isStorageQuotaReached: Boolean? = null
 
 	override suspend fun doWork(): Result {
+		if (isExpiredManualRun()) {
+			// A manual check the system stopped (job time limit, doze, process death) is put back in the
+			// queue by WorkManager and may only run again hours later. Nobody is waiting for it any more,
+			// and with the tracker set to manual it looks like an automatic check: drop it instead.
+			return Result.success()
+		}
+		if (TAG_RECHECK in tags && runAttemptCount < MAX_RECHECK_DEFERRALS && isOtherCheckRunning()) {
+			// That check records the tracks it skipped at the captcha only when it ends. Starting now would
+			// only find the track that hit the captcha, and the rest of the source would be marked as blocked
+			// right after, waiting for another solve: come back once it is done.
+			return Result.retry()
+		}
 		notificationHelper.updateChannels()
-		val isForeground = trySetForeground()
+		trySetForeground()
+		// Full run when manually triggered (TAG_ONESHOT), regardless of whether the
+		// foreground service promotion succeeded - Android may refuse the promotion
+		// on certain OEMs, but the user explicitly asked for an immediate full check.
+		val isFullRun = TAG_ONESHOT in tags
+		val recheckSource = inputData.getString(KEY_SOURCE)?.let { MangaSource(it) }
 		return try {
-			doWorkImpl(isFullRun = isForeground && TAG_ONESHOT in tags)
+			doWorkImpl(isFullRun = isFullRun, recheckSource = recheckSource)
 		} catch (e: CancellationException) {
 			throw e
 		} catch (e: Throwable) {
@@ -105,11 +148,29 @@ class TrackWorker @AssistedInject constructor(
 		}
 	}
 
-	private suspend fun doWorkImpl(isFullRun: Boolean): Result {
+	private suspend fun isOtherCheckRunning(): Boolean {
+		val query = WorkQuery.Builder.fromTags(listOf(TAG, TAG_ONESHOT))
+			.addStates(listOf(WorkInfo.State.RUNNING))
+			.build()
+		return workManager.getWorkInfosFlow(query).first().any { it.id != id }
+	}
+
+	private fun isExpiredManualRun(): Boolean {
+		if (TAG_ONESHOT !in tags) return false
+		val requestedAt = inputData.getLong(KEY_REQUESTED_AT, 0L)
+		return requestedAt > 0L && System.currentTimeMillis() - requestedAt > MANUAL_RUN_EXPIRY_MS
+	}
+
+	private suspend fun doWorkImpl(isFullRun: Boolean, recheckSource: MangaSource?): Result {
 		if (!settings.isTrackerEnabled) {
 			return Result.success()
 		}
-		val tracks = getTracksUseCase(if (isFullRun) Int.MAX_VALUE else BATCH_SIZE)
+		val tracks = if (recheckSource != null) {
+			// Right after a captcha was solved: only the manga of that source which stopped at the captcha
+			trackingRepository.getCaptchaBlockedTracks(recheckSource)
+		} else {
+			getTracksUseCase(if (isFullRun) Int.MAX_VALUE else BATCH_SIZE)
+		}
 		if (tracks.isEmpty()) {
 			return Result.success()
 		}
@@ -128,32 +189,41 @@ class TrackWorker @AssistedInject constructor(
 	@CheckResult
 	private suspend fun checkUpdatesAsync(tracks: List<MangaTracking>): List<NotificationInfo> {
 		val semaphore = Semaphore(MAX_PARALLELISM)
-		return channelFlow {
+		val sourceSemaphores = HashMap<MangaSource, Semaphore>()
+		// Sources that failed in a way every other request of this run would repeat, with that failure
+		val blockedSources = ConcurrentHashMap<MangaSource, MangaUpdates.Failure>()
+		val pacers = ConcurrentHashMap<MangaSource, SourcePacer>()
+		val skipped = ConcurrentHashMap<MangaSource, MutableList<Long>>()
+		val notifications = channelFlow<MangaUpdates?> {
 			for (track in tracks) {
+				val source = track.manga.source
+				val sourceSemaphore = sourceSemaphores.getOrPut(source) { Semaphore(MAX_PER_SOURCE_PARALLELISM) }
 				launch {
-					semaphore.withPermit {
-						send(
-							runCatchingCancellable {
-								checkNewChaptersUseCase.invoke(track)
-							}.getOrElse { error ->
-								MangaUpdates.Failure(
-									manga = track.manga,
-									error = error,
-								)
-							},
-						)
+					// The source permit comes first: a busy source must not hold the global slots while it waits
+					sourceSemaphore.withPermit {
+						if (blockedSources.containsKey(source)) {
+							skipped.getOrPut(source) { Collections.synchronizedList(ArrayList()) }.add(track.manga.id)
+							send(null)
+							return@withPermit
+						}
+						val updates = checkPaced(track, pacers.getOrPut(source) { SourcePacer() }, semaphore)
+						if (updates is MangaUpdates.Failure && updates.isSourceBlocked()) {
+							blockedSources.putIfAbsent(source, updates)
+						}
+						send(updates)
 					}
 				}
 			}
-		}.onEachIndexed { index, it ->
+		}.onEachIndexed { index, _ ->
 			if (applicationContext.checkNotificationPermission(WORKER_CHANNEL_ID)) {
 				notificationManager.notify(WORKER_NOTIFICATION_ID, createWorkerNotification(tracks.size, index + 1))
 			}
+		}.filterNotNull().onEach {
 			when (it) {
 				is MangaUpdates.Failure -> {
-					val e = it.error
-					if (e is CloudFlareException) {
-						captchaHandler.handle(e)
+					val e = it.error?.findCloudFlareException()
+					if (e != null) {
+						captchaHandler.handle(e, tryAutoResolve = false)
 					}
 				}
 
@@ -172,6 +242,82 @@ class TrackWorker @AssistedInject constructor(
 				}
 			}
 		}.toList()
+		for ((source, ids) in skipped) {
+			val failure = blockedSources[source] ?: continue
+			trackingRepository.saveSkipped(ids, failure)
+		}
+		return notifications
+	}
+
+	/**
+	 * Checks [track], riding out a short rate limit instead of giving up on its source.
+	 *
+	 * When the source answers "too many requests" with a short wait, the source switches to paced mode for the
+	 * rest of the run: its manga are checked one at a time, the first after the server's wait plus a margin, the
+	 * following ones [PACED_INTERVAL_MS] apart, and a manga that is rate limited again is retried after the new
+	 * wait. Only a long wait, repeated rate limiting or too much waiting in total ends with the failure, which
+	 * then blocks the source for the rest of the run.
+	 */
+	private suspend fun checkPaced(track: MangaTracking, pacer: SourcePacer, semaphore: Semaphore): MangaUpdates {
+		var retries = 0
+		while (true) {
+			val updates = if (pacer.isPaced) {
+				pacer.mutex.withLock {
+					delay(pacer.nextRequestAt - System.currentTimeMillis())
+					check(track, semaphore).also {
+						pacer.nextRequestAt = maxOf(pacer.nextRequestAt, System.currentTimeMillis() + PACED_INTERVAL_MS)
+					}
+				}
+			} else {
+				check(track, semaphore)
+			}
+			val retryDelay = (updates as? MangaUpdates.Failure)?.rateLimitDelay() ?: return updates
+			if (
+				retryDelay > MAX_SHORT_RETRY_DELAY_MS ||
+				retries >= MAX_RATE_LIMIT_RETRIES ||
+				pacer.totalWaitMs + retryDelay > MAX_RATE_LIMIT_WAIT_MS
+			) {
+				return updates
+			}
+			retries++
+			val wait = retryDelay + retryDelay / 10 // the server's wait plus 10%, so the first retry isn't early
+			pacer.mutex.withLock {
+				pacer.totalWaitMs += wait
+				pacer.nextRequestAt = maxOf(pacer.nextRequestAt, System.currentTimeMillis() + wait)
+				pacer.isPaced = true
+			}
+		}
+	}
+
+	private suspend fun check(track: MangaTracking, semaphore: Semaphore): MangaUpdates = semaphore.withPermit {
+		runCatchingCancellable {
+			checkNewChaptersUseCase.invoke(track)
+		}.getOrElse { error ->
+			MangaUpdates.Failure(
+				manga = track.manga,
+				error = error,
+			)
+		}
+	}
+
+	/** How long the source asked to wait, or null if this failure is not rate limiting. */
+	private fun MangaUpdates.Failure.rateLimitDelay(): Long? {
+		val e = error as? TooManyRequestExceptions ?: return null
+		return e.getRetryDelay().takeIf { it >= 0L } ?: DEFAULT_RETRY_DELAY_MS
+	}
+
+	/** Rate-limit state of one source during a run. */
+	private class SourcePacer {
+
+		val mutex = Mutex()
+
+		@Volatile
+		var isPaced = false
+
+		@Volatile
+		var nextRequestAt = 0L
+
+		var totalWaitMs = 0L
 	}
 
 	override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -221,6 +367,8 @@ class TrackWorker @AssistedInject constructor(
 			workManager.createCancelPendingIntent(id),
 		)
 		setProgress(max, progress, max == 0)
+		// Never outlive a worker that was killed before it could cancel this notification
+		setTimeoutAfter(WORKER_NOTIFICATION_TIMEOUT_MS)
 		setSmallIcon(android.R.drawable.stat_notify_sync)
 		setForegroundServiceBehavior(
 			if (TAG_ONESHOT in tags) {
@@ -249,25 +397,79 @@ class TrackWorker @AssistedInject constructor(
 		if (!mangaUpdates.isValid || mangaUpdates.newChapters.isEmpty()) {
 			return
 		}
-		when (settings.trackerDownloadStrategy) {
-			TrackerDownloadStrategy.DISABLED -> Unit
-			TrackerDownloadStrategy.DOWNLOADED -> {
-				val localManga = localRepositoryLazy.get().findSavedManga(mangaUpdates.manga)
-				if (localManga != null) {
-					val task = DownloadTask(
-						mangaId = mangaUpdates.manga.id,
-						isPaused = false,
-						isSilent = false,
-						chaptersIds = mangaUpdates.newChapters.ids().toLongArray(),
-						destination = null,
-						format = null,
-						allowMeteredNetwork = settings.allowDownloadOnMeteredNetwork != TriStateOption.DISABLED,
-						requiresCharging = false,
-					)
-					downloadSchedulerLazy.get().schedule(setOf(mangaUpdates.manga to task))
+		val strategy = settings.trackerDownloadStrategy
+		if (strategy == TrackerDownloadStrategy.DISABLED) {
+			return
+		}
+		val manga = mangaUpdates.manga
+		val localManga = localRepositoryLazy.get().findSavedManga(manga, withDetails = true)
+		val shouldDownload = when (strategy) {
+			TrackerDownloadStrategy.DISABLED -> false
+			TrackerDownloadStrategy.DOWNLOADED -> localManga != null
+			TrackerDownloadStrategy.RECENTLY_READ -> isReadRecently(manga)
+		}
+		if (!shouldDownload) {
+			return
+		}
+		val savedChapters = localManga?.manga?.chapters?.ids().orEmpty()
+		val chapters = mangaUpdates.newChapters
+			.filterNot { it.id in savedChapters }
+			.let {
+				// Only the newest few for recently read manga: a dormant series that backfills its archive
+				// would otherwise queue hundreds of chapters at once. Downloaded manga keep every new
+				// chapter, as before - the ones left out would never be offered again.
+				if (strategy == TrackerDownloadStrategy.RECENTLY_READ) {
+					it.takeLast(TrackerDownloadStrategy.MAX_CHAPTERS_PER_RUN)
+				} else {
+					it
 				}
 			}
+		if (chapters.isEmpty() || !hasFreeSpaceForDownload(manga) || isStorageQuotaReached()) {
+			return
 		}
+		// the download worker resolves the chapters from the database, which must know the new ones
+		mangaDataRepositoryLazy.get().storeManga(manga, replaceExisting = true)
+		// Through the download queue, so the off-peak, charging and Wi-Fi rules apply
+		downloadQueueRepositoryLazy.get().addToQueue(
+			manga = manga,
+			chaptersIds = chapters.ids().toLongArray(),
+			wifiOnly = settings.allowDownloadOnMeteredNetwork == TriStateOption.DISABLED,
+			chargingOnly = settings.isDownloadOnlyOnChargingEnabled,
+			offPeakOnly = settings.isDownloadOffPeakEnabled,
+			isPaused = false,
+		)
+	}
+
+	private suspend fun isReadRecently(manga: Manga): Boolean {
+		val lastRead = historyRepositoryLazy.get().getOne(manga)?.updatedAt ?: return false
+		val threshold = Instant.now().minus(TrackerDownloadStrategy.RECENT_READ_WINDOW_DAYS, ChronoUnit.DAYS)
+		return lastRead.isAfter(threshold)
+	}
+
+	/**
+	 * Auto-download is unattended, so it must not be the thing that fills the device.
+	 * Checks the volume this manga would actually be written to; a directory whose free space
+	 * cannot be read (reported as zero) does not block the download.
+	 */
+	private suspend fun hasFreeSpaceForDownload(manga: Manga): Boolean = runCatchingCancellable {
+		val dir = localRepositoryLazy.get().getOutputDir(manga, null) ?: return@runCatchingCancellable false
+		val available = runInterruptible(Dispatchers.IO) { dir.usableSpace }
+		available == 0L || available >= TrackerDownloadStrategy.MIN_FREE_SPACE_BYTES
+	}.getOrDefault(true)
+
+	/**
+	 * Reaching the storage quota makes the download worker evict the oldest downloaded chapters,
+	 * which an unattended download should not do: skip auto-downloads until there is room again.
+	 * Computed once per run, as it walks the whole local storage.
+	 */
+	private suspend fun isStorageQuotaReached(): Boolean {
+		isStorageQuotaReached?.let { return it }
+		val usage = runCatchingCancellable {
+			enforceStorageQuotaUseCaseLazy.get().getUsage()
+		}.getOrNull()
+		val result = usage != null && usage.currentBytes >= usage.totalBytes
+		isStorageQuotaReached = result
+		return result
 	}
 
 	@Reusable
@@ -315,13 +517,32 @@ class TrackWorker @AssistedInject constructor(
 			val request = OneTimeWorkRequestBuilder<TrackWorker>()
 				.setConstraints(constraints)
 				.addTag(TAG_ONESHOT)
+				.setInputData(workDataOf(KEY_REQUESTED_AT to System.currentTimeMillis()))
 				.setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
 				.build()
 			workManager.enqueue(request)
 		}
 
+		/**
+		 * Checks again the manga of [source] that stopped at its captcha, once that captcha is solved.
+		 * A re-check already waiting or running for the source is kept.
+		 */
+		fun recheckSource(source: MangaSource) {
+			val constraints = Constraints.Builder()
+				.setRequiredNetworkType(NetworkType.CONNECTED)
+				.build()
+			val request = OneTimeWorkRequestBuilder<TrackWorker>()
+				.setConstraints(constraints)
+				.setInputData(workDataOf(KEY_SOURCE to source.name))
+				.addTag(TAG_RECHECK)
+				.setBackoffCriteria(BackoffPolicy.LINEAR, RECHECK_DEFER_SECONDS, TimeUnit.SECONDS)
+				.setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+				.build()
+			workManager.enqueueUniqueWork("${TAG_RECHECK}_${source.name}", ExistingWorkPolicy.KEEP, request)
+		}
+
 		fun observeIsRunning(): Flow<Boolean> {
-			val query = WorkQuery.Builder.fromTags(listOf(TAG, TAG_ONESHOT)).build()
+			val query = WorkQuery.Builder.fromTags(listOf(TAG, TAG_ONESHOT, TAG_RECHECK)).build()
 			return workManager.getWorkInfosFlow(query)
 				.map { works ->
 					works.any { x -> x.state == WorkInfo.State.RUNNING }
@@ -339,7 +560,20 @@ class TrackWorker @AssistedInject constructor(
 		const val WORKER_NOTIFICATION_ID = 35
 		const val TAG = "tracking"
 		const val TAG_ONESHOT = "tracking_oneshot"
+		const val TAG_RECHECK = "tracking_recheck"
+		const val KEY_SOURCE = "source"
+		const val KEY_REQUESTED_AT = "requested_at"
+		const val MAX_RECHECK_DEFERRALS = 15
+		const val MAX_SHORT_RETRY_DELAY_MS = 60_000L
+		const val DEFAULT_RETRY_DELAY_MS = 15_000L
+		const val PACED_INTERVAL_MS = 3_000L
+		const val MAX_RATE_LIMIT_RETRIES = 3
+		const val MAX_RATE_LIMIT_WAIT_MS = 5 * 60_000L
+		const val RECHECK_DEFER_SECONDS = 60L
+		val MANUAL_RUN_EXPIRY_MS = TimeUnit.MINUTES.toMillis(30)
+		val WORKER_NOTIFICATION_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(10)
 		const val MAX_PARALLELISM = 6
+		const val MAX_PER_SOURCE_PARALLELISM = 2
 		val BATCH_SIZE = if (BuildConfig.DEBUG) 20 else 46
 		const val SETTINGS_ACTION_CODE = 5
 	}

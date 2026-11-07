@@ -56,6 +56,12 @@
 		app:showAsAction="never" />
 
 	<item
+		android:id="@+id/action_replace_source"
+		android:orderInCategory="51"
+		android:title="@string/replace_source"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_online"
 		android:orderInCategory="50"
 		android:title="@string/online_variant"

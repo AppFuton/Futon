@@ -40,6 +40,11 @@ class CommonHeadersInterceptor @Inject constructor(
 		repository?.getRequestHeaders()?.let {
 			headersBuilder.mergeWith(it, replaceExisting = false)
 		}
+		// Deliberately overrides the parser's agent: a cf_clearance cookie is only honoured for the
+		// exact User-Agent it was issued to. See SourceSettings.cloudFlareUserAgent.
+		repository?.getConfig()?.cloudFlareUserAgent?.let {
+			headersBuilder.trySet(CommonHeaders.USER_AGENT, it)
+		}
 		if (headersBuilder[CommonHeaders.USER_AGENT] == null) {
 			headersBuilder[CommonHeaders.USER_AGENT] = mangaLoaderContextLazy.get().getDefaultUserAgent()
 		}

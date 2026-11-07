@@ -6,10 +6,12 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.db.entity.toEntity
 import io.github.landwarderer.futon.core.model.FavouriteCategory
 import io.github.landwarderer.futon.core.model.LocalMangaSource
+import io.github.landwarderer.futon.core.model.titleResId
 import io.github.landwarderer.futon.core.model.unwrap
 import io.github.landwarderer.futon.core.parser.external.ExternalMangaSource
 import io.github.landwarderer.futon.core.parser.favicon.faviconUri
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.ContentType as MangaContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 
@@ -95,6 +97,24 @@ sealed interface ListFilterOption {
 			get() = "_tag"
 	}
 
+	/**
+	 * A tag selected by title rather than id: the same genre from different sources is stored as
+	 * different tags, and this matches all of them.
+	 */
+	data class TagTitle(
+		override val titleText: String,
+	) : ListFilterOption {
+
+		override val titleResId: Int
+			get() = 0
+
+		override val iconResId: Int
+			get() = R.drawable.ic_tag
+
+		override val groupKey: String
+			get() = "_tag"
+	}
+
 	data class Favorite(
 		val category: FavouriteCategory
 	) : ListFilterOption {
@@ -135,6 +155,23 @@ sealed interface ListFilterOption {
 			get() = "_source"
 
 		override fun getIconData() = mangaSource.faviconUri()
+	}
+
+	data class ContentType(
+		val contentType: MangaContentType,
+	) : ListFilterOption {
+
+		override val titleResId: Int
+			get() = contentType.titleResId
+
+		override val iconResId: Int
+			get() = R.drawable.ic_book_page
+
+		override val titleText: CharSequence?
+			get() = null
+
+		override val groupKey: String
+			get() = "_content_type"
 	}
 
 	data class Inverted(

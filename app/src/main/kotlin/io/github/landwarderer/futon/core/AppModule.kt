@@ -28,8 +28,10 @@ import dagger.multibindings.ElementsIntoSet
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.backups.domain.BackupObserver
 import io.github.landwarderer.futon.core.db.MangaDatabase
+import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaAutoResolveCoordinator
 import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaHandler
 import io.github.landwarderer.futon.core.image.AvifImageDecoder
+import io.github.landwarderer.futon.core.image.JxlImageDecoder
 import io.github.landwarderer.futon.core.image.CbzFetcher
 import io.github.landwarderer.futon.core.image.MangaSourceHeaderInterceptor
 import io.github.landwarderer.futon.core.network.MangaHttpClient
@@ -41,6 +43,7 @@ import io.github.landwarderer.futon.core.parser.favicon.FaviconFetcher
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.ui.image.CoilImageGetter
 import io.github.landwarderer.futon.core.ui.util.ActivityRecreationHandle
+import io.github.landwarderer.futon.core.ui.util.ForegroundActivityHolder
 import io.github.landwarderer.futon.core.util.FileSize
 import io.github.landwarderer.futon.core.util.ext.connectivityManager
 import io.github.landwarderer.futon.core.util.ext.isLowRamDevice
@@ -140,6 +143,7 @@ interface AppModule {
 					add(SvgDecoder.Factory())
 					add(CbzFetcher.Factory())
 					add(AvifImageDecoder.Factory())
+					add(JxlImageDecoder.Factory())
 					add(faviconFetcherFactory)
 					add(MangaPageKeyer())
 					add(pageFetcherFactory)
@@ -174,11 +178,15 @@ interface AppModule {
 			appProtectHelper: AppProtectHelper,
 			activityRecreationHandle: ActivityRecreationHandle,
 			screenshotPolicyHelper: ScreenshotPolicyHelper,
+			foregroundActivityHolder: ForegroundActivityHolder,
+			captchaAutoResolveCoordinator: CaptchaAutoResolveCoordinator,
 		): Set<@JvmSuppressWildcards Application.ActivityLifecycleCallbacks> = arraySetOf(
 			appProtectHelper,
 			activityRecreationHandle,
 			screenshotPolicyHelper,
-		) 
+			foregroundActivityHolder,
+			captchaAutoResolveCoordinator,
+		)
 
 		@Provides
 		@Singleton

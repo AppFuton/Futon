@@ -93,7 +93,7 @@ class FeedViewModel @Inject constructor(
 		result as List<ListModel>
 	}.catch { e ->
 		emit(listOf(e.toErrorState(canRetry = false)))
-	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState()))
 
 	init {
 		launchJob(Dispatchers.IO) {
@@ -123,6 +123,17 @@ class FeedViewModel @Inject constructor(
 
 	fun setHeaderEnabled(value: Boolean) {
 		settings.isFeedHeaderVisible = value
+	}
+
+	fun removeItem(item: FeedItem) {
+		launchJob(Dispatchers.Default) {
+			val removed = repository.removeLog(item.id) ?: return@launchJob
+			onActionDone.call(
+				ReversibleAction(R.string.update_removed) {
+					repository.restoreLog(removed)
+				},
+			)
+		}
 	}
 
 	fun onItemClick(item: FeedItem) {

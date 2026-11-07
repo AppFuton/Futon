@@ -79,6 +79,22 @@
 	<!--== Default Theme ==-->
 	<style name="Theme.Futon" parent="Base.Theme.Futon" />
 
+	<!-- Focused, rendered window for automatic Cloudflare resolution without visible navigation. -->
+	<style name="Theme.Futon.CloudFlareHidden" parent="Theme.Futon">
+		<item name="android:windowBackground">@android:color/transparent</item>
+		<item name="android:windowIsTranslucent">true</item>
+		<item name="android:windowIsFloating">false</item>
+		<item name="android:windowNoTitle">true</item>
+		<item name="android:windowAnimationStyle">@null</item>
+		<item name="android:windowDisablePreview">true</item>
+		<item name="android:windowContentOverlay">@null</item>
+		<item name="android:colorBackground">@android:color/transparent</item>
+		<item name="android:statusBarColor">@android:color/transparent</item>
+		<item name="android:navigationBarColor">@android:color/transparent</item>
+		<item name="android:windowActionBar">false</item>
+		<item name="android:backgroundDimEnabled">false</item>
+	</style>
+
 	<!-- Base ThemeOverlay -->
 	<style name="ThemeOverlay.Futon" parent="ThemeOverlay.Material3.Light" />
 

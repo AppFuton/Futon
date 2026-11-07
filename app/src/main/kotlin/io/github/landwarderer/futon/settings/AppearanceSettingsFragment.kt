@@ -100,8 +100,9 @@ class AppearanceSettingsFragment :
         findPreference<MultiSelectListPreference>(AppSettings.KEY_MANGA_LIST_BADGES)?.run {
             summaryProvider = MultiSummaryProvider(R.string.none)
         }
-        findPreference<Preference>(AppSettings.KEY_SHORTCUTS)?.isVisible =
-            appShortcutManager.isDynamicShortcutsAvailable()
+        val isShortcutsAvailable = appShortcutManager.isDynamicShortcutsAvailable()
+        findPreference<Preference>(AppSettings.KEY_SHORTCUTS)?.isVisible = isShortcutsAvailable
+        findPreference<Preference>(AppSettings.KEY_SHORTCUTS_NO_NSFW)?.isVisible = isShortcutsAvailable
         findPreference<TwoStatePreference>(AppSettings.KEY_PROTECT_APP)
             ?.isChecked = !settings.appPassword.isNullOrEmpty()
         findPreference<ListPreference>(AppSettings.KEY_SCREENSHOTS_POLICY)?.run {

@@ -7,11 +7,14 @@ import android.util.Log
 import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.annotation.MainThread
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import io.github.landwarderer.futon.browser.BrowserCallback
@@ -33,151 +36,137 @@ class WebViewRequestInterceptorExecutor @Inject constructor(
 
     private var webViewCached: WeakReference<WebView>? = null
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val activeWebViews = mutableSetOf<WeakReference<WebView>>()
+    private val mutex = Mutex()
 
     suspend fun interceptRequests(
         url: String,
         config: InterceptionConfig
-    ): List<InterceptedRequest> = withTimeout(config.timeoutMs + 5000) {
-        Log.d(TAG_VRF, "interceptRequests start url=$url injectPageScript=${!config.pageScript.isNullOrBlank()} hasFilterScript=${!config.filterScript.isNullOrBlank()}")
-        withContext(Dispatchers.Main) {
-            suspendCancellableCoroutine { continuation ->
-                val resultDeferred = CompletableDeferred<List<InterceptedRequest>>()
+    ): List<InterceptedRequest> = mutex.withLock {
+        withTimeout(config.timeoutMs + 5000) {
+            Log.d(TAG_VRF, "interceptRequests start url=$url injectPageScript=${!config.pageScript.isNullOrBlank()} hasFilterScript=${!config.filterScript.isNullOrBlank()}")
+            withContext(Dispatchers.Main.immediate) {
+                suspendCancellableCoroutine { continuation ->
+                    val resultDeferred = CompletableDeferred<List<InterceptedRequest>>()
 
-                val interceptor = object : WebViewRequestInterceptor {
-                    override fun shouldCaptureRequest(request: InterceptedRequest): Boolean {
-                        val urlOk = config.urlPattern?.containsMatchIn(request.url) ?: true
-                        val scriptOk = try {
-                            if (config.filterScript.isNullOrBlank()) true
-                            else evaluateFilterPredicate(config.filterScript, request.url)
-                        } catch (e: Throwable) {
-                            Log.w(TAG_VRF, "Filter error ${e.message}")
-                            false
+                    val interceptor = object : WebViewRequestInterceptor {
+                        override fun shouldCaptureRequest(request: InterceptedRequest): Boolean {
+                            val urlOk = config.urlPattern?.containsMatchIn(request.url) ?: true
+                            val scriptOk = try {
+                                if (config.filterScript.isNullOrBlank()) true
+                                else evaluateFilterPredicate(config.filterScript, request.url)
+                            } catch (e: Throwable) {
+                                Log.w(TAG_VRF, "Filter error ${e.message}")
+                                false
+                            }
+                            val match = urlOk && scriptOk
+                            Log.v(TAG_VRF, "REQ url=${request.url} method=${request.method} urlOk=$urlOk scriptOk=$scriptOk match=$match")
+                            return match
                         }
-                        val match = urlOk && scriptOk
-                        Log.v(TAG_VRF, "REQ url=${request.url} method=${request.method} urlOk=$urlOk scriptOk=$scriptOk match=$match")
-                        return match
-                    }
 
-                    override fun onInterceptionComplete(capturedRequests: List<InterceptedRequest>) {
-                        Log.d(TAG_VRF, "Interception complete captured=${capturedRequests.size}")
-                        if (!resultDeferred.isCompleted) {
-                            resultDeferred.complete(capturedRequests)
+                        override fun onInterceptionComplete(capturedRequests: List<InterceptedRequest>) {
+                            Log.d(TAG_VRF, "Interception complete captured=${capturedRequests.size}")
+                            if (!resultDeferred.isCompleted) {
+                                resultDeferred.complete(capturedRequests)
+                            }
                         }
-                    }
 
-                    override fun onInterceptionError(error: Throwable) {
-                        Log.w(TAG_VRF, "Interception error", error)
-                        if (!resultDeferred.isCompleted) {
-                            resultDeferred.completeExceptionally(error)
-                        }
-                    }
-                }
-
-                val callback = object : BrowserCallback {
-                    override fun onLoadingStateChanged(isLoading: Boolean) {
-                        Log.v(TAG_VRF, "Loading state changed isLoading=$isLoading")
-                    }
-                    override fun onTitleChanged(title: CharSequence, subtitle: CharSequence?) {
-                        Log.v(TAG_VRF, "Title changed title=$title subtitle=$subtitle")
-                    }
-                    override fun onHistoryChanged() {
-                        Log.v(TAG_VRF, "History changed")
-                    }
-                }
-
-                var webView: WebView? = null
-                try {
-                    webView = obtainWebView()
-                    val client = RequestInterceptorWebViewClient(callback, adBlock, config, interceptor)
-                    webView.webViewClient = client
-
-                    webView.webChromeClient = object : WebChromeClient() {
-                        override fun onPermissionRequest(request: PermissionRequest?) {
-                            if (request?.resources?.contains(PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID) == true) {
-                                request.grant(request.resources)
-                            } else {
-                                super.onPermissionRequest(request)
+                        override fun onInterceptionError(error: Throwable) {
+                            Log.w(TAG_VRF, "Interception error", error)
+                            if (!resultDeferred.isCompleted) {
+                                resultDeferred.completeExceptionally(error)
                             }
                         }
                     }
 
-                    webView.loadUrl(url)
-
-                    val timeoutRunnable = Runnable {
-                        Log.w(TAG_VRF, "Timeout, stopping capture")
-                        client.stopCapturing()
+                    val callback = object : BrowserCallback {
+                        override fun onLoadingStateChanged(isLoading: Boolean) {
+                            Log.v(TAG_VRF, "Loading state changed isLoading=$isLoading")
+                        }
+                        override fun onTitleChanged(title: CharSequence, subtitle: CharSequence?) {
+                            Log.v(TAG_VRF, "Title changed title=$title subtitle=$subtitle")
+                        }
+                        override fun onHistoryChanged() {
+                            Log.v(TAG_VRF, "History changed")
+                        }
                     }
-                    mainHandler.postDelayed(timeoutRunnable, config.timeoutMs)
 
-                    resultDeferred.invokeOnCompletion { ex ->
-                        mainHandler.removeCallbacks(timeoutRunnable)
-                        // Clean up WebView after operation completes - must run on main thread
-                        webView?.let { wv ->
-                            Log.d(TAG_VRF, "Cleaning up WebView after operation")
-                            if (Thread.currentThread() == Looper.getMainLooper().thread) {
-                                // Already on main thread, destroy immediately
-                                wv.stopLoading()
-                                wv.destroy()
-                                removeWebViewFromTracking(wv)
-                                if (ex != null) continuation.resumeWithException(ex)
-                                else continuation.resume(resultDeferred.getCompleted())
-                            } else {
-                                // Must post to main thread, but wait for completion
-                                mainHandler.post {
-                                    wv.stopLoading()
-                                    wv.destroy()
-                                    removeWebViewFromTracking(wv)
+                    var webView: WebView? = null
+                    try {
+                        webView = obtainWebView()
+                        val client = RequestInterceptorWebViewClient(callback, adBlock, config, interceptor)
+                        webView.webViewClient = client
+
+                        webView.webChromeClient = object : WebChromeClient() {
+                            override fun onPermissionRequest(request: PermissionRequest?) {
+                                if (request?.resources?.contains(PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID) == true) {
+                                    request.grant(request.resources)
+                                } else {
+                                    super.onPermissionRequest(request)
+                                }
+                            }
+                        }
+
+                        webView.loadUrl(url)
+
+                        val timeoutRunnable = Runnable {
+                            Log.w(TAG_VRF, "Timeout, stopping capture")
+                            client.stopCapturing()
+                        }
+                        mainHandler.postDelayed(timeoutRunnable, config.timeoutMs)
+
+                        resultDeferred.invokeOnCompletion { ex ->
+                            mainHandler.removeCallbacks(timeoutRunnable)
+                            // Clean up WebView after operation completes - must run on main thread
+                            webView?.let { wv ->
+                                Log.d(TAG_VRF, "Cleaning up WebView after operation")
+                                if (Thread.currentThread() == Looper.getMainLooper().thread) {
+                                    releaseWebView(wv)
                                     if (ex != null) continuation.resumeWithException(ex)
                                     else continuation.resume(resultDeferred.getCompleted())
+                                } else {
+                                    mainHandler.post {
+                                        releaseWebView(wv)
+                                        if (ex != null) continuation.resumeWithException(ex)
+                                        else continuation.resume(resultDeferred.getCompleted())
+                                    }
+                                }
+                            } ?: run {
+                                // No WebView to clean up, resume immediately
+                                if (ex != null) continuation.resumeWithException(ex)
+                                else continuation.resume(resultDeferred.getCompleted())
+                            }
+                        }
+                        continuation.invokeOnCancellation {
+                            client.stopCapturing()
+                            mainHandler.removeCallbacks(timeoutRunnable)
+                            // Clean up WebView on cancellation - must run on main thread
+                            webView?.let { wv ->
+                                Log.d(TAG_VRF, "Cleaning up WebView on cancellation")
+                                if (Thread.currentThread() == Looper.getMainLooper().thread) {
+                                    releaseWebView(wv)
+                                } else {
+                                    mainHandler.post {
+                                        releaseWebView(wv)
+                                    }
                                 }
                             }
-                        } ?: run {
-                            // No WebView to clean up, resume immediately
-                            if (ex != null) continuation.resumeWithException(ex)
-                            else continuation.resume(resultDeferred.getCompleted())
+                            if (!resultDeferred.isCompleted) resultDeferred.cancel()
                         }
-                    }
-                    continuation.invokeOnCancellation {
-                        client.stopCapturing()
-                        mainHandler.removeCallbacks(timeoutRunnable)
-                        // Clean up WebView on cancellation - must run on main thread
+                    } catch (e: Exception) {
+                        // Clean up WebView on exception - must run on main thread
                         webView?.let { wv ->
-                            Log.d(TAG_VRF, "Cleaning up WebView on cancellation")
+                            Log.d(TAG_VRF, "Cleaning up WebView on exception")
                             if (Thread.currentThread() == Looper.getMainLooper().thread) {
-                                // Already on main thread, destroy immediately
-                                wv.stopLoading()
-                                wv.destroy()
-                                removeWebViewFromTracking(wv)
+                                releaseWebView(wv)
+                                continuation.resumeWithException(e)
                             } else {
-                                // Must post to main thread for cleanup
                                 mainHandler.post {
-                                    wv.stopLoading()
-                                    wv.destroy()
-                                    removeWebViewFromTracking(wv)
+                                    releaseWebView(wv)
+                                    continuation.resumeWithException(e)
                                 }
                             }
-                        }
-                        if (!resultDeferred.isCompleted) resultDeferred.cancel()
+                        } ?: continuation.resumeWithException(e)
                     }
-                } catch (e: Exception) {
-                    // Clean up WebView on exception - must run on main thread
-                    webView?.let { wv ->
-                        Log.d(TAG_VRF, "Cleaning up WebView on exception")
-                        if (Thread.currentThread() == Looper.getMainLooper().thread) {
-                            // Already on main thread, destroy immediately
-                            wv.destroy()
-                            removeWebViewFromTracking(wv)
-                            continuation.resumeWithException(e)
-                        } else {
-                            // Must post to main thread, then resume with exception
-                            mainHandler.post {
-                                wv.destroy()
-                                removeWebViewFromTracking(wv)
-                                continuation.resumeWithException(e)
-                            }
-                        }
-                    } ?: continuation.resumeWithException(e)
                 }
             }
         }
@@ -199,57 +188,23 @@ class WebViewRequestInterceptorExecutor @Inject constructor(
     }
 
     @MainThread
-    private fun obtainWebView(): WebView {
-        // Clean up any previous WebView instances
-        cleanupOldWebViews()
-
-        val wv = WebView(context).apply {
-            configureForParser(null)
-            // Clear any existing state
-            clearHistory()
-            clearCache(true)
-        }
-        Log.d(TAG_VRF, "Created fresh WebView instance")
-
-        // Track this WebView
-        val webViewRef = WeakReference(wv)
-        webViewCached = webViewRef
-        synchronized(activeWebViews) {
-            activeWebViews.add(webViewRef)
-        }
-
-        return wv
+    private fun obtainWebView(): WebView = webViewCached?.get() ?: WebView(context).also { webView ->
+        webView.configureForParser(null)
+        webView.clearHistory()
+        webView.clearCache(true)
+        webViewCached = WeakReference(webView)
     }
 
+    /**
+     * The WebView is reused by the next (serialized) capture, which replaces the document with loadUrl().
+     * stopLoading() and destroy() can block the main thread for seconds while Chromium tears down,
+     * so only detach the callbacks and ask the page to stop asynchronously.
+     */
     @MainThread
-    private fun cleanupOldWebViews() {
-        synchronized(activeWebViews) {
-            val iterator = activeWebViews.iterator()
-            while (iterator.hasNext()) {
-                val ref = iterator.next()
-                val webView = ref.get()
-                if (webView == null) {
-                    // WebView was garbage collected
-                    iterator.remove()
-                } else {
-                    // Destroy still-active WebView
-                    Log.d(TAG_VRF, "Destroying previous WebView instance")
-                    webView.destroy()
-                    iterator.remove()
-                }
-            }
-        }
-        webViewCached = null
-    }
-
-    @MainThread
-    private fun removeWebViewFromTracking(webView: WebView) {
-        synchronized(activeWebViews) {
-            activeWebViews.removeAll { it.get() == webView || it.get() == null }
-        }
-        if (webViewCached?.get() == webView) {
-            webViewCached = null
-        }
+    private fun releaseWebView(webView: WebView) {
+        runCatching { webView.evaluateJavascript("window.stop(); void 0", null) }
+        webView.webViewClient = WebViewClient()
+        webView.webChromeClient = WebChromeClient()
     }
 }
 

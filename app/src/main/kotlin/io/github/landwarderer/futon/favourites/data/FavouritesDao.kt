@@ -15,8 +15,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import org.intellij.lang.annotations.Language
+import io.github.landwarderer.futon.core.db.LibrarySearchQuery
 import io.github.landwarderer.futon.core.db.MangaQueryBuilder
+import io.github.landwarderer.futon.core.db.SqlCondition
 import io.github.landwarderer.futon.core.db.TABLE_FAVOURITES
+import io.github.landwarderer.futon.core.db.contentTypeCondition
+import io.github.landwarderer.futon.core.db.librarySearchCondition
 import io.github.landwarderer.futon.core.db.entity.MangaWithTags
 import io.github.landwarderer.futon.favourites.domain.model.Cover
 import io.github.landwarderer.futon.list.domain.ListFilterOption
@@ -40,6 +44,23 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 	@Query("SELECT manga.* FROM favourites LEFT JOIN manga ON manga.manga_id = favourites.manga_id WHERE favourites.deleted_at = 0 AND (manga.title LIKE :query OR manga.alt_title LIKE :query) LIMIT :limit")
 	abstract suspend fun searchByTitle(query: String, limit: Int): List<MangaWithTags>
 
+	/**
+	 * Free-text match over everything that identifies an entry on the Favourites screen: its title, the
+	 * source it came from, and the category (list) it is filed under. [pattern] must be escaped for
+	 * `ESCAPE '\'`.
+	 */
+	@Transaction
+	@Query(
+		"SELECT manga.* FROM favourites LEFT JOIN manga ON manga.manga_id = favourites.manga_id " +
+			"WHERE favourites.deleted_at = 0 AND (" +
+			"manga.title LIKE :pattern ESCAPE '\\' OR manga.alt_title LIKE :pattern ESCAPE '\\' " +
+			"OR manga.source IN (:sourceNames) " +
+			"OR EXISTS(SELECT 1 FROM favourite_categories c WHERE c.category_id = favourites.category_id " +
+			"AND c.deleted_at = 0 AND c.title LIKE :pattern ESCAPE '\\')" +
+			") GROUP BY favourites.manga_id ORDER BY favourites.created_at DESC LIMIT :limit",
+	)
+	abstract suspend fun filter(pattern: String, sourceNames: List<String>, limit: Int): List<MangaWithTags>
+
 	@Transaction
 	@Query("SELECT manga.* FROM favourites LEFT JOIN manga ON manga.manga_id = favourites.manga_id WHERE favourites.deleted_at = 0 AND (manga.author LIKE :query) LIMIT :limit")
 	abstract suspend fun searchByAuthor(query: String, limit: Int): List<MangaWithTags>
@@ -51,8 +72,9 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 	fun observeAll(
 		order: ListSortOrder,
 		filterOptions: Set<ListFilterOption>,
-		limit: Int
-	): Flow<List<FavouriteManga>> = observeAll(0L, order, filterOptions, limit)
+		limit: Int,
+		search: LibrarySearchQuery = LibrarySearchQuery.EMPTY,
+	): Flow<List<FavouriteManga>> = observeAll(0L, order, filterOptions, limit, search)
 
 	@Transaction
 	@Query("SELECT * FROM favourites WHERE deleted_at = 0 ORDER BY created_at DESC LIMIT :limit OFFSET :offset")
@@ -72,11 +94,13 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 		categoryId: Long,
 		order: ListSortOrder,
 		filterOptions: Set<ListFilterOption>,
-		limit: Int
+		limit: Int,
+		search: LibrarySearchQuery = LibrarySearchQuery.EMPTY,
 	): Flow<List<FavouriteManga>> = observeAllImpl(
 		MangaQueryBuilder(TABLE_FAVOURITES, this)
 			.join("LEFT JOIN manga ON favourites.manga_id = manga.manga_id")
 			.where("deleted_at = 0")
+			.let { if (search.isEmpty()) it else it.where(searchCondition(search)) }
 			.where(
 				if (categoryId != 0L) {
 					"category_id = $categoryId"
@@ -92,7 +116,7 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 	)
 
 	suspend fun findCovers(categoryId: Long, order: ListSortOrder): List<Cover> {
-		val orderBy = getOrderBy(order)
+		val orderBy = getOrderBy(order, isGrouped = false)
 
 		@Language("RoomSql")
 		val query = SimpleSQLiteQuery(
@@ -142,6 +166,28 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 
 	@Query("SELECT manga.source AS count FROM favourites LEFT JOIN manga ON manga.manga_id = favourites.manga_id WHERE favourites.category_id = :categoryId GROUP BY manga.source ORDER BY COUNT(manga.source) DESC LIMIT :limit")
 	abstract suspend fun findPopularSources(categoryId: Long, limit: Int): List<String>
+
+	@Query(
+		"""SELECT tags.title FROM tags
+		INNER JOIN manga_tags ON tags.tag_id = manga_tags.tag_id
+		INNER JOIN favourites ON favourites.manga_id = manga_tags.manga_id
+		WHERE favourites.deleted_at = 0
+		GROUP BY tags.title
+		ORDER BY COUNT(DISTINCT manga_tags.manga_id) DESC
+		LIMIT :limit""",
+	)
+	abstract suspend fun findPopularTagTitles(limit: Int): List<String>
+
+	@Query(
+		"""SELECT tags.title FROM tags
+		INNER JOIN manga_tags ON tags.tag_id = manga_tags.tag_id
+		INNER JOIN favourites ON favourites.manga_id = manga_tags.manga_id
+		WHERE favourites.category_id = :categoryId AND favourites.deleted_at = 0
+		GROUP BY tags.title
+		ORDER BY COUNT(DISTINCT manga_tags.manga_id) DESC
+		LIMIT :limit""",
+	)
+	abstract suspend fun findPopularTagTitles(categoryId: Long, limit: Int): List<String>
 
 	fun dump(): Flow<FavouriteManga> = flow {
 		val window = 10
@@ -214,7 +260,28 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 	@Query("UPDATE favourites SET deleted_at = :deletedAt WHERE category_id = :categoryId AND deleted_at = 0")
 	protected abstract suspend fun setDeletedAtAll(categoryId: Long, deletedAt: Long)
 
-	private fun getOrderBy(sortOrder: ListSortOrder) = when (sortOrder) {
+	@Query("UPDATE favourites SET pinned = :isPinned WHERE manga_id = :mangaId AND category_id = :categoryId AND deleted_at = 0")
+	abstract suspend fun setPinned(mangaId: Long, categoryId: Long, isPinned: Boolean)
+
+	@Query("UPDATE favourites SET pinned = :isPinned WHERE manga_id = :mangaId AND deleted_at = 0")
+	abstract suspend fun setPinned(mangaId: Long, isPinned: Boolean)
+
+	@Query("SELECT DISTINCT manga_id FROM favourites WHERE category_id = :categoryId AND pinned = 1 AND deleted_at = 0")
+	abstract suspend fun findPinnedIds(categoryId: Long): List<Long>
+
+	@Query("SELECT DISTINCT manga_id FROM favourites WHERE pinned = 1 AND deleted_at = 0")
+	abstract suspend fun findAllPinnedIds(): List<Long>
+
+	/**
+	 * Pinned entries always come first. Queries grouped by manga (one row per category) sort on
+	 * MAX(pinned), so an entry pinned in any of its categories is consistently treated as pinned
+	 * instead of depending on which row SQLite happens to pick for the group.
+	 */
+	private fun getOrderBy(sortOrder: ListSortOrder, isGrouped: Boolean = true) = (if (isGrouped) {
+		"MAX(favourites.pinned) DESC, "
+	} else {
+		"favourites.pinned DESC, "
+	}) + when (sortOrder) {
 		ListSortOrder.RATING -> "manga.rating DESC"
 		ListSortOrder.NEWEST -> "favourites.created_at DESC"
 		ListSortOrder.OLDEST -> "favourites.created_at ASC"
@@ -230,13 +297,22 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 		else -> throw IllegalArgumentException("Sort order $sortOrder is not supported")
 	}
 
+	/** Matches anything that identifies an entry on this screen: title, source, or the list it is filed under. */
+	private fun searchCondition(search: LibrarySearchQuery): SqlCondition = librarySearchCondition(
+		query = search,
+		categoryMatch = "EXISTS(SELECT 1 FROM favourite_categories c WHERE c.category_id = favourites.category_id " +
+			"AND c.deleted_at = 0 AND c.title LIKE ? ESCAPE '\\')",
+	)
+
 	override fun getCondition(option: ListFilterOption): String? = when (option) {
 		ListFilterOption.Macro.COMPLETED -> "EXISTS(SELECT * FROM history WHERE history.manga_id = favourites.manga_id AND history.percent >= $PROGRESS_COMPLETED)"
 		ListFilterOption.Macro.NEW_CHAPTERS -> "(SELECT chapters_new FROM tracks WHERE tracks.manga_id = favourites.manga_id) > 0"
 		ListFilterOption.Macro.NSFW -> "manga.nsfw = 1"
 		is ListFilterOption.Tag -> "EXISTS(SELECT * FROM manga_tags WHERE favourites.manga_id = manga_tags.manga_id AND tag_id = ${option.tagId})"
+		is ListFilterOption.TagTitle -> "EXISTS(SELECT * FROM manga_tags INNER JOIN tags ON tags.tag_id = manga_tags.tag_id WHERE favourites.manga_id = manga_tags.manga_id AND tags.title = ${sqlEscapeString(option.titleText)})"
 		ListFilterOption.Downloaded -> "EXISTS(SELECT * FROM local_index WHERE local_index.manga_id = favourites.manga_id)"
 		is ListFilterOption.Source -> "manga.source = ${sqlEscapeString(option.mangaSource.name)}"
+		is ListFilterOption.ContentType -> contentTypeCondition(option.contentType)
 		else -> null
 	}
 }

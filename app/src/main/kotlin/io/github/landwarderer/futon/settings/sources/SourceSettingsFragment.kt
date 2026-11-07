@@ -59,6 +59,8 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 			isVisible = authProvider != null
 		}
 		findPreference<Preference>(SourceSettings.KEY_SLOWDOWN)?.isVisible = isValidSource
+		// The per-source opt-out only matters while automatic solving is enabled globally
+		findPreference<Preference>(SourceSettings.KEY_NO_AUTO_CAPTCHA)?.isEnabled = settings.isCaptchaAutoSolveEnabled
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

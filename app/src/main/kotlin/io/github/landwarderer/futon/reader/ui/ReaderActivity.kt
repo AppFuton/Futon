@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.viewModels
+import androidx.annotation.MainThread
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
@@ -114,6 +115,11 @@ class ReaderActivity :
     private var gestureInsets: Insets = Insets.NONE
     private lateinit var readerManager: ReaderManager
     private val hideUiRunnable = Runnable { setUiIsVisible(false) }
+    private val hideEInkFlashRunnable = Runnable { einkFlashView.isVisible = false }
+    private val eInkPageSettledRunnable = Runnable { onEInkPageSettled() }
+    private lateinit var einkFlashView: View
+    private var eInkFlashCounter = 0
+    private var eInkFlashLastPage: Pair<Class<*>, ReaderState>? = null
 
     // Tracks whether the foldable device is in an unfolded state (half-opened or flat)
     private var isFoldUnfolded: Boolean = false
@@ -122,6 +128,7 @@ class ReaderActivity :
         super.onCreate(savedInstanceState)
         setContentView(ActivityReaderBinding.inflate(layoutInflater))
         readerManager = ReaderManager(supportFragmentManager, viewBinding.container, settings)
+        einkFlashView = createEInkFlashView()
         setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
         touchHelper = TapGridDispatcher(viewBinding.root, this)
         scrollTimer = scrollTimerFactory.create(resources, this, this)
@@ -523,6 +530,7 @@ class ReaderActivity :
         ) {
             viewBinding.toastView.showTemporary(chapterTitle, TOAST_DURATION)
         }
+        flashOnPageChanged(previous, uiState)
         if (uiState.isSliderAvailable()) {
             viewBinding.actionsView.setSliderValue(
                 value = uiState.currentPage,
@@ -534,6 +542,71 @@ class ReaderActivity :
         viewBinding.actionsView.isSliderEnabled = uiState.isSliderAvailable()
         viewBinding.actionsView.isNextEnabled = uiState.hasNextChapter()
         viewBinding.actionsView.isPrevEnabled = uiState.hasPreviousChapter()
+    }
+
+    private fun createEInkFlashView(): View {
+        return View(this).apply {
+            isVisible = false
+            isClickable = false
+            isFocusable = false
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            viewBinding.root.addView(
+                this,
+                CoordinatorLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
+            )
+        }
+    }
+
+    /**
+     * Page changes are only counted once the reader has settled, so that a swipe between two
+     * double-page spreads (which goes through intermediate visible ranges) or a webtoon scroll
+     * counts as a single change, and so that restoring the reading position on open is not one.
+     */
+    @MainThread
+    private fun flashOnPageChanged(previous: ReaderUiState?, uiState: ReaderUiState) {
+        if (!settings.isEInkFlashEnabled) {
+            einkFlashView.removeCallbacks(eInkPageSettledRunnable)
+            eInkFlashCounter = 0
+            eInkFlashLastPage = null
+            return
+        }
+        if (previous != null && previous.chapter.id == uiState.chapter.id && previous.currentPage == uiState.currentPage) {
+            return
+        }
+        einkFlashView.removeCallbacks(eInkPageSettledRunnable)
+        einkFlashView.postDelayed(eInkPageSettledRunnable, EINK_SETTLE_DELAY)
+    }
+
+    @MainThread
+    private fun onEInkPageSettled() {
+        // the reader's own state is per spread in the double-page mode, spacers excluded
+        val reader = readerManager.currentReader ?: return
+        val state = reader.getCurrentState()?.copy(scroll = 0) ?: return
+        val page = reader.javaClass to state
+        val lastPage = eInkFlashLastPage
+        eInkFlashLastPage = page
+        // switching the reader mode re-anchors the position, that is not a page change
+        if (lastPage == null || lastPage.first != page.first || lastPage == page || !settings.isEInkFlashEnabled) {
+            return
+        }
+        if (readerManager.currentMode == ReaderMode.WEBTOON && scrollTimer.isActive.value) {
+            return // do not cover a continuously scrolling page
+        }
+        eInkFlashCounter++
+        if (eInkFlashCounter % settings.eInkFlashEvery == 0) {
+            showEInkFlash()
+        }
+    }
+
+    private fun showEInkFlash() {
+        einkFlashView.removeCallbacks(hideEInkFlashRunnable)
+        einkFlashView.setBackgroundColor(settings.eInkFlashColor.colorInt)
+        einkFlashView.bringToFront()
+        einkFlashView.isVisible = true
+        einkFlashView.postDelayed(hideEInkFlashRunnable, settings.eInkFlashDuration.toLong())
     }
 
     private fun updateScrollTimerButton() {
@@ -594,5 +667,6 @@ class ReaderActivity :
     companion object {
 
         private const val TOAST_DURATION = 2000L
+        private const val EINK_SETTLE_DELAY = 150L
     }
 }

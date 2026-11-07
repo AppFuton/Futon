@@ -35,15 +35,14 @@ class WebtoonHolder(
 
 	override fun onReady() {
 		binding.ssiv.colorFilter = settings.colorFilter?.toColorFilter()
-		with(binding.ssiv) {
-			scrollTo(
-				when {
-					scrollToRestore != 0 -> scrollToRestore
-					itemView.top < 0 -> getScrollRange()
-					else -> 0
-				},
-			)
-			scrollToRestore = 0
+		val restore = scrollToRestore
+		scrollToRestore = 0
+		val recyclerView = itemView.parent as? WebtoonRecyclerView
+		when {
+			restore != 0 -> binding.ssiv.scrollTo(restore)
+			// Also reached on every settings change, so this must leave an already placed page alone
+			recyclerView != null -> recyclerView.onPageReady(itemView as WebtoonFrameLayout)
+			else -> binding.ssiv.scrollTo(binding.ssiv.getScroll())
 		}
 	}
 

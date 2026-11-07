@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:background="@drawable/list_selector"
+	android:gravity="center_vertical"
+	android:minHeight="72dp"
+	android:orientation="horizontal"
+	android:paddingStart="8dp"
+	android:paddingEnd="8dp">
+
+	<io.github.landwarderer.futon.core.ui.image.FaviconView
+		android:id="@+id/imageViewIcon"
+		android:layout_width="48dp"
+		android:layout_height="48dp"
+		android:background="?colorSurfaceContainer"
+		android:scaleType="centerInside"
+		app:iconStyle="@style/FaviconDrawable.Small"
+		app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Futon.Cover.Small"
+		tools:src="@drawable/ic_web" />
+
+	<LinearLayout
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_marginStart="16dp"
+		android:layout_weight="1"
+		android:orientation="vertical">
+
+		<TextView
+			android:id="@+id/textViewTitle"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ellipsize="end"
+			android:singleLine="true"
+			android:textAppearance="?attr/textAppearanceTitleSmall"
+			tools:text="Manga source" />
+
+		<TextView
+			android:id="@+id/textViewSubtitle"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="2dp"
+			android:ellipsize="end"
+			android:singleLine="true"
+			android:textAppearance="?attr/textAppearanceBodySmall"
+			android:textColor="?android:textColorSecondary"
+			tools:text="18 of 25 titles matched" />
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="6dp"
+			android:gravity="center_vertical"
+			android:orientation="horizontal">
+
+			<com.google.android.material.progressindicator.LinearProgressIndicator
+				android:id="@+id/progressMatch"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:max="100"
+				tools:progress="72" />
+
+			<TextView
+				android:id="@+id/textViewPercent"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginStart="12dp"
+				android:gravity="center_vertical"
+				android:textAppearance="?attr/textAppearanceLabelLarge"
+				android:textColor="?attr/colorPrimary"
+				tools:text="72%" />
+
+			<ImageView
+				android:id="@+id/imageViewSelected"
+				android:layout_width="24dp"
+				android:layout_height="24dp"
+				android:layout_marginStart="8dp"
+				android:contentDescription="@string/selected"
+				android:src="@drawable/ic_check"
+				android:tint="?attr/colorPrimary"
+				android:visibility="gone"
+				tools:visibility="visible" />
+
+		</LinearLayout>
+
+	</LinearLayout>
+
+</LinearLayout>
