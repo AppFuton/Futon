@@ -59,6 +59,13 @@
 		android:title="@string/download_new_chapters"
 		app:useSimpleSummaryProvider="true" />
 
+	<SwitchPreferenceCompat
+		android:defaultValue="true"
+		android:dependency="tracker_enabled"
+		android:key="tracker_captcha_recheck"
+		android:summary="@string/tracker_captcha_recheck_summary"
+		android:title="@string/tracker_captcha_recheck" />
+
 	<PreferenceCategory android:title="@string/debug">
 
 		<Preference

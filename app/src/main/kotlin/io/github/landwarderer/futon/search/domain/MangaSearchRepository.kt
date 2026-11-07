@@ -9,15 +9,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.db.MangaDatabase
+import io.github.landwarderer.futon.core.db.SourceSearchFilter
+import io.github.landwarderer.futon.core.db.likeContainsPattern
 import io.github.landwarderer.futon.core.db.entity.toEntity
 import io.github.landwarderer.futon.core.db.entity.toManga
 import io.github.landwarderer.futon.core.db.entity.toMangaTag
 import io.github.landwarderer.futon.core.db.entity.toMangaTagsList
+import io.github.landwarderer.futon.core.model.FavouriteCategory
+import io.github.landwarderer.futon.core.model.getTitle
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.model.getTitle
 import io.github.landwarderer.futon.core.model.isNsfw
 import io.github.landwarderer.futon.novel.data.source.NovelParserSource
+import io.github.landwarderer.futon.favourites.data.toFavouriteCategory
+import io.github.landwarderer.futon.mihon.MihonExtensionManager
+import io.github.landwarderer.futon.search.ui.suggestion.SearchSuggestionScope
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -27,6 +35,10 @@ import org.koitharu.kotatsu.parsers.util.levenshteinDistance
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import io.github.landwarderer.futon.search.ui.MangaSuggestionsProvider
 import javax.inject.Inject
+import io.github.landwarderer.futon.core.model.MangaSource as mangaSourceOf
+
+/** How many of a screen's sources to consider when suggesting names to filter by. */
+private const val SOURCE_SCAN_LIMIT = 64
 
 @Reusable
 class MangaSearchRepository @Inject constructor(
@@ -35,7 +47,91 @@ class MangaSearchRepository @Inject constructor(
 	@ApplicationContext private val context: Context,
 	private val recentSuggestions: SearchRecentSuggestions,
 	private val settings: AppSettings,
+	private val sourceSearchFilter: SourceSearchFilter,
+	private val mihonExtensionManager: MihonExtensionManager,
 ) {
+
+	/**
+	 * Sources present on the current screen whose name matches what is being typed, so the user can
+	 * filter by source without knowing its exact spelling. Covers built-in parsers and Mihon sources.
+	 */
+	suspend fun getScopedSources(
+		query: String,
+		scope: SearchSuggestionScope,
+		limit: Int,
+	): List<MangaSource> {
+		val names = when (scope) {
+			SearchSuggestionScope.HISTORY -> db.getHistoryDao().findPopularSources(SOURCE_SCAN_LIMIT)
+			SearchSuggestionScope.FAVOURITES -> db.getFavouritesDao().findPopularSources(SOURCE_SCAN_LIMIT)
+			SearchSuggestionScope.ALL -> return emptyList()
+		}
+		return names.asSequence()
+			.map { name -> mihonExtensionManager.getMihonMangaSourceByName(name) ?: mangaSourceOf(name) }
+			.filter { query.isEmpty() || it.getTitle(context).contains(query, ignoreCase = true) }
+			.take(limit)
+			.toList()
+	}
+
+	/**
+	 * `true` when the typed text is the word for favourites itself, rather than the name of one list.
+	 */
+	fun matchesFavouritesKeyword(query: String): Boolean {
+		if (query.length < 3) {
+			return false
+		}
+		return context.getString(R.string.favourites).contains(query, ignoreCase = true)
+	}
+
+	suspend fun getAllCategories(): List<FavouriteCategory> = db.getFavouriteCategoriesDao()
+		.findAll()
+		.map { it.toFavouriteCategory() }
+
+	/**
+	 * Favourite lists whose name matches what is being typed. Offered on History too, so "show me what
+	 * I read out of this list" works from either screen.
+	 */
+	suspend fun getScopedCategories(
+		query: String,
+		scope: SearchSuggestionScope,
+		limit: Int,
+	): List<FavouriteCategory> {
+		if (scope == SearchSuggestionScope.ALL) {
+			return emptyList()
+		}
+		return db.getFavouriteCategoriesDao().findAll()
+			.asSequence()
+			.map { it.toFavouriteCategory() }
+			.filter { query.isEmpty() || it.title.contains(query, ignoreCase = true) }
+			.take(limit)
+			.toList()
+	}
+
+	/**
+	 * Manga suggestions restricted to one screen's contents, matching title, source or list name.
+	 * [SearchSuggestionScope.ALL] falls through to the library-wide lookup.
+	 */
+	suspend fun getMangaSuggestion(
+		query: String,
+		limit: Int,
+		source: MangaSource?,
+		scope: SearchSuggestionScope,
+	): List<Manga> {
+		if (scope == SearchSuggestionScope.ALL || query.isEmpty()) {
+			return getMangaSuggestion(query, limit, source)
+		}
+		val pattern = likeContainsPattern(query)
+		val sourceNames = sourceSearchFilter.findSourceNames(query)
+		val entities = when (scope) {
+			SearchSuggestionScope.HISTORY -> db.getHistoryDao().filter(pattern, sourceNames, limit)
+			SearchSuggestionScope.FAVOURITES -> db.getFavouritesDao().filter(pattern, sourceNames, limit)
+			SearchSuggestionScope.ALL -> return getMangaSuggestion(query, limit, source)
+		}
+		return entities.asSequence()
+			.filterNot { settings.isNsfwContentDisabled && it.manga.isNsfw }
+			.map { it.toManga() }
+			.sortedBy { it.title.levenshteinDistance(query) }
+			.toList()
+	}
 
 	suspend fun getMangaSuggestion(query: String, limit: Int, source: MangaSource?): List<Manga> = when {
 		query.isEmpty() -> db.getSuggestionDao().getTopManga(limit)

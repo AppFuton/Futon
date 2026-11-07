@@ -18,6 +18,14 @@ class DoublePagesAdapter(
 	exceptionResolver: ExceptionResolver,
 ) : BaseReaderAdapter<DoublePageHolder>(loader, readerSettingsProducer, networkState, exceptionResolver) {
 
+	override fun onBindViewHolder(holder: DoublePageHolder, position: Int) {
+		if (getItem(position).isSpacer) {
+			holder.bindSpacer()
+		} else {
+			super.onBindViewHolder(holder, position)
+		}
+	}
+
 	override fun onCreateViewHolder(
 		parent: ViewGroup,
 		loader: PageLoader,

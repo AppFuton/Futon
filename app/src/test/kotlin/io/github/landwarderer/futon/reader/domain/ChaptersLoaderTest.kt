@@ -1,5 +1,8 @@
 package io.github.landwarderer.futon.reader.domain
 
+import android.content.Context
+import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaAutoResolveCoordinator
+import io.github.landwarderer.futon.core.ui.util.ForegroundActivityHolder
 import io.github.landwarderer.futon.core.model.TestMangaSource
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.details.data.MangaDetails
@@ -82,7 +85,10 @@ class ChaptersLoaderTest {
         }
         val details = mock(MangaDetails::class.java)
         `when`(details.allChapters).thenReturn(chapters)
-        val loader = ChaptersLoader(factory)
+        val loader = ChaptersLoader(
+            factory,
+            CaptchaAutoResolveCoordinator(mock(Context::class.java), ForegroundActivityHolder()),
+        )
         loader.init(details)
         return Fixture(loader, repository, details, chapters)
     }

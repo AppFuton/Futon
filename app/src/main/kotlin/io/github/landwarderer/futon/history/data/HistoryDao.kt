@@ -12,7 +12,10 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
+import io.github.landwarderer.futon.core.db.LibrarySearchQuery
 import io.github.landwarderer.futon.core.db.MangaQueryBuilder
+import io.github.landwarderer.futon.core.db.SqlCondition
+import io.github.landwarderer.futon.core.db.librarySearchCondition
 import io.github.landwarderer.futon.core.db.TABLE_HISTORY
 import io.github.landwarderer.futon.core.db.entity.MangaWithTags
 import io.github.landwarderer.futon.core.db.entity.TagEntity
@@ -30,6 +33,23 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 	@Transaction
 	@Query("SELECT manga.* FROM history LEFT JOIN manga ON manga.manga_id = history.manga_id WHERE history.deleted_at = 0 AND (manga.title LIKE :query OR manga.alt_title LIKE :query) LIMIT :limit")
 	abstract suspend fun searchByTitle(query: String, limit: Int): List<MangaWithTags>
+
+	/**
+	 * Free-text match over everything that identifies an entry on the History screen: its title, the
+	 * source it came from, and the favourites list it belongs to. [pattern] must be escaped for
+	 * `ESCAPE '\'`.
+	 */
+	@Transaction
+	@Query(
+		"SELECT manga.* FROM history LEFT JOIN manga ON manga.manga_id = history.manga_id " +
+			"WHERE history.deleted_at = 0 AND (" +
+			"manga.title LIKE :pattern ESCAPE '\\' OR manga.alt_title LIKE :pattern ESCAPE '\\' " +
+			"OR manga.source IN (:sourceNames) " +
+			"OR EXISTS(SELECT 1 FROM favourites f INNER JOIN favourite_categories c ON c.category_id = f.category_id " +
+			"WHERE f.manga_id = history.manga_id AND f.deleted_at = 0 AND c.deleted_at = 0 AND c.title LIKE :pattern ESCAPE '\\')" +
+			") GROUP BY history.manga_id ORDER BY history.updated_at DESC LIMIT :limit",
+	)
+	abstract suspend fun filter(pattern: String, sourceNames: List<String>, limit: Int): List<MangaWithTags>
 
 	@Transaction
 	@Query("SELECT manga.* FROM history LEFT JOIN manga ON manga.manga_id = history.manga_id WHERE history.deleted_at = 0 AND (manga.author LIKE :query) LIMIT :limit")
@@ -50,11 +70,13 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 	fun observeAll(
 		order: ListSortOrder,
 		filterOptions: Set<ListFilterOption>,
-		limit: Int
+		limit: Int,
+		search: LibrarySearchQuery = LibrarySearchQuery.EMPTY,
 	): Flow<List<HistoryWithManga>> = observeAllImpl(
 		MangaQueryBuilder(TABLE_HISTORY, this)
 			.join("LEFT JOIN manga ON history.manga_id = manga.manga_id")
 			.where("history.deleted_at = 0")
+			.let { if (search.isEmpty()) it else it.where(searchCondition(search)) }
 			.filters(filterOptions)
 			.orderBy(
 				orderBy = when (order) {
@@ -189,6 +211,13 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 	@Transaction
 	@RawQuery(observedEntities = [HistoryEntity::class])
 	protected abstract fun observeAllImpl(query: SupportSQLiteQuery): Flow<List<HistoryWithManga>>
+
+	/** Matches anything that identifies an entry on this screen: title, source, or the favourites list it is in. */
+	private fun searchCondition(search: LibrarySearchQuery): SqlCondition = librarySearchCondition(
+		query = search,
+		categoryMatch = "EXISTS(SELECT 1 FROM favourites f INNER JOIN favourite_categories c ON c.category_id = f.category_id " +
+			"WHERE f.manga_id = history.manga_id AND f.deleted_at = 0 AND c.deleted_at = 0 AND c.title LIKE ? ESCAPE '\\')",
+	)
 
 	override fun getCondition(option: ListFilterOption): String? = when (option) {
 		is ListFilterOption.Favorite -> "EXISTS(SELECT * FROM favourites WHERE history.manga_id = favourites.manga_id AND category_id = ${option.category.id})"

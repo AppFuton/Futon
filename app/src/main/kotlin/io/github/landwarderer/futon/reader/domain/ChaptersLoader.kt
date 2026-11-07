@@ -5,6 +5,7 @@ import androidx.annotation.CheckResult
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaAutoResolveCoordinator
 import io.github.landwarderer.futon.core.parser.MangaRepository
 import io.github.landwarderer.futon.details.data.MangaDetails
 import org.koitharu.kotatsu.parsers.model.MangaChapter
@@ -17,6 +18,7 @@ private const val PAGES_TRIM_THRESHOLD = 120
 @ViewModelScoped
 class ChaptersLoader @Inject constructor(
 	private val mangaRepositoryFactory: MangaRepository.Factory,
+	private val captchaAutoResolveCoordinator: CaptchaAutoResolveCoordinator,
 ) {
 
 	private val chapters = LongSparseArray<MangaChapter>()
@@ -40,7 +42,8 @@ class ChaptersLoader @Inject constructor(
 		if (index == -1) return false
 		val newChapter = chapters.getOrNull(if (isNext) index + 1 else index - 1) ?: return false
 		if (mutex.withLock { newChapter.id in chapterPages }) return false
-		val newPages = loadChapter(newChapter.id)
+		// Adjacent chapters are loaded ahead of the user: never start a captcha solver for them.
+		val newPages = loadChapter(newChapter.id, mayStartVerification = false)
 		if (newPages.isEmpty()) return false
 		return mutex.withLock {
 			if (newChapter.id in chapterPages) return@withLock false
@@ -63,7 +66,7 @@ class ChaptersLoader @Inject constructor(
 	}
 
 	suspend fun loadSingleChapter(chapterId: Long, keepCurrentOnEmpty: Boolean = false): Boolean {
-		val pages = loadChapter(chapterId)
+		val pages = loadChapter(chapterId, mayStartVerification = true)
 		if (keepCurrentOnEmpty && pages.isEmpty()) return false
 		return mutex.withLock {
 			chapterPages.clear()
@@ -92,10 +95,16 @@ class ChaptersLoader @Inject constructor(
 
 	fun snapshot() = chapterPages.toList()
 
-	private suspend fun loadChapter(chapterId: Long): List<ReaderPage> {
+	private suspend fun loadChapter(
+		chapterId: Long,
+		mayStartVerification: Boolean,
+	): List<ReaderPage> {
 		val chapter = checkNotNull(chapters[chapterId]) { "Requested chapter not found" }
 		val repo = mangaRepositoryFactory.create(chapter.source)
-		return repo.getPages(chapter).mapIndexed { index, page ->
+		val pages = captchaAutoResolveCoordinator.runWithVerification(mayStartVerification) {
+			repo.getPages(chapter)
+		}
+		return pages.mapIndexed { index, page ->
 			ReaderPage(page, index, chapterId)
 		}
 	}

@@ -13,9 +13,47 @@ import io.github.landwarderer.futon.list.domain.ListFilterOption
 @Dao
 abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 
+	/**
+	 * Tracks to check, least recently checked first. Tracks inactive for a while (no recent chapter, read or
+	 * favourite) are skipped unless they were not checked since [staleCheckTime].
+	 */
 	@Transaction
-	@Query("SELECT * FROM tracks ORDER BY last_check_time ASC LIMIT :limit OFFSET :offset")
-	abstract suspend fun findAll(offset: Int, limit: Int): List<TrackWithManga>
+	@Query(
+		"""
+		SELECT * FROM tracks
+		WHERE last_check_time = 0
+			OR last_check_time <= :staleCheckTime
+			OR last_chapter_date = 0
+			OR last_chapter_date >= :minActivityTime
+			OR EXISTS(
+				SELECT 1 FROM history
+				WHERE history.manga_id = tracks.manga_id
+					AND history.deleted_at = 0
+					AND history.updated_at >= :minActivityTime
+			)
+			OR EXISTS(
+				SELECT 1 FROM favourites
+				WHERE favourites.manga_id = tracks.manga_id
+					AND favourites.deleted_at = 0
+					AND favourites.created_at >= :minActivityTime
+			)
+		ORDER BY last_check_time ASC
+		LIMIT :limit OFFSET :offset
+		""",
+	)
+	abstract suspend fun findAll(offset: Int, limit: Int, minActivityTime: Long, staleCheckTime: Long): List<TrackWithManga>
+
+	/** Tracks of [source] whose last check stopped at a captcha. */
+	@Transaction
+	@Query(
+		"""
+		SELECT tracks.* FROM tracks
+		INNER JOIN manga ON manga.manga_id = tracks.manga_id
+		WHERE manga.source = :source AND tracks.last_result = ${TrackEntity.RESULT_CAPTCHA}
+		ORDER BY tracks.last_check_time ASC
+		""",
+	)
+	abstract suspend fun findCaptchaBlocked(source: String): List<TrackWithManga>
 
 	@Transaction
 	@Query("SELECT * FROM tracks ORDER BY last_check_time DESC")
@@ -58,11 +96,22 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 	@Query("DELETE FROM tracks")
 	abstract suspend fun clear()
 
+	/**
+	 * Resets every unread counter. The tracks keep their baseline: rebasing them on the reading position would make
+	 * the next check report every chapter after it as new again.
+	 */
 	@Query("UPDATE tracks SET chapters_new = 0")
 	abstract suspend fun clearCounters()
 
 	@Query("UPDATE tracks SET chapters_new = 0 WHERE manga_id = :mangaId")
 	abstract suspend fun clearCounter(mangaId: Long)
+
+	@Query("UPDATE tracks SET chapters_new = 0 WHERE chapters_new > 0 AND last_chapter_date > 0 AND last_chapter_date < :minChapterDate")
+	abstract suspend fun clearStaleCounters(minChapterDate: Long)
+
+	/** Records a check that was skipped, keeping the tracking state (baseline and counter) as it is. */
+	@Query("UPDATE tracks SET last_check_time = :time, last_result = :result, last_error = :error WHERE manga_id IN (:ids)")
+	abstract suspend fun markChecked(ids: Collection<Long>, time: Long, result: Int, error: String?)
 
 	@Query("DELETE FROM tracks WHERE manga_id = :mangaId")
 	abstract suspend fun delete(mangaId: Long)

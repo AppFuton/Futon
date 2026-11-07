@@ -19,11 +19,17 @@ import io.github.landwarderer.futon.core.util.ext.viewLifecycleScope
 abstract class ErrorObserver(
 	protected val host: View,
 	protected val fragment: Fragment?,
-	private val resolver: ExceptionResolver?,
+	resolver: ExceptionResolver?,
 	private val onResolved: Consumer<Boolean>?,
 ) : FlowCollector<Throwable> {
 
 	protected open val activity = host.context.findActivity()
+
+	// Observers created without a resolver fall back to the screen's own, so errors such as a captcha
+	// still get their fix action. Looked up lazily: the screen sets it up once attached.
+	private val resolver: ExceptionResolver? by lazy(LazyThreadSafetyMode.NONE) {
+		resolver ?: (fragment as? ExceptionResolver.Owner ?: activity as? ExceptionResolver.Owner)?.exceptionResolver
+	}
 
 	private val lifecycleScope: LifecycleCoroutineScope
 		get() = checkNotNull(fragment?.viewLifecycleScope ?: (activity as? LifecycleOwner)?.lifecycle?.coroutineScope)

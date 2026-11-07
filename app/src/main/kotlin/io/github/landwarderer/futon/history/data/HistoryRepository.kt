@@ -5,6 +5,7 @@ import dagger.Reusable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import io.github.landwarderer.futon.core.db.LibrarySearchQuery
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.db.entity.toEntity
 import io.github.landwarderer.futon.core.db.entity.toManga
@@ -12,6 +13,8 @@ import io.github.landwarderer.futon.core.db.entity.toMangaList
 import io.github.landwarderer.futon.core.db.entity.toMangaTags
 import io.github.landwarderer.futon.core.db.entity.toMangaTagsList
 import io.github.landwarderer.futon.core.model.MangaHistory
+import io.github.landwarderer.futon.core.model.findSameChapter
+import io.github.landwarderer.futon.core.model.getPreferredBranch
 import io.github.landwarderer.futon.core.model.isLocal
 import io.github.landwarderer.futon.core.model.isNsfw
 import io.github.landwarderer.futon.core.model.toMangaSources
@@ -25,8 +28,10 @@ import io.github.landwarderer.futon.list.domain.ListFilterOption
 import io.github.landwarderer.futon.list.domain.ListSortOrder
 import io.github.landwarderer.futon.list.domain.ReadingProgress
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.util.almostEquals
 import org.koitharu.kotatsu.parsers.util.findById
 import org.koitharu.kotatsu.parsers.util.levenshteinDistance
 import io.github.landwarderer.futon.scrobbling.common.domain.Scrobbler
@@ -34,6 +39,8 @@ import io.github.landwarderer.futon.scrobbling.common.domain.tryScrobble
 import io.github.landwarderer.futon.search.domain.SearchKind
 import io.github.landwarderer.futon.tracker.domain.CheckNewChaptersUseCase
 import javax.inject.Inject
+import kotlin.math.abs
+import kotlin.math.ceil
 import javax.inject.Provider
 
 @Reusable
@@ -92,12 +99,13 @@ class HistoryRepository @Inject constructor(
 	fun observeAllWithHistory(
 		order: ListSortOrder,
 		filterOptions: Set<ListFilterOption>,
-		limit: Int
+		limit: Int,
+		search: LibrarySearchQuery = LibrarySearchQuery.EMPTY,
 	): Flow<List<MangaWithHistory>> {
 		if (ListFilterOption.Downloaded in filterOptions) {
-			return localObserver.observeAll(order, filterOptions, limit)
+			return localObserver.observeAll(order, filterOptions, limit, search)
 		}
-		return db.getHistoryDao().observeAll(order, filterOptions, limit).mapItems {
+		return db.getHistoryDao().observeAll(order, filterOptions, limit, search).mapItems {
 			MangaWithHistory(
 				it.toManga(),
 				it.history.toMangaHistory(),
@@ -116,15 +124,19 @@ class HistoryRepository @Inject constructor(
 			return
 		}
 		assert(manga.chapters != null)
+		// A reader opened on an older load can still be on an id that the source has replaced since
+		val currentChapterId = manga.chapters?.takeIf { it.findById(chapterId) == null }
+			?.let { chapters -> mangaRepository.findCachedChapter(manga.id, chapterId)?.let(chapters::findSameChapter) }
+			?.id ?: chapterId
 		db.withTransaction {
 			mangaRepository.storeManga(manga, replaceExisting = true)
-			val branch = manga.chapters?.findById(chapterId)?.branch
+			val branch = manga.chapters?.findById(currentChapterId)?.branch
 			db.getHistoryDao().upsert(
 				HistoryEntity(
 					mangaId = manga.id,
 					createdAt = System.currentTimeMillis(),
 					updatedAt = System.currentTimeMillis(),
-					chapterId = chapterId,
+					chapterId = currentChapterId,
 					page = page,
 					scroll = scroll.toFloat(), // we migrate to int, but decide to not update database
 					percent = percent,
@@ -132,13 +144,32 @@ class HistoryRepository @Inject constructor(
 					deletedAt = 0L,
 				),
 			)
-			newChaptersUseCaseProvider.get()(manga, chapterId)
-			scrobblers.forEach { it.tryScrobble(manga, chapterId) }
+			newChaptersUseCaseProvider.get()(manga, currentChapterId)
+			scrobblers.forEach { it.tryScrobble(manga, currentChapterId) }
 		}
 	}
 
 	suspend fun getOne(manga: Manga): MangaHistory? {
 		return db.getHistoryDao().find(manga.id)?.recoverIfNeeded(manga)?.toMangaHistory()
+	}
+
+	/**
+	 * Histories of other library manga whose title (or one of the alternative titles) is almost the same as
+	 * [manga]'s, e.g. the same series read from another source.
+	 */
+	suspend fun findSimilarByTitle(manga: Manga, limit: Int): List<MangaHistory> {
+		val title = manga.title.trim()
+		if (title.length < MIN_TITLE_MATCH_LENGTH) {
+			return emptyList()
+		}
+		val result = ArrayList<MangaHistory>()
+		for (candidate in db.getMangaDao().searchByTitle("%$title%", limit)) {
+			if (candidate.manga.id == manga.id || !candidate.manga.title.matchesTitle(manga)) {
+				continue
+			}
+			db.getHistoryDao().find(candidate.manga.id)?.toMangaHistory()?.let(result::add)
+		}
+		return result
 	}
 
 	suspend fun getProgress(mangaId: Long, mode: ProgressIndicatorMode): ReadingProgress? {
@@ -217,17 +248,84 @@ class HistoryRepository @Inject constructor(
 	}
 
 	private suspend fun HistoryEntity.recoverIfNeeded(manga: Manga): HistoryEntity {
-		val chapters = manga.chapters
-		if (manga.isLocal || chapters.isNullOrEmpty() || chapters.findById(chapterId) != null) {
+		val allChapters = manga.chapters
+		// The history chapter can be in any branch: only a chapter gone from the whole list needs recovering.
+		if (manga.isLocal || allChapters.isNullOrEmpty() || allChapters.findById(chapterId) != null) {
 			return this
 		}
-		val newChapterId = chapters.getOrNull(
-			(chapters.size * percent).toInt(),
-		)?.id ?: return this
-		val newEntity = copy(chapterId = newChapterId)
+		// The source gave the chapter a new id: the stored list still says which chapter it was
+		val previous = mangaRepository.findCachedChapter(manga.id, chapterId)
+		val same = previous?.let(allChapters::findSameChapter)
+		if (same != null) {
+			val newEntity = copy(chapterId = same.id)
+			db.getHistoryDao().update(newEntity)
+			return newEntity
+		}
+		// Otherwise guess the position from the percentage, in the branch the chapter was read in if it still exists
+		val chapters = previous?.let { manga.getChapters(it.branch) }?.takeUnless { it.isEmpty() }
+			?: manga.findRecoveryChapters(this)
+		if (chapters.isNullOrEmpty()) {
+			return this
+		}
+		val newChapterIndex = estimateRecoveredChapterIndex(chapters.size) ?: return this
+		val newChapterId = chapters.getOrNull(newChapterIndex)?.id ?: return this
+		val newEntity = copy(
+			chapterId = newChapterId,
+			percent = estimateRecoveredPercent(chapters.size),
+			chaptersCount = chapters.size,
+		)
 		db.getHistoryDao().update(newEntity)
 		return newEntity
 	}
 
+	private fun Manga.findRecoveryChapters(history: HistoryEntity): List<MangaChapter>? {
+		val allChapters = chapters?.takeUnless { it.isEmpty() } ?: return null
+		if (history.chaptersCount > 0) {
+			return allChapters.groupBy { it.branch }
+				.values
+				.minByOrNull { abs(it.size - history.chaptersCount) }
+		}
+		return getChapters(getPreferredBranch(null)).takeUnless { it.isEmpty() } ?: allChapters
+	}
+
+	private fun HistoryEntity.estimateRecoveredChapterIndex(newChaptersCount: Int): Int? {
+		if (newChaptersCount <= 0 || !ReadingProgress.isValid(percent)) {
+			return null
+		}
+		val referenceCount = chaptersCount.takeIf { it > 0 } ?: newChaptersCount
+		val referenceIndex = if (ReadingProgress.isCompleted(percent)) {
+			referenceCount - 1
+		} else {
+			// percent counts the page currently on screen as read, so a value on an exact
+			// chapter boundary is ambiguous: "finished chapter i" or "still inside chapter i"
+			// (single-page long-strip chapters always sit on the boundary). Resolve to
+			// chapter i - never skip ahead - the preserved page/scroll belong to it anyway.
+			ceil(percent.toDouble() * referenceCount).toInt() - 1
+		}
+		return referenceIndex.coerceIn(0, newChaptersCount - 1)
+	}
+
+	private fun HistoryEntity.estimateRecoveredPercent(newChaptersCount: Int): Float {
+		if (chaptersCount <= 0 || newChaptersCount <= 0 || !ReadingProgress.isValid(percent)) {
+			return percent
+		}
+		return (percent * chaptersCount / newChaptersCount).coerceIn(0f, 1f)
+	}
+
 	private fun HistoryWithManga.toManga() = manga.toManga(tags.toMangaTags(), null)
+
+	private fun String.matchesTitle(manga: Manga): Boolean {
+		if (almostEquals(manga.title, TITLE_MATCH_THRESHOLD)) {
+			return true
+		}
+		return manga.altTitles.any { altTitle ->
+			altTitle.isNotBlank() && almostEquals(altTitle, TITLE_MATCH_THRESHOLD)
+		}
+	}
+
+	private companion object {
+
+		const val MIN_TITLE_MATCH_LENGTH = 4
+		const val TITLE_MATCH_THRESHOLD = 0.12f
+	}
 }

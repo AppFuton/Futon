@@ -8,6 +8,21 @@
         android:key="color_theme"
         android:title="@string/color_theme" />
 
+    <Preference
+        android:key="custom_themes_management"
+        android:title="@string/custom_themes"
+        android:summary="@string/custom_themes_none" />
+
+    <Preference
+        android:key="custom_theme_import"
+        android:title="@string/custom_theme_import"
+        android:summary="@string/custom_theme_import_summary" />
+
+    <Preference
+        android:key="custom_theme_delete"
+        android:title="@string/custom_theme_delete"
+        android:summary="@string/custom_themes_none" />
+
     <ListPreference
         android:defaultValue="-1"
         android:entries="@array/themes"
@@ -134,6 +149,13 @@
             android:key="dynamic_shortcuts"
             android:summary="@string/history_shortcuts_summary"
             android:title="@string/history_shortcuts" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:dependency="dynamic_shortcuts"
+            android:key="shortcuts_no_nsfw"
+            android:summary="@string/exclude_nsfw_from_shortcuts_summary"
+            android:title="@string/exclude_nsfw_from_shortcuts" />
 
     </PreferenceCategory>
 

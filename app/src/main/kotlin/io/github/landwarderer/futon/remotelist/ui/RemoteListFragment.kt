@@ -11,9 +11,11 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.getTitle
 import io.github.landwarderer.futon.core.nav.router
+import io.github.landwarderer.futon.core.prefs.SourceSettings
 import io.github.landwarderer.futon.core.ui.list.ListSelectionController
 import io.github.landwarderer.futon.core.ui.util.MenuInvalidator
 import io.github.landwarderer.futon.core.util.ext.addMenuProvider
@@ -21,6 +23,7 @@ import io.github.landwarderer.futon.core.util.ext.getCauseUrl
 import io.github.landwarderer.futon.core.util.ext.isHttpUrl
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.observeEvent
+import io.github.landwarderer.futon.core.util.ext.viewLifecycleScope
 import io.github.landwarderer.futon.core.util.ext.withArgs
 import io.github.landwarderer.futon.databinding.FragmentListBinding
 import io.github.landwarderer.futon.filter.ui.FilterCoordinator
@@ -43,6 +46,21 @@ class RemoteListFragment : MangaListFragment(), FilterCoordinator.Owner, View.On
         viewModel.isRandomLoading.observe(viewLifecycleOwner, MenuInvalidator(requireActivity()))
         viewModel.onOpenManga.observeEvent(viewLifecycleOwner) { router.openDetails(it, viewModel.source.getTitle(requireContext())) }
         viewModel.onSourceBroken.observeEvent(viewLifecycleOwner) { showSourceBrokenWarning() }
+        viewModel.onCaptchaRequired.observeEvent(viewLifecycleOwner) { e ->
+            if (SourceSettings(requireContext(), e.source).isCaptchaAutoResolveDisabled) {
+                return@observeEvent
+            }
+            viewLifecycleScope.launch {
+                viewModel.setCaptchaResolving(true)
+                try {
+                    if (exceptionResolver.resolve(e, tryAutoResolve = true)) {
+                        viewModel.onRetry()
+                    }
+                } finally {
+                    viewModel.setCaptchaResolving(false)
+                }
+            }
+        }
         filterCoordinator.observe().distinctUntilChangedBy { it.listFilter.isEmpty() }
             .drop(1)
             .observe(viewLifecycleOwner) {

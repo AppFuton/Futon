@@ -61,6 +61,7 @@
 				app:layout_constraintWidth_percent="0.7" />
 
 			<io.github.landwarderer.futon.core.ui.widgets.ShapeView
+				android:id="@+id/shape_primary"
 				android:layout_width="16dp"
 				android:layout_height="16dp"
 				android:background="?colorPrimary"

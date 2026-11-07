@@ -62,7 +62,6 @@ import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.local.data.LocalStorageCache
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
 import io.github.landwarderer.futon.local.data.PageCache
-import io.github.landwarderer.futon.local.data.TempFileFilter
 import io.github.landwarderer.futon.local.data.input.LocalMangaParser
 import io.github.landwarderer.futon.local.data.output.LocalMangaOutput
 import io.github.landwarderer.futon.local.domain.DeleteReadChaptersUseCase
@@ -98,6 +97,7 @@ import org.koitharu.kotatsu.parsers.util.requireBody
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.File
 import java.util.UUID
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
@@ -210,6 +210,7 @@ class DownloadWorker @AssistedInject constructor(
 			)
 			val destination = localMangaRepository.getOutputDir(manga, task.destination)
 			checkNotNull(destination) { applicationContext.getString(R.string.cannot_find_available_storage) }
+			val tempFiles = ConcurrentLinkedQueue<File>()
 			var output: LocalMangaOutput? = null
 			try {
 				if (manga.isLocal) {
@@ -225,7 +226,7 @@ class DownloadWorker @AssistedInject constructor(
 				)
 				val coverUrl = mangaDetails.largeCoverUrl.ifNullOrEmpty { mangaDetails.coverUrl }
 				if (!coverUrl.isNullOrEmpty()) {
-					downloadFile(coverUrl, destination, repo.source).let { file ->
+					downloadFile(coverUrl, destination, repo.source, tempFiles).let { file ->
 						output.addCover(file, getMediaType(coverUrl, file))
 						file.deleteAwait()
 					}
@@ -250,7 +251,7 @@ class DownloadWorker @AssistedInject constructor(
 									runFailsafe {
 										val url = repo.getPageUrl(page)
 										val file = cache[url]
-											?: downloadFile(url, destination, repo.source)
+											?: downloadFile(url, destination, repo.source, tempFiles)
 										output.addPage(
 											chapter = chapter,
 											file = file,
@@ -330,9 +331,7 @@ class DownloadWorker @AssistedInject constructor(
 					applicationContext.unregisterReceiver(pausingReceiver)
 					output?.closeQuietly()
 					output?.cleanup()
-					destination.listFiles(TempFileFilter())?.forEach {
-						it.deleteAwait()
-					}
+					tempFiles.forEach { it.deleteAwait() }
 				}
 			}
 		}
@@ -407,6 +406,7 @@ class DownloadWorker @AssistedInject constructor(
 		url: String,
 		destination: File,
 		source: MangaSource,
+		tempFiles: MutableCollection<File>,
 	): File {
 		if (url.startsWith("content:", ignoreCase = true) || url.startsWith("file:", ignoreCase = true)) {
 			val uri = url.toUri()
@@ -415,6 +415,7 @@ class DownloadWorker @AssistedInject constructor(
 				MimeTypes.getNormalizedExtension(it.name)
 			} ?: cr.getType(uri)?.toMimeTypeOrNull()?.let { MimeTypes.getExtension(it) }
 			val file = destination.createTempFile(ext)
+			tempFiles += file
 			try {
 				cr.openSource(uri).use { input ->
 					file.sink(append = false).buffer().use {
@@ -437,7 +438,7 @@ class DownloadWorker @AssistedInject constructor(
 					response.requireBody().use { body ->
 						file = destination.createTempFile(
 							ext = MimeTypes.getExtension(body.contentType()?.toMimeType())
-						)
+						).also { tempFiles += it }
 						file.sink(append = false).buffer().use {
 							it.writeAllCancellable(body.source(), bandwidthLimiter)
 						}

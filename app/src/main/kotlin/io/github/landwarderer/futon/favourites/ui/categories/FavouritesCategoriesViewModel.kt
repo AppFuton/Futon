@@ -45,7 +45,7 @@ class FavouritesCategoriesViewModel @Inject constructor(
 	) { cats, all, showAll, hasActions ->
 		cats.toUiList(all, showAll, hasActions)
 	}.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState))
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, listOf(LoadingState()))
 
 	fun deleteCategories(ids: Set<Long>) {
 		launchJob(Dispatchers.IO) {

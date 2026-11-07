@@ -1,15 +1,18 @@
 package io.github.landwarderer.futon.settings.work
 
 import android.content.SharedPreferences
+import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaHandler
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.util.ext.processLifecycleScope
 import io.github.landwarderer.futon.download.ui.worker.DownloadSchedulerWorker
 import io.github.landwarderer.futon.download.ui.worker.DownloadWorker
 import io.github.landwarderer.futon.suggestions.ui.SuggestionsWorker
+import io.github.landwarderer.futon.tracker.domain.TrackerUnstuckMigrationUseCase
 import io.github.landwarderer.futon.tracker.work.TrackWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 
 @Singleton
@@ -18,6 +21,8 @@ class WorkScheduleManager @Inject constructor(
 	private val suggestionScheduler: SuggestionsWorker.Scheduler,
 	private val trackerScheduler: TrackWorker.Scheduler,
 	private val downloadScheduler: DownloadWorker.Scheduler,
+	private val trackerUnstuckMigrationProvider: Provider<TrackerUnstuckMigrationUseCase>,
+	private val captchaHandler: CaptchaHandler,
 ) : SharedPreferences.OnSharedPreferenceChangeListener {
 
 	override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
@@ -51,6 +56,18 @@ class WorkScheduleManager @Inject constructor(
 			updateWorkerImpl(trackerScheduler, settings.isTrackerEnabled, true) // always force due to adaptive interval
 			updateWorkerImpl(suggestionScheduler, settings.isSuggestionsEnabled, false)
 			DownloadSchedulerWorker.scheduleAlarm(downloadScheduler.workManager, settings)
+		}
+		processLifecycleScope.launch(Dispatchers.Default) {
+			// Recovery for tracks bugged by the previous reader-side new chapters check.
+			// Runs at most once per install (gated by settings flags).
+			trackerUnstuckMigrationProvider.get().runIfNeeded()
+		}
+		processLifecycleScope.launch(Dispatchers.Default) {
+			captchaHandler.solvedSources.collect { source ->
+				if (settings.isTrackerEnabled && settings.isTrackerCaptchaRecheckEnabled) {
+					trackerScheduler.recheckSource(source)
+				}
+			}
 		}
 	}
 

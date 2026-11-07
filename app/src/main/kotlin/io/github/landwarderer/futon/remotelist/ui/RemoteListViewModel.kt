@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.landwarderer.futon.R
+import io.github.landwarderer.futon.core.exceptions.CloudFlareProtectedException
 import io.github.landwarderer.futon.core.model.MangaSource
 import io.github.landwarderer.futon.core.model.distinctById
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
@@ -12,6 +13,7 @@ import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.ListMode
 import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.core.util.ext.call
+import io.github.landwarderer.futon.core.util.ext.findCloudFlareException
 import io.github.landwarderer.futon.core.util.ext.getCauseUrl
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
@@ -67,22 +69,29 @@ open class RemoteListViewModel @Inject constructor(
 	val isRandomLoading = MutableStateFlow(false)
 	val onOpenManga = MutableEventFlow<Manga>()
     val onSourceBroken = MutableEventFlow<Unit>()
+	val onCaptchaRequired = MutableEventFlow<CloudFlareProtectedException>()
 
 	protected val repository = mangaRepositoryFactory.create(source)
 	private val mangaList = MutableStateFlow<List<Manga>?>(null)
 	private val hasNextPage = MutableStateFlow(false)
 	private val listError = MutableStateFlow<Throwable?>(null)
+	private val isResolvingCaptcha = MutableStateFlow(false)
 	private var loadingJob: Job? = null
 	private var randomJob: Job? = null
+	private var initialOpenMayStartVerification = true
 
 	override val content = combine(
 		mangaList.map { it?.skipNsfwIfNeeded() },
 		observeListModeWithTriggers(),
 		listError,
 		hasNextPage,
-	) { list, mode, error, hasNext ->
+		isResolvingCaptcha,
+	) { list, mode, error, hasNext, resolvingCaptcha ->
 		buildList(list?.size?.plus(2) ?: 2) {
 			when {
+				// While the silent captcha solve is in progress, show a loading state instead of the error.
+				resolvingCaptcha && list.isNullOrEmpty() -> add(LoadingState(R.string.captcha_solving))
+
 				list.isNullOrEmpty() && error != null -> add(
 					error.toErrorState(
 						canRetry = true,
@@ -90,7 +99,7 @@ open class RemoteListViewModel @Inject constructor(
 					),
 				)
 
-				list == null -> add(LoadingState)
+				list == null -> add(LoadingState())
 				list.isEmpty() -> add(createEmptyState(canResetFilter = filterCoordinator.isFilterApplied))
 				else -> {
 					mapMangaList(this, list, mode)
@@ -103,7 +112,7 @@ open class RemoteListViewModel @Inject constructor(
 			}
 			onBuildList(this)
 		}
-	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, listOf(LoadingState))
+	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, listOf(LoadingState()))
 
 	init {
 		filterCoordinator.observe()
@@ -144,14 +153,27 @@ open class RemoteListViewModel @Inject constructor(
 		loadingJob?.let {
 			if (it.isActive) return it
 		}
+		// Only opening the catalog is an explicit action which may start the silent captcha solver;
+		// paging, refreshing and filter changes fall back to the manual "Solve" action.
+		val mayStartVerification = initialOpenMayStartVerification && !append
+		initialOpenMayStartVerification = false
 		return launchLoadingJob(Dispatchers.IO) {
 			try {
 				listError.value = null
-				val list = repository.getList(
-					offset = if (append) mangaList.value.sizeOrZero() else 0,
-					order = filterState.sortOrder,
-					filter = filterState.listFilter,
-				)
+				val list = try {
+					repository.getList(
+						offset = if (append) mangaList.value.sizeOrZero() else 0,
+						order = filterState.sortOrder,
+						filter = filterState.listFilter,
+					)
+				} catch (e: Exception) {
+					val cf = e.findCloudFlareException()
+					if (cf is CloudFlareProtectedException && mayStartVerification && !isResolvingCaptcha.value) {
+						// The Fragment owns the resolve (it needs an ExceptionResolver); a success triggers onRetry().
+						onCaptchaRequired.call(cf)
+					}
+					throw e
+				}
 				val prevList = mangaList.value.orEmpty()
 				if (!append) {
 					mangaList.value = list.distinctById()
@@ -174,6 +196,11 @@ open class RemoteListViewModel @Inject constructor(
 				hasNextPage.value = false
 			}
 		}.also { loadingJob = it }
+	}
+
+	/** Flipped by the Fragment around the silent captcha resolve. */
+	fun setCaptchaResolving(resolving: Boolean) {
+		isResolvingCaptcha.value = resolving
 	}
 
 	protected open fun createEmptyState(canResetFilter: Boolean) = EmptyState(

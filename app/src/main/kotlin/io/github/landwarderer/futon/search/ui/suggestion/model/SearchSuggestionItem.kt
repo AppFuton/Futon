@@ -1,6 +1,7 @@
 package io.github.landwarderer.futon.search.ui.suggestion.model
 
 import androidx.annotation.StringRes
+import io.github.landwarderer.futon.core.model.FavouriteCategory
 import io.github.landwarderer.futon.core.model.isNsfw
 import io.github.landwarderer.futon.core.ui.widgets.ChipsView
 import io.github.landwarderer.futon.list.ui.ListModelDiffCallback
@@ -79,6 +80,49 @@ sealed interface SearchSuggestionItem : ListModel {
 
 		override fun areItemsTheSame(other: ListModel): Boolean {
 			return other is SourceTip && other.source.name == source.name
+		}
+	}
+
+	/**
+	 * Stands for "favourites" as a whole rather than one list: typing the word offers this single entry,
+	 * and tapping it opens up every list instead of making the user guess their names.
+	 */
+	data class FavouritesGroup(
+		val preview: String,
+	) : SearchSuggestionItem {
+
+		override fun areItemsTheSame(other: ListModel): Boolean {
+			return other is FavouritesGroup
+		}
+	}
+
+	/**
+	 * A favourites list offered as something to filter by, shown alongside sources so both read as the
+	 * same kind of choice.
+	 */
+	data class FavouriteTip(
+		val category: FavouriteCategory,
+	) : SearchSuggestionItem {
+
+		override fun areItemsTheSame(other: ListModel): Boolean {
+			return other is FavouriteTip && other.category.id == category.id
+		}
+	}
+
+	/**
+	 * Chips that choose what the shared search bar looks through. Only emitted on screens where
+	 * narrowing is meaningful, and "everywhere" is always the selected default.
+	 */
+	data class Scope(
+		val chips: List<ChipsView.ChipModel>,
+	) : SearchSuggestionItem {
+
+		override fun areItemsTheSame(other: ListModel): Boolean {
+			return other is Scope
+		}
+
+		override fun getChangePayload(previousState: ListModel): Any {
+			return ListModelDiffCallback.PAYLOAD_NESTED_LIST_CHANGED
 		}
 	}
 

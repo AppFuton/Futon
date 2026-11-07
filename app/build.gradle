@@ -219,6 +219,7 @@ dependencies {
 	implementation libs.coil.gif
 	implementation libs.coil.svg
 	implementation libs.avif.decoder
+	implementation libs.jxl.coder
 	implementation libs.ssiv
 	implementation libs.disk.lru.cache
 	implementation libs.markwon

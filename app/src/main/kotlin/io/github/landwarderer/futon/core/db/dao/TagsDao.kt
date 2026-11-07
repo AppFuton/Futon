@@ -86,6 +86,26 @@ abstract class TagsDao {
 	)
 	abstract suspend fun findRelatedTags(ids: Set<Long>): List<TagEntity>
 
+	/**
+	 * How many stored manga carry each tag, by title across every source: how common a tag is in
+	 * everything the app has seen, which is what tells `action` from `villainess`.
+	 */
+	@Query(
+		"""SELECT LOWER(TRIM(tags.title)) AS title, COUNT(DISTINCT manga_tags.manga_id) AS count FROM tags
+		JOIN manga_tags ON tags.tag_id = manga_tags.tag_id
+		GROUP BY LOWER(TRIM(tags.title))""",
+	)
+	abstract suspend fun countMangaPerTag(): List<TagFrequency>
+
+	@Query("SELECT COUNT(DISTINCT manga_id) FROM manga_tags")
+	abstract suspend fun countTaggedManga(): Int
+
 	@Upsert
 	abstract suspend fun upsert(tags: Iterable<TagEntity>)
 }
+
+/** One row of [TagsDao.countMangaPerTag]: a lowercased tag title and how many manga carry it. */
+data class TagFrequency(
+	val title: String,
+	val count: Int,
+)

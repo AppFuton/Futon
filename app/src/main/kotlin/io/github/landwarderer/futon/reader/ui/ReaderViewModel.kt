@@ -10,7 +10,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.bookmarks.domain.Bookmark
 import io.github.landwarderer.futon.bookmarks.domain.BookmarksRepository
+import io.github.landwarderer.futon.core.exceptions.CloudFlareProtectedException
 import io.github.landwarderer.futon.core.exceptions.EmptyMangaException
+import io.github.landwarderer.futon.core.exceptions.resolve.CaptchaAutoResolveCoordinator
 import io.github.landwarderer.futon.core.model.LocalMangaSource
 import io.github.landwarderer.futon.core.model.MangaHistory
 import io.github.landwarderer.futon.core.model.getPreferredBranch
@@ -25,6 +27,7 @@ import io.github.landwarderer.futon.core.prefs.observeAsFlow
 import io.github.landwarderer.futon.core.prefs.observeAsStateFlow
 import io.github.landwarderer.futon.core.util.ext.MutableEventFlow
 import io.github.landwarderer.futon.core.util.ext.call
+import io.github.landwarderer.futon.core.util.ext.findCloudFlareException
 import io.github.landwarderer.futon.core.util.ext.firstNotNull
 import io.github.landwarderer.futon.core.util.ext.requireValue
 import io.github.landwarderer.futon.details.data.MangaDetails
@@ -47,7 +50,9 @@ import io.github.landwarderer.futon.reader.domain.DetectReaderModeUseCase
 import io.github.landwarderer.futon.reader.domain.PageLoader
 import io.github.landwarderer.futon.reader.domain.nextChapterPrefetchPages
 import io.github.landwarderer.futon.reader.ui.config.ReaderSettings
+import io.github.landwarderer.futon.reader.ui.pager.ReaderPage
 import io.github.landwarderer.futon.reader.ui.pager.ReaderUiState
+import io.github.landwarderer.futon.reader.ui.pager.visibleRangeOf
 import io.github.landwarderer.futon.scrobbling.discord.ui.DiscordRpc
 import io.github.landwarderer.futon.stats.domain.StatsCollector
 import kotlinx.coroutines.CancellationException
@@ -66,6 +71,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -81,9 +87,11 @@ import javax.inject.Inject
 
 private const val BOUNDS_PAGE_OFFSET = 2
 private const val PREFETCH_LIMIT = 10
+private const val MAX_DETAILS_VERIFICATION_RETRIES = 2L
 
 @HiltViewModel
 class ReaderViewModel @Inject constructor(
+    private val captchaAutoResolveCoordinator: CaptchaAutoResolveCoordinator,
     private val savedStateHandle: SavedStateHandle,
     private val dataRepository: MangaDataRepository,
     private val historyRepository: HistoryRepository,
@@ -346,16 +354,25 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Pages are passed as pages, not positions, and matched by chapter and page index: the adapter applies
+     * [content] asynchronously, so its positions can refer to an older list. After a previous chapter is prepended, a stale position would
+     * otherwise resolve to the start of that previous chapter and be saved as the reading progress.
+     */
     @MainThread
-    fun onCurrentPageChanged(lowerPos: Int, upperPos: Int) {
+    fun onCurrentPageChanged(lowerPage: ReaderPage?, upperPage: ReaderPage?) {
+        if (lowerPage == null || upperPage == null) {
+            return
+        }
         val prevJob = stateChangeJob
-        val pages = content.value.pages // capture immediately
         stateChangeJob = launchJob(Dispatchers.IO) {
             prevJob?.cancelAndJoin()
             loadingJob?.join()
-            if (pages.size != content.value.pages.size) {
-                return@launchJob // TODO
-            }
+            val pages = content.value.pages
+            val visibleRange = pages.visibleRangeOf(lowerPage, upperPage)
+                ?: return@launchJob // page is no longer loaded
+            val lowerPos = visibleRange.first
+            val upperPos = visibleRange.last
             val centerPos = (lowerPos + upperPos) / 2
             pages.getOrNull(centerPos)?.let { page ->
                 val oldChapterId = readingState.value?.chapterId
@@ -465,7 +482,14 @@ class ReaderViewModel @Inject constructor(
             var deferredDetails: MangaDetails? = null
             var savedPageCount = 0
             try {
+                captchaAutoResolveCoordinator.awaitActiveResolve()
                 detailsLoadUseCase(intent, force = false)
+                    .retryWhen { cause, attempt ->
+                        // Opening the reader is an explicit action: solve the captcha silently and retry.
+                        val cf = cause.findCloudFlareException()
+                        attempt < MAX_DETAILS_VERIFICATION_RETRIES && cf is CloudFlareProtectedException &&
+                            captchaAutoResolveCoordinator.resolveIfEnabled(cf)
+                    }
                     .collect { details ->
                         loadedDetails = details
                         if (mangaDetails.value == null) {

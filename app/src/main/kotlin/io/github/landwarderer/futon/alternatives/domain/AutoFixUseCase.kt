@@ -15,7 +15,6 @@ import io.github.landwarderer.futon.core.model.chaptersCount
 import io.github.landwarderer.futon.core.model.parcelable.ParcelableManga
 import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.parser.MangaRepository
-import io.github.landwarderer.futon.core.util.ext.concat
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.util.concurrent.TimeUnit
@@ -36,8 +35,11 @@ class AutoFixUseCase @Inject constructor(
 		if (seed.isHealthy()) {
 			return seed to null // no fix required
 		}
-		val replacement = alternativesUseCase(seed, throughDisabledSources = false)
-			.concat(alternativesUseCase(seed, throughDisabledSources = true))
+		val sourceScope = alternativesUseCase.getSourceScopeOptions(
+			ref = seed.source,
+			sameLanguageOnly = true,
+		).defaultScope
+		val replacement = alternativesUseCase(seed, sourceScope = sourceScope)
 			.filter { it.isHealthy() }
 			.runningFold<Manga, Manga?>(null) { best, candidate ->
 				if (best == null || best < candidate) {
