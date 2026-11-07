@@ -24,6 +24,9 @@ import io.github.landwarderer.futon.core.ui.util.ReversibleHandle
 import io.github.landwarderer.futon.core.util.ext.flattenLatest
 import io.github.landwarderer.futon.mihon.MihonExtensionManager
 import io.github.landwarderer.futon.mihon.model.MihonMangaSource
+import io.github.landwarderer.futon.novel.data.lnreader.model.LnPluginSource
+import io.github.landwarderer.futon.novel.data.lnreader.repository.LnPluginManager
+import io.github.landwarderer.futon.novel.data.lnreader.storage.LnPluginStorage
 import io.github.landwarderer.futon.novel.data.source.NovelParserSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +43,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import okhttp3.OkHttpClient
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -58,7 +62,24 @@ class MangaSourcesRepository @Inject constructor(
     private val db: MangaDatabase,
     private val settings: AppSettings,
     private val mihonExtensionManager: MihonExtensionManager,
+    private val lnPluginManager: LnPluginManager,
 ) {
+
+    constructor(
+        context: Context,
+        db: MangaDatabase,
+        settings: AppSettings,
+        mihonExtensionManager: MihonExtensionManager,
+    ) : this(
+        context = context,
+        db = db,
+        settings = settings,
+        mihonExtensionManager = mihonExtensionManager,
+        lnPluginManager = LnPluginManager(
+            httpClient = OkHttpClient(),
+            storage = LnPluginStorage(context),
+        ),
+    )
 
 	private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private val isNewSourcesAssimilated = AtomicBoolean(false)
@@ -67,6 +88,12 @@ class MangaSourcesRepository @Inject constructor(
 
 	init {
 		mihonExtensionManager.installedExtensions
+			.onEach {
+				isNewSourcesAssimilated.set(false)
+				assimilateNewSources()
+			}
+			.launchIn(repositoryScope)
+		lnPluginManager.installedPlugins
 			.onEach {
 				isNewSourcesAssimilated.set(false)
 				assimilateNewSources()
@@ -114,6 +141,7 @@ class MangaSourcesRepository @Inject constructor(
 		}
 		val result = HashSet<MangaSource>(allMangaSources)
 		result.addAll(NovelParserSource.entries)
+		result.addAll(lnPluginManager.getInstalledSources())
 		result.addAll(mihonExtensionManager.getMihonMangaSources())
 		val enabled = dao.findAllEnabledNames()
 		for (name in enabled) {
@@ -160,6 +188,7 @@ class MangaSourcesRepository @Inject constructor(
 				when (it) {
 					is MangaParserSource -> it.locale == locale
 					is NovelParserSource -> it.locale == locale
+					is LnPluginSource -> it.locale == locale
 					is io.github.landwarderer.futon.mihon.parsers.model.ContentSource -> it.locale == locale
 					else -> true
 				}
@@ -173,6 +202,7 @@ class MangaSourcesRepository @Inject constructor(
 				when (it) {
 					is MangaParserSource -> it.contentType in types
 					is NovelParserSource -> it.contentType in types
+					is LnPluginSource -> it.contentType in types
 					is io.github.landwarderer.futon.mihon.model.MihonMangaSource -> {
 						val mihonType = it.contentType
 						types.any { kotatsuType ->
@@ -258,7 +288,7 @@ class MangaSourcesRepository @Inject constructor(
 		val result = ArrayList<Pair<MangaSource, Boolean>>(entities.size)
 		for (entity in entities) {
 			val source = entity.toMangaSource() ?: continue
-			if (source in allMangaSources || source is io.github.landwarderer.futon.novel.data.source.NovelParserSource || source is AnonymousMangaSource || source is MihonMangaSource) {
+			if (source in allMangaSources || source is io.github.landwarderer.futon.novel.data.source.NovelParserSource || source is AnonymousMangaSource || source is MihonMangaSource || source is LnPluginSource) {
 				result.add(source to entity.isEnabled)
 			}
 		}
@@ -336,7 +366,7 @@ class MangaSourcesRepository @Inject constructor(
 		val entities = new.map { x ->
 			MangaSourceEntity(
 				source = x.name,
-				isEnabled = if (x is MihonMangaSource || x is NovelParserSource) true else isAllEnabled,
+				isEnabled = if (x is MihonMangaSource || x is NovelParserSource || x is LnPluginSource) true else isAllEnabled,
 				sortKey = ++maxSortKey,
 				addedIn = BuildConfig.VERSION_CODE,
 				lastUsedAt = 0,
@@ -352,6 +382,14 @@ class MangaSourcesRepository @Inject constructor(
 			val existing = dao.findAll().find { it.source == novelSource.name }
 			if (existing == null || !existing.isEnabled) {
 				dao.setEnabled(novelSource.name, true)
+			}
+		}
+
+		// Always ensure installed LnPluginSource entries are enabled
+		for (lnSource in lnPluginManager.getInstalledSources()) {
+			val existing = dao.findAll().find { it.source == lnSource.name }
+			if (existing == null || !existing.isEnabled) {
+				dao.setEnabled(lnSource.name, true)
 			}
 		}
 
@@ -413,6 +451,7 @@ class MangaSourcesRepository @Inject constructor(
 		val result = HashSet<MangaSource>()
         result.addAll(MangaParserSource.entries)
         result.addAll(io.github.landwarderer.futon.novel.data.source.NovelParserSource.entries)
+        result.addAll(lnPluginManager.getInstalledSources())
         result.addAll(mihonExtensionManager.getMihonMangaSources())
 		for (e in entities) {
 			result.remove(e.toMangaSource() ?: continue)
@@ -496,7 +535,7 @@ class MangaSourcesRepository @Inject constructor(
 			if (source.isBroken) {
 				continue
 			}
-			if (source is MangaParserSource || source is MihonMangaSource || source is NovelParserSource) {
+			if (source is MangaParserSource || source is MihonMangaSource || source is NovelParserSource || source is LnPluginSource) {
 				result.add(
 					MangaSourceInfo(
 						mangaSource = source,
@@ -529,6 +568,10 @@ class MangaSourcesRepository @Inject constructor(
 			return mihonExtensionManager.getMihonMangaSourceByName(source)
 				?: io.github.landwarderer.futon.core.model.MangaSource(source, title)
 		}
+		if (LnPluginSource.isLnReaderSource(source)) {
+			return lnPluginManager.getPluginSource(source)
+				?: io.github.landwarderer.futon.core.model.MangaSource(source, title)
+		}
 		val parserSource = MangaParserSource.entries.find { it.name == source }
 		if (parserSource != null) return parserSource
 		return io.github.landwarderer.futon.novel.data.source.NovelParserSource.fromName(source)
@@ -537,6 +580,10 @@ class MangaSourcesRepository @Inject constructor(
 	private fun String.toMangaSourceOrNull(): MangaSource? {
 		if (startsWith("mihon:") || startsWith("MIHON_")) {
 			return mihonExtensionManager.getMihonMangaSourceByName(this)
+				?: io.github.landwarderer.futon.core.model.MangaSource(this)
+		}
+		if (LnPluginSource.isLnReaderSource(this)) {
+			return lnPluginManager.getPluginSource(this)
 				?: io.github.landwarderer.futon.core.model.MangaSource(this)
 		}
 		val parserSource = MangaParserSource.entries.find { it.name == this }

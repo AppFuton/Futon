@@ -212,6 +212,8 @@ class AppRouter private constructor(
 
     fun openExtensionDownloader() = startActivity(ExtensionDownloaderActivity::class.java)
 
+    fun openNovelPluginsManager() = startActivity(io.github.landwarderer.futon.novel.ui.plugins.NovelPluginsManagerActivity::class.java)
+
     fun openDownloads() = startActivity(DownloadsActivity::class.java)
 
     fun openDownloadQueue() {

@@ -531,6 +531,13 @@
     <string name="sources_catalog">Sources catalog</string>
     <string name="extensions_manager">Extensions manager</string>
     <string name="extensions_manager_summary">Manage, install and uninstall extensions from repositories</string>
+    <string name="novel_plugins_manager">Novel sources manager</string>
+    <string name="novel_plugins_manager_summary">Install and update novel sources powered by LNReader plugins</string>
+    <string name="plugin_install_success">Installed %s</string>
+    <string name="plugin_install_failed">Failed to install plugin</string>
+    <string name="plugin_uninstall_success">Uninstalled %s</string>
+    <string name="plugin_uninstall_failed">Failed to uninstall plugin</string>
+    <string name="plugin_installed">Installed</string>
     <string name="extension_repos_header">Repositories</string>
     <string name="add_extension_repo">Add</string>
     <string name="add_extension_repo_hint">Repository URL</string>
