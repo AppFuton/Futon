@@ -60,6 +60,17 @@ class LnPluginRuntime(
 
 		val qjs = QuickJs.create(jobDispatcher = Dispatchers.IO)
 
+		// Bind native logging bridge
+		qjs.function("__futon_native_log") { args ->
+			val level = args.getOrNull(0)?.toString().orEmpty()
+			val msg = args.drop(1).joinToString(" ")
+			when (level) {
+				"ERROR" -> android.util.Log.e("LnPluginRuntime", "[$pluginId] $msg")
+				"WARN" -> android.util.Log.w("LnPluginRuntime", "[$pluginId] $msg")
+				else -> android.util.Log.d("LnPluginRuntime", "[$pluginId] $msg")
+			}
+		}
+
 		// Bind native HTTP fetch bridge
 		qjs.asyncFunction("__futon_native_fetch") { args ->
 			val url = args.getOrNull(0)?.toString().orEmpty()
@@ -107,7 +118,10 @@ class LnPluginRuntime(
 			val qjs = checkNotNull(quickJs)
 			val script = """
 				(async () => {
-					const novels = await __futon_current_plugin.popularNovels($page);
+					const options = (typeof __futon_build_default_options === 'function')
+						? __futon_build_default_options(__futon_current_plugin)
+						: { showLatestNovels: false, filters: {} };
+					const novels = await __futon_current_plugin.popularNovels($page, options);
 					return JSON.stringify(novels || []);
 				})()
 			""".trimIndent()
@@ -124,7 +138,10 @@ class LnPluginRuntime(
 			val quotedQuery = JSONObject.quote(query)
 			val script = """
 				(async () => {
-					const novels = await __futon_current_plugin.searchNovels($quotedQuery, $page);
+					const options = (typeof __futon_build_default_options === 'function')
+						? __futon_build_default_options(__futon_current_plugin)
+						: { showLatestNovels: false, filters: {} };
+					const novels = await __futon_current_plugin.searchNovels($quotedQuery, $page, options);
 					return JSON.stringify(novels || []);
 				})()
 			""".trimIndent()
@@ -202,6 +219,7 @@ class LnPluginRuntime(
 				}
 
 				JSONObject().apply {
+					put("url", response.request.url.toString())
 					put("status", response.code)
 					put("body", bodyString)
 					put("headers", headersMap)

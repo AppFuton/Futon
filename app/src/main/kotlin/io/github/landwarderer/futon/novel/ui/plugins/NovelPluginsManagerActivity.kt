@@ -81,6 +81,7 @@ class NovelPluginsManagerActivity : BaseActivity<ActivityNovelPluginsManagerBind
     }
 
     override fun onDestroy() {
+        viewBinding.swipeRefresh.clearAnimation()
         viewBinding.swipeRefresh.isRefreshing = false
         viewBinding.loadingState.root.isVisible = false
         viewBinding.recyclerView.adapter = null
