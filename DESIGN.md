@@ -55,6 +55,12 @@ colors:
   manga-gold: '#FEA628'
   espresso-container: '#673C1F'
   amoled-black: '#000000'
+  novel-dark-bg: '#141414'
+  novel-dark-text: '#E0E0E0'
+  novel-sepia-bg: '#FBF0D9'
+  novel-sepia-text: '#5F4B32'
+  novel-light-bg: '#FFFFFF'
+  novel-light-text: '#212121'
 typography:
   display-lg:
     fontFamily: Inter
@@ -132,12 +138,12 @@ spacing:
 
 This design system is a high-fidelity implementation of Material Design 3 (M3) tailored for an immersive, premium dark-mode media experience. It balances the structured utility of a content-heavy reader with the "luxurious" tactile feel of high-end consumer hardware.
 
-The aesthetic is defined by **Warm Minimalism**. We avoid sterile pure blacks in favor of deep, velvet-toned obsidian neutrals that provide a sophisticated backdrop for vibrant manga artwork. The emotional response should be one of "focused luxury"—where the interface recedes to highlight content but feels substantial and responsive when engaged.
+The aesthetic is defined by **Warm Minimalism**. We avoid sterile pure blacks in favor of deep, velvet-toned obsidian neutrals that provide a sophisticated backdrop for vibrant manga artwork and long-form light novel prose. The emotional response should be one of "focused luxury"—where the interface recedes to highlight content but feels substantial and responsive when engaged.
 
 Key characteristics include:
 - **Depth through Tone:** Utilizing the M3 tonal surface system to create hierarchy without heavy drop shadows.
 - **High-Contrast Accents:** Using a singular, vibrant gold brand color for all primary interactions and progress indicators.
-- **Fluid Responsiveness:** Smooth transitions between library views and immersive reading modes.
+- **Fluid Responsiveness:** Smooth transitions between library views, manga reading, and novel reading modes.
 
 ## Colors
 
@@ -148,6 +154,13 @@ The color system is built on a foundation of **Velvet Black** to minimize eye st
 - **Typography:** We use **Warm Ivory** for primary text instead of pure white to reduce glare, and **Warm Clay** for secondary metadata to create a natural hierarchy.
 - **Surfaces:** Containers use the `warm-obsidian` hex to distinguish elevated panels from the base background. For devices with OLED displays, the system allows for a "True Black" override using `#000000`.
 
+### Novel Reading Themes
+For long-form reading comfort, the novel reader provides dedicated color palettes:
+- **Dark (Default):** Deep charcoal (`#141414`) background with soft silver text (`#E0E0E0`) for reduced eye strain in dark environments.
+- **Sepia:** Warm parchment (`#FBF0D9`) background with deep walnut text (`#5F4B32`) to filter blue light during extended day reading.
+- **Light:** Crisp white (`#FFFFFF`) background with charcoal text (`#212121`) for high-glare environments.
+- **OLED:** Pitch black (`#000000`) with pure white (`#FFFFFF`) text for maximum power savings on OLED displays.
+
 ## Typography
 
 This design system uses **Inter** for its neutral, highly legible characteristics. The type scale is intentionally bold to counteract the "thinning" effect of light text on dark backgrounds.
@@ -156,6 +169,21 @@ This design system uses **Inter** for its neutral, highly legible characteristic
 - **Body & Labels:** Prioritize legibility. Labels utilize increased letter spacing (`0.05em`) to remain clear at very small sizes, such as on manga tags or chapter numbers.
 - **Reading Comfort:** Body text is set with a generous `1.5x` line height to ensure descriptions and logs are easy to scan.
 
+### Light Novel & Prose Typography
+Prose reading uses a customizable typographic engine configured via CSS root variables:
+- **Font Scale & Family:** Configurable serif / system font scaling from `12sp` to `32sp` (default: `18sp`).
+- **Vertical Rhythm:** Generous `1.6x` line spacing multiplier (adjustable `1.2x`–`2.2x`) and `1.0em` paragraph spacing to facilitate effortless scanning.
+- **Alignment:** Left-aligned by default with optional full justification or centered layout.
+
+### Watermark Mode Indicator Typography
+The home screen features a centered, high-altitude vertical Japanese Kanji watermark that intuitively signals the active app mode: `漫\n画` for Manga Mode and `小\n説` for Light Novel Mode.
+- **Scale & Presence:** Rendered at `130sp` with tight `0.9` line spacing at a subtle `10%` alpha (`android:alpha="0.10"`), floating unobtrusively beneath library grids.
+- **Kanji Font Selection:** Users can customize typography via `HomeBackgroundFont`:
+  - **Light Thin:** *MojiwTegami Standard* (`fonts/MojiwTegami-Standard.ttf`) for an understated, brush-calligraphy aesthetic.
+  - **Bold (Default):** *Shimbashi Gothic Regular* (`fonts/ShimbashiGothic-Regular.otf`) for a modern, balanced architectural presence.
+  - **Extra Bold:** *GenEi Kiwami Gothic* (`fonts/GenEiKiwamiGo.ttf`) for high-impact manga-magazine editorial styling.
+  - **None:** Disables background watermark.
+
 ## Layout & Spacing
 
 The layout is built on a **fluid grid system** that adapts to the high-density requirements of a media library.
@@ -163,6 +191,8 @@ The layout is built on a **fluid grid system** that adapts to the high-density r
 - **Grid Model:** Manga covers use a responsive grid with a preferred card width of `120dp`. Columns scale dynamically based on screen width.
 - **Rhythm:** An `8px` base unit governs all spacing. Vertical spacing between sections uses `24px` to provide clear separation.
 - **Manga Reader Layout:** In the reader view, the layout transitions to a "No Grid" model, allowing content to be truly edge-to-edge. Vertical margins between pages in Webtoon mode are set to `24px` to create a physical "breathing room" between story beats.
+- **Novel Reader Layout:** Continuous scroll or paginated text engine with customizable side margins (default: `18dp`).
+- **PDF Document Reader Layout:** Continuous vertical layout (`PdfReaderActivity`) with memory-aware LRU bitmap rendering to prevent stuttering across dense multi-page documents.
 - **Safe Areas:** Mobile layouts respect a `16px` outer margin, while tablet and desktop layouts expand to `24px` to maintain visual balance on larger displays.
 
 ## Elevation & Depth
@@ -203,3 +233,14 @@ Manga covers must maintain a strict **18:13 aspect ratio**. Use `centerCrop` for
 
 ### Bottom Navigation
 Clean, borderless icons. The active state is indicated by a Manga Gold icon and a small pill-shaped indicator behind it.
+
+### Novel Reader Config Sheet
+A bottom sheet modal (`NovelReaderConfigSheet`) surfaced directly from the reader interface:
+- **Typographic Sliders:** Tactile sliders for granular adjustments of font size, line spacing, and margin padding.
+- **Theme Palette Selectors:** Circular color chips showcasing real-time background and text preview colors.
+
+### Mode Switcher Spotlight Overlay
+An onboarding walkthrough component (`ModeSwitcherSpotlightOverlay`) spotlighting the app mode toggle:
+- **Pulsing Halo:** Radial gold glow (`#FEA628`) centered precisely on the mode switch icon with an ease-in-out breathing animation.
+- **Elevated Callout Card:** A Warm Obsidian container with a gold action button ("Got it") guiding first-time or returning users through dual-mode navigation.
+

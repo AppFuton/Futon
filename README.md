@@ -1,6 +1,6 @@
 <div align="center">
 
-**Futon is a free and open-source manga reader for Android with built-in online content sources.**
+**Futon is a free and open-source manga and light novel reader for Android with built-in online content sources.**
 
 ![Android 6.0](https://img.shields.io/badge/android-6.0+-brightgreen) [![Sources count](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FKotatsu-Redo%2Fkotatsu-parsers-redo%2Frefs%2Fheads%2Fmaster%2F.github%2Fsummary.yaml&query=total&label=manga%20sources&color=%23E9321C)](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo) [![License](https://img.shields.io/github/license/AppFuton/Futon)](https://github.com/AppFuton/Futon/blob/devel/LICENSE) [![GitHub Release](https://img.shields.io/github/v/release/appfuton/futon?sort=date&display_name=tag&style=flat&link=https%3A%2F%2Fgithub.com%2FAppFuton%2FFuton%2Freleases%2Flatest)](https://github.com/AppFuton/Futon/releases/latest) [![IzzyOnDroid Yearly Downloads](https://img.shields.io/badge/dynamic/json?url=https://dlstats.izzyondroid.org/iod-stats-collector/stats/basic/yearly/rolling.json&query=$.['io.github.landwarderer.futon']&label=IzzyOnDroid%20yearly%20downloads)](https://apt.izzysoft.de/packages/io.github.landwarderer.futon) [![F-Droid Version](https://img.shields.io/badge/F--Droid-%2311AB00.svg?logo=f-droid&logoColor=white)](https://f-droid.org/en/packages/io.github.landwarderer.futon/) [![Open Source Helpers](https://www.codetriage.com/appfuton/futon/badges/users.svg)](https://www.codetriage.com/appfuton/futon) [![Discord](https://img.shields.io/discord/1452862077134700628)
 ](https://discord.gg/9sqBHXhwzz)
@@ -11,11 +11,16 @@
 <div align="left">
 
 * Online [manga catalogues](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo) (with 1200+ manga sources)
+* Online light novel catalogues (LNCrawler, Ranobes, Lnori, FreeWebNovel, ScribbleHub, Wuxiaworld, RoyalRoad)
+* Dual reading mode with instant switching between Manga and Light Novel modes
 * Support for [Tachiyomi keiyoushi](https://github.com/keiyoushi/extensions) extensions
-* Search manga by name, genres and more filters
+* Search manga and novels by name, genres and more filters
 * Favorites organized by user-defined categories
 * Reading history, bookmarks and incognito mode support
-* Download manga and read it offline. Third-party CBZ archives are also supported
+* Download manga and novels and read them offline. Third-party CBZ archives, EPUB books, and local PDF files are also supported
+* Standard and Webtoon-optimized customizable manga reader, gesture support on reading interface
+* Dedicated light novel reader with custom typography, font styling, and reading themes (Light, Sepia, Dark, AMOLED)
+* Dedicated vertical PDF reader with memory-aware caching and smooth page controls
 * Clean and convenient Material You UI, optimized for phones, tablets and desktop
 * Standard and Webtoon-optimized customizable reader, gesture support on reading interface
 * Notifications about new chapters with updates feed, manga recommendations (with filters)
