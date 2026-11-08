@@ -46,3 +46,4 @@ gradle.properties
 .superpowers/
 docs/superpowers/
 .playwright-mcp/
+build_debug_apk.bat
