@@ -107,7 +107,7 @@ class LnReaderNovelRepository(
 			MangaPage(
 				id = chapter.id,
 				url = html,
-				preview = null,
+				preview = resolveUrl(chapter.url),
 				source = source,
 			)
 		)

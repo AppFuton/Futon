@@ -5,6 +5,7 @@ import com.dokar.quickjs.QuickJs
 import com.dokar.quickjs.binding.asyncFunction
 import com.dokar.quickjs.binding.function
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.landwarderer.futon.core.network.CloudFlareInterceptor
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnChapterItem
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnNovelItem
@@ -30,10 +31,15 @@ import javax.inject.Inject
  */
 class LnPluginRuntime(
 	private val context: Context,
-	private val httpClient: OkHttpClient,
+	httpClient: OkHttpClient,
 	private val pluginId: String,
 	private val pluginScript: String,
 ) : Closeable {
+	// LNReader plugins need the raw HTTP response so their own fetch/error handling can
+	// inspect challenge pages. Futon's reader interceptor throws and loses that response.
+	private val httpClient = httpClient.newBuilder().apply {
+		interceptors().removeAll { it is CloudFlareInterceptor }
+	}.build()
 
 	constructor(
 		context: Context,
@@ -126,8 +132,7 @@ class LnPluginRuntime(
 				})()
 			""".trimIndent()
 
-			val jsonResult = qjs.evaluate<String>(script)
-			parseNovelItems(jsonResult)
+			parseNovelItems(evaluateAsyncString(qjs, script))
 		}
 	}
 
@@ -146,7 +151,7 @@ class LnPluginRuntime(
 				})()
 			""".trimIndent()
 
-			val jsonResult = qjs.evaluate<String>(script)
+			val jsonResult = evaluateAsyncString(qjs, script)
 			parseNovelItems(jsonResult)
 		}
 	}
@@ -163,7 +168,7 @@ class LnPluginRuntime(
 				})()
 			""".trimIndent()
 
-			val jsonResult = qjs.evaluate<String>(script)
+			val jsonResult = evaluateAsyncString(qjs, script)
 			parseSourceNovel(jsonResult)
 		}
 	}
@@ -180,8 +185,27 @@ class LnPluginRuntime(
 				})()
 			""".trimIndent()
 
-			qjs.evaluate<String>(script)
+			evaluateAsyncString(qjs, script)
 		}
+	}
+
+	/** Evaluate a Promise-returning plugin expression and read its fulfilled value. */
+	private suspend fun evaluateAsyncString(qjs: QuickJs, promiseExpression: String): String {
+		qjs.evaluate<Any?>(
+			"""
+				globalThis.__futon_async_result = "";
+				globalThis.__futon_async_error = "";
+				Promise.resolve($promiseExpression).then(
+					value => { globalThis.__futon_async_result = String(value ?? ""); },
+					error => { globalThis.__futon_async_error = String(error && error.stack || error); }
+				);
+			""".trimIndent(),
+		)
+		val error = qjs.evaluate<String>("globalThis.__futon_async_error")
+		if (error.isNotBlank()) {
+			throw IllegalStateException(error)
+		}
+		return qjs.evaluate("globalThis.__futon_async_result")
 	}
 
 	private suspend fun executeNativeFetch(
@@ -190,27 +214,27 @@ class LnPluginRuntime(
 		headersJson: String,
 		body: String?,
 	): String = withContext(Dispatchers.IO) {
-		val requestBuilder = Request.Builder().url(url)
-
-		if (headersJson.isNotBlank()) {
-			val headersObj = runCatching { JSONObject(headersJson) }.getOrNull()
-			if (headersObj != null) {
-				val keys = headersObj.keys()
-				while (keys.hasNext()) {
-					val key = keys.next()
-					requestBuilder.header(key, headersObj.getString(key))
-				}
-			}
-		}
-
-		if (method.equals("POST", ignoreCase = true)) {
-			val mediaType = "application/x-www-form-urlencoded; charset=utf-8".toMediaTypeOrNull()
-			requestBuilder.post((body ?: "").toRequestBody(mediaType))
-		} else {
-			requestBuilder.method(method, null)
-		}
-
 		try {
+			val requestBuilder = Request.Builder().url(url)
+			val headersObj = if (headersJson.isNotBlank()) JSONObject(headersJson) else JSONObject()
+			val keys = headersObj.keys()
+			while (keys.hasNext()) {
+				val key = keys.next()
+				requestBuilder.header(key, headersObj.getString(key))
+			}
+
+			val normalizedMethod = method.uppercase()
+			val contentTypeHeader = headersObj.keys().asSequence()
+				.firstOrNull { it.equals("Content-Type", ignoreCase = true) }
+			val contentType = contentTypeHeader?.let(headersObj::optString)
+				?.takeIf(String::isNotBlank)
+				?.toMediaTypeOrNull()
+			val methodRequiresBody = normalizedMethod in setOf("POST", "PUT", "PATCH", "PROPPATCH", "REPORT")
+			val requestBody = if (normalizedMethod !in setOf("GET", "HEAD") && (body != null || methodRequiresBody)) {
+				(body ?: "").toRequestBody(contentType)
+			} else null
+			requestBuilder.method(normalizedMethod, requestBody)
+
 			httpClient.newCall(requestBuilder.build()).execute().use { response ->
 				val bodyString = response.body?.string().orEmpty()
 				val headersMap = JSONObject()
@@ -221,6 +245,7 @@ class LnPluginRuntime(
 				JSONObject().apply {
 					put("url", response.request.url.toString())
 					put("status", response.code)
+					put("statusText", response.message)
 					put("body", bodyString)
 					put("headers", headersMap)
 				}.toString()
@@ -228,10 +253,11 @@ class LnPluginRuntime(
 		} catch (e: CancellationException) {
 			throw e
 		} catch (e: Throwable) {
-			e.printStackTraceDebug()
+			e.printStackTraceDebug("LnPluginRuntime[$pluginId]")
 			JSONObject().apply {
-				put("status", 500)
-				put("body", "")
+				put("status", 0)
+				put("statusText", "Network Error")
+				put("error", e.message ?: e.javaClass.simpleName)
 				put("headers", JSONObject())
 			}.toString()
 		}

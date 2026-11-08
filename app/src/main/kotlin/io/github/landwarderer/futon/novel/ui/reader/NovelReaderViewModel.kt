@@ -234,17 +234,9 @@ class NovelReaderViewModel @Inject constructor(
 			// Online novel source: fetch pages / chapter content
 			val repo = mangaRepositoryFactory.create(curManga.source)
 			val pages = repo.getPages(chapter)
-			// For text sources, pages may contain formatted text in url or html content
-			val textBuilder = StringBuilder()
-			for (page in pages) {
-				val trimmed = page.url.trim()
-				if (trimmed.startsWith("<p") || trimmed.startsWith("<div") || trimmed.startsWith("<html") || trimmed.startsWith("<span") || trimmed.startsWith("<article")) {
-					textBuilder.append(trimmed)
-				} else if (trimmed.isNotEmpty()) {
-					textBuilder.append("<p>${trimmed}</p>")
-				}
+			pages.joinToString(separator = "") { page ->
+				NovelChapterContent.toHtmlFragment(page.url, page.preview)
 			}
-			textBuilder.toString()
 		} catch (e: Exception) {
 			e.printStackTraceDebug()
 			null

@@ -148,20 +148,42 @@
     const fetchApi = async function(url, init) {
         init = init || {};
         const method = (init.method || 'GET').toUpperCase();
-        const headers = init.headers || {};
+        const headers = {
+            'Connection': 'keep-alive',
+            'Accept': '*/*',
+            'Accept-Language': '*',
+            'Sec-Fetch-Mode': 'cors',
+            'Cache-Control': 'max-age=0',
+        };
+        if (init.headers) {
+            if (typeof init.headers.forEach === 'function') {
+                init.headers.forEach((value, key) => { headers[key] = String(value); });
+            } else if (Array.isArray(init.headers)) {
+                init.headers.forEach(pair => { if (pair && pair.length > 1) headers[pair[0]] = String(pair[1]); });
+            } else {
+                Object.keys(init.headers).forEach(key => { headers[key] = String(init.headers[key]); });
+            }
+        }
         const body = (typeof init.body === 'string') ? init.body : (init.body ? JSON.stringify(init.body) : null);
         
         const rawResponse = await __futon_native_fetch(url, method, JSON.stringify(headers), body);
         const parsed = JSON.parse(rawResponse);
+        if (parsed.error) {
+            throw new Error('Network request failed: ' + parsed.error);
+        }
+        const responseHeaders = parsed.headers || {};
         
         return {
             url: parsed.url || url,
             status: parsed.status,
+            statusText: parsed.statusText || '',
             ok: parsed.status >= 200 && parsed.status < 300,
             text: async () => parsed.body,
             json: async () => JSON.parse(parsed.body),
             headers: {
-                get: (k) => parsed.headers ? parsed.headers[k.toLowerCase()] : null
+                get: (k) => responseHeaders[k.toLowerCase()] || null,
+                has: (k) => Object.prototype.hasOwnProperty.call(responseHeaders, k.toLowerCase()),
+                forEach: (callback) => Object.keys(responseHeaders).forEach(k => callback(responseHeaders[k], k)),
             }
         };
     };
