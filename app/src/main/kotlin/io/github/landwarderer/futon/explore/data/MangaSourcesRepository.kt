@@ -67,22 +67,6 @@ class MangaSourcesRepository @Inject constructor(
     private val lnPluginManager: LnPluginManager,
 ) {
 
-    constructor(
-        context: Context,
-        db: MangaDatabase,
-        settings: AppSettings,
-        mihonExtensionManager: MihonExtensionManager,
-    ) : this(
-        context = context,
-        db = db,
-        settings = settings,
-        mihonExtensionManager = mihonExtensionManager,
-        lnPluginManager = LnPluginManager(
-            httpClient = OkHttpClient(),
-            storage = LnPluginStorage(context),
-        ),
-    )
-
 	private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private val isNewSourcesAssimilated = AtomicBoolean(false)
 	private val dao: MangaSourcesDao
@@ -450,14 +434,6 @@ class MangaSourcesRepository @Inject constructor(
 			}
 		}
 
-		// Always ensure installed LnPluginSource entries are enabled
-		for (lnSource in lnPluginManager.getInstalledSources()) {
-			val existing = dao.findAll().find { it.source == lnSource.name }
-			if (existing == null || !existing.isEnabled) {
-				dao.setEnabled(lnSource.name, true)
-			}
-		}
-
 		// Ensure default MangaParserSource entries are enabled if no manga sources are enabled yet
 		val enabledNames = dao.findAllEnabledNames()
 		val hasEnabledManga = allMangaSources.any { it.name in enabledNames }
@@ -597,7 +573,7 @@ class MangaSourcesRepository @Inject constructor(
 			if (source.isBroken) {
 				continue
 			}
-			if (source is MangaParserSource || source is MihonMangaSource || source is NovelParserSource || source is LnPluginSource || (source is AnonymousMangaSource && LnPluginSource.isLnReaderSource(source.name))) {
+			if (source is MangaParserSource || source is MihonMangaSource || source is NovelParserSource || source is LnPluginSource) {
 				result.add(
 					MangaSourceInfo(
 						mangaSource = source,
@@ -632,7 +608,6 @@ class MangaSourcesRepository @Inject constructor(
 		}
 		if (LnPluginSource.isLnReaderSource(source)) {
 			return lnPluginManager.getPluginSource(source)
-				?: io.github.landwarderer.futon.core.model.MangaSource(source, title)
 		}
 		val parserSource = MangaParserSource.entries.find { it.name == source }
 		if (parserSource != null) return parserSource
@@ -646,7 +621,6 @@ class MangaSourcesRepository @Inject constructor(
 		}
 		if (LnPluginSource.isLnReaderSource(this)) {
 			return lnPluginManager.getPluginSource(this)
-				?: io.github.landwarderer.futon.core.model.MangaSource(this)
 		}
 		val parserSource = MangaParserSource.entries.find { it.name == this }
 		if (parserSource != null) return parserSource

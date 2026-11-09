@@ -113,6 +113,24 @@ class LnReaderNovelRepositoryTest {
 	}
 
 	@Test
+	fun testDynamicPaginationTracksDifferentPageSizes() = runTest {
+		`when`(runtime.getPopularNovels(1)).thenReturn(
+			(1..10).map { LnNovelItem(name = "Novel $it", path = "/novel/$it", cover = null) },
+		)
+		`when`(runtime.getPopularNovels(2)).thenReturn(
+			(11..20).map { LnNovelItem(name = "Novel $it", path = "/novel/$it", cover = null) },
+		)
+
+		val firstBatch = repository.getList(offset = 0, order = null, filter = null)
+		assertEquals(10, firstBatch.size)
+		assertEquals("Novel 1", firstBatch[0].title)
+
+		val secondBatch = repository.getList(offset = 10, order = null, filter = null)
+		assertEquals(10, secondBatch.size)
+		assertEquals("Novel 11", secondBatch[0].title)
+	}
+
+	@Test
 	fun testGetPagesImpl() = runTest {
 		val chapter = MangaChapter(
 			id = 999L,
@@ -131,7 +149,7 @@ class LnReaderNovelRepositoryTest {
 		val pages = repository.getPagesImpl(chapter)
 
 		assertEquals(1, pages.size)
-		assertEquals("<p>It was a dark and stormy night...</p>", pages[0].url)
+		assertEquals("novel_content://<p>It was a dark and stormy night...</p>", pages[0].url)
 	}
 }
 

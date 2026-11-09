@@ -137,12 +137,50 @@
                 this.search = '';
                 this.hash = '';
             }
+            this.origin = (this.protocol && this.host) ? (this.protocol + '//' + this.host) : '';
             this.searchParams = new globalThis.URLSearchParams(this.search);
         }
         URL.prototype.toString = function() {
             return this.href;
         };
         globalThis.URL = URL;
+    }
+
+    if (typeof globalThis.FormData === 'undefined') {
+        function FormData() {
+            this._entries = [];
+        }
+        FormData.prototype.append = function(name, value, filename) {
+            this._entries.push({
+                name: String(name),
+                value: String(value),
+                filename: filename ? String(filename) : null,
+            });
+        };
+        FormData.prototype.get = function(name) {
+            const entry = this._entries.find(e => e.name === String(name));
+            return entry ? entry.value : null;
+        };
+        FormData.prototype.getAll = function(name) {
+            return this._entries.filter(e => e.name === String(name)).map(e => e.value);
+        };
+        FormData.prototype.has = function(name) {
+            return this._entries.some(e => e.name === String(name));
+        };
+        FormData.prototype.delete = function(name) {
+            this._entries = this._entries.filter(e => e.name !== String(name));
+        };
+        FormData.prototype.entries = function* () {
+            for (const entry of this._entries) {
+                yield [entry.name, entry.value];
+            }
+        };
+        FormData.prototype.forEach = function(callback, thisArg) {
+            for (const entry of this._entries) {
+                callback.call(thisArg, entry.value, entry.name, this);
+            }
+        };
+        globalThis.FormData = FormData;
     }
 
     const fetchApi = async function(url, init) {
@@ -164,7 +202,26 @@
                 Object.keys(init.headers).forEach(key => { headers[key] = String(init.headers[key]); });
             }
         }
-        const body = (typeof init.body === 'string') ? init.body : (init.body ? JSON.stringify(init.body) : null);
+        let body = null;
+        if (init.body != null) {
+            if (typeof init.body === 'string') {
+                body = init.body;
+            } else if (globalThis.URLSearchParams && init.body instanceof globalThis.URLSearchParams) {
+                body = init.body.toString();
+                if (!headers['Content-Type'] && !headers['content-type']) {
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8';
+                }
+            } else if (globalThis.FormData && init.body instanceof globalThis.FormData) {
+                body = JSON.stringify({
+                    __futon_type: 'FormData',
+                    entries: init.body._entries,
+                });
+            } else if (typeof init.body === 'object') {
+                body = JSON.stringify(init.body);
+            } else {
+                body = String(init.body);
+            }
+        }
         
         const rawResponse = await __futon_native_fetch(url, method, JSON.stringify(headers), body);
         const parsed = JSON.parse(rawResponse);

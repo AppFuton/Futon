@@ -70,8 +70,8 @@ interface MangaRepository {
 		private val contentCache: MemoryContentCache,
 		private val mirrorSwitcher: MirrorSwitcher,
 		private val mihonExtensionManager: MihonExtensionManager,
-		private val lnPluginStorage: LnPluginStorage,
 		private val lnPluginManager: LnPluginManager,
+		private val lnPluginRuntimeManager: io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntimeManager,
 	) {
 
 		private val cache = ArrayMap<MangaSource, WeakReference<MangaRepository>>()
@@ -142,17 +142,11 @@ interface MangaRepository {
 			)
 
 			is LnPluginSource -> {
-				val runtime = LnPluginRuntime(
-					context = context,
-					httpClient = loaderContext.httpClient,
-					plugin = source.plugin,
-					pluginStorage = lnPluginStorage,
-				)
 				LnReaderNovelRepository(
 					cache = contentCache,
 					source = source,
 					plugin = source.plugin,
-					runtime = runtime,
+					runtime = lnPluginRuntimeManager.getRuntime(source.plugin),
 				)
 			}
 
@@ -167,17 +161,11 @@ interface MangaRepository {
 				}
 				if (LnPluginSource.isLnReaderSource(source.name)) {
 					lnPluginManager.getPluginSource(source.name)?.let { lnSource ->
-						val runtime = LnPluginRuntime(
-							context = context,
-							httpClient = loaderContext.httpClient,
-							plugin = lnSource.plugin,
-							pluginStorage = lnPluginStorage,
-						)
 						return LnReaderNovelRepository(
 							cache = contentCache,
 							source = lnSource,
 							plugin = lnSource.plugin,
-							runtime = runtime,
+							runtime = lnPluginRuntimeManager.getRuntime(lnSource.plugin),
 						)
 					}
 				}

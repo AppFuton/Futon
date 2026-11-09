@@ -5,6 +5,7 @@ import com.dokar.quickjs.QuickJs
 import com.dokar.quickjs.binding.asyncFunction
 import com.dokar.quickjs.binding.function
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.landwarderer.futon.core.network.BaseHttpClient
 import io.github.landwarderer.futon.core.network.CloudFlareInterceptor
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnChapterItem
@@ -17,7 +18,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -28,6 +31,13 @@ import javax.inject.Inject
 
 /**
  * Manages an isolated QuickJS execution context to run an LNReader JavaScript plugin.
+ *
+ * Trust Model:
+ * LNReader plugins run inside an isolated QuickJS JavaScript engine without filesystem or
+ * direct OS access. Network calls from plugins are bridged via the application's OkHttpClient
+ * (preserving cookies and redirection headers required for Cloudflare-protected novel sites).
+ * In alignment with Mihon/Tachiyomi extensions, LNReader community plugins are considered
+ * user-trusted external sources.
  */
 class LnPluginRuntime(
 	private val context: Context,
@@ -61,61 +71,74 @@ class LnPluginRuntime(
 		context.getSharedPreferences("ln_plugin_$pluginId", Context.MODE_PRIVATE)
 	}
 
+	companion object {
+		private const val PLUGIN_TIMEOUT_MS = 30_000L
+
+		private fun JSONObject.optStringOrNull(name: String): String? {
+			if (isNull(name)) return null
+			val value = optString(name, "")
+			return value.takeIf { it.isNotBlank() && it != "null" }
+		}
+	}
+
 	private suspend fun ensureInitialized() {
 		if (quickJs != null) return
 
 		val qjs = QuickJs.create(jobDispatcher = Dispatchers.IO)
-
-		// Bind native logging bridge
-		qjs.function("__futon_native_log") { args ->
-			val level = args.getOrNull(0)?.toString().orEmpty()
-			val msg = args.drop(1).joinToString(" ")
-			when (level) {
-				"ERROR" -> android.util.Log.e("LnPluginRuntime", "[$pluginId] $msg")
-				"WARN" -> android.util.Log.w("LnPluginRuntime", "[$pluginId] $msg")
-				else -> android.util.Log.d("LnPluginRuntime", "[$pluginId] $msg")
+		try {
+			// Bind native logging bridge
+			qjs.function("__futon_native_log") { args ->
+				val level = args.getOrNull(0)?.toString().orEmpty()
+				val msg = args.drop(1).joinToString(" ")
+				when (level) {
+					"ERROR" -> android.util.Log.e("LnPluginRuntime", "[$pluginId] $msg")
+					"WARN" -> android.util.Log.w("LnPluginRuntime", "[$pluginId] $msg")
+					else -> android.util.Log.d("LnPluginRuntime", "[$pluginId] $msg")
+				}
 			}
-		}
 
-		// Bind native HTTP fetch bridge
-		qjs.asyncFunction("__futon_native_fetch") { args ->
-			val url = args.getOrNull(0)?.toString().orEmpty()
-			val method = args.getOrNull(1)?.toString() ?: "GET"
-			val headersJson = args.getOrNull(2)?.toString().orEmpty()
-			val body = args.getOrNull(3)?.toString()
+			// Bind native HTTP fetch bridge
+			qjs.asyncFunction("__futon_native_fetch") { args ->
+				val url = args.getOrNull(0)?.toString().orEmpty()
+				val method = args.getOrNull(1)?.toString() ?: "GET"
+				val headersJson = args.getOrNull(2)?.toString().orEmpty()
+				val body = args.getOrNull(3)?.toString()
 
-			executeNativeFetch(url, method, headersJson, body)
-		}
+				executeNativeFetch(url, method, headersJson, body)
+			}
 
-		// Bind native storage bridges
-		qjs.function("__futon_native_storage_get") { args ->
-			val key = args.getOrNull(0)?.toString().orEmpty()
-			prefs.getString(key, null)
-		}
+			// Bind native storage bridges
+			qjs.function("__futon_native_storage_get") { args ->
+				val key = args.getOrNull(0)?.toString().orEmpty()
+				prefs.getString(key, null)
+			}
 
-		qjs.function("__futon_native_storage_set") { args ->
-			val key = args.getOrNull(0)?.toString().orEmpty()
-			val value = args.getOrNull(1)?.toString().orEmpty()
-			prefs.edit().putString(key, value).apply()
-		}
+			qjs.function("__futon_native_storage_set") { args ->
+				val key = args.getOrNull(0)?.toString().orEmpty()
+				val value = args.getOrNull(1)?.toString().orEmpty()
+				prefs.edit().putString(key, value).apply()
+			}
 
-		// 1. Load bundled Cheerio, Parser, Dayjs dependencies
-		val depsCode = context.assets.open("lnreader/ln_deps.min.js").bufferedReader().use { it.readText() }
-		qjs.evaluate<Any?>(depsCode)
+			// 1. Load bundled Cheerio, Parser, Dayjs dependencies
+			val depsCode = context.assets.open("lnreader/ln_deps.min.js").bufferedReader().use { it.readText() }
+			qjs.evaluate<Any?>(depsCode)
 
-		// 2. Load LNReader environment shim
-		val envCode = context.assets.open("lnreader/ln_env.js").bufferedReader().use { it.readText() }
-		qjs.evaluate<Any?>(envCode)
+			// 2. Load LNReader environment shim
+			val envCode = context.assets.open("lnreader/ln_env.js").bufferedReader().use { it.readText() }
+			qjs.evaluate<Any?>(envCode)
 
-		// 3. Initialize the plugin code
-		qjs.evaluate<Any?>("__futon_raw_code = " + JSONObject.quote(pluginScript) + ";")
-		val initSuccess = qjs.evaluate<Boolean>("__futon_init_plugin(__futon_raw_code);")
-		if (!initSuccess) {
+			// 3. Initialize the plugin code
+			qjs.evaluate<Any?>("__futon_raw_code = " + JSONObject.quote(pluginScript) + ";")
+			val initSuccess = qjs.evaluate<Boolean>("__futon_init_plugin(__futon_raw_code);")
+			if (!initSuccess) {
+				throw IllegalStateException("Failed to initialize LNReader plugin: $pluginId")
+			}
+
+			quickJs = qjs
+		} catch (e: Throwable) {
 			qjs.close()
-			throw IllegalStateException("Failed to initialize LNReader plugin: $pluginId")
+			throw e
 		}
-
-		quickJs = qjs
 	}
 
 	suspend fun getPopularNovels(page: Int): List<LnNovelItem> = mutex.withLock {
@@ -124,15 +147,13 @@ class LnPluginRuntime(
 			val qjs = checkNotNull(quickJs)
 			val script = """
 				(async () => {
-					const options = (typeof __futon_build_default_options === 'function')
-						? __futon_build_default_options(__futon_current_plugin)
-						: { showLatestNovels: false, filters: {} };
-					const novels = await __futon_current_plugin.popularNovels($page, options);
+					const novels = await __futon_current_plugin.popularNovels($page, { showLatestNovels: false });
 					return JSON.stringify(novels || []);
 				})()
 			""".trimIndent()
 
-			parseNovelItems(evaluateAsyncString(qjs, script))
+			val jsonResult = evaluateAsyncString(qjs, script)
+			parseNovelItems(jsonResult)
 		}
 	}
 
@@ -143,10 +164,7 @@ class LnPluginRuntime(
 			val quotedQuery = JSONObject.quote(query)
 			val script = """
 				(async () => {
-					const options = (typeof __futon_build_default_options === 'function')
-						? __futon_build_default_options(__futon_current_plugin)
-						: { showLatestNovels: false, filters: {} };
-					const novels = await __futon_current_plugin.searchNovels($quotedQuery, $page, options);
+					const novels = await __futon_current_plugin.searchNovels($quotedQuery, $page);
 					return JSON.stringify(novels || []);
 				})()
 			""".trimIndent()
@@ -191,21 +209,37 @@ class LnPluginRuntime(
 
 	/** Evaluate a Promise-returning plugin expression and read its fulfilled value. */
 	private suspend fun evaluateAsyncString(qjs: QuickJs, promiseExpression: String): String {
-		qjs.evaluate<Any?>(
-			"""
-				globalThis.__futon_async_result = "";
-				globalThis.__futon_async_error = "";
-				Promise.resolve($promiseExpression).then(
-					value => { globalThis.__futon_async_result = String(value ?? ""); },
-					error => { globalThis.__futon_async_error = String(error && error.stack || error); }
-				);
-			""".trimIndent(),
-		)
-		val error = qjs.evaluate<String>("globalThis.__futon_async_error")
-		if (error.isNotBlank()) {
+		val wrapper = """
+			(async () => {
+				try {
+					const res = await ($promiseExpression);
+					return JSON.stringify({ success: true, data: (res == null ? "" : String(res)) });
+				} catch (err) {
+					const msg = (err && (err.message ? (err.message + '\n' + (err.stack || '')) : err.stack)) || String(err);
+					return JSON.stringify({ success: false, error: msg });
+				}
+			})()
+		""".trimIndent()
+
+		val rawJson = withTimeout(PLUGIN_TIMEOUT_MS) {
+			qjs.evaluate<String>(wrapper)
+		}
+
+		if (rawJson.isNullOrBlank()) {
+			throw IllegalStateException("Plugin evaluation completed without result or error")
+		}
+
+		val json = try {
+			JSONObject(rawJson)
+		} catch (e: Throwable) {
+			throw IllegalStateException("Plugin evaluation returned invalid response wrapper: $rawJson", e)
+		}
+
+		if (!json.optBoolean("success", false)) {
+			val error = json.optString("error", "Unknown plugin evaluation error")
 			throw IllegalStateException(error)
 		}
-		return qjs.evaluate("globalThis.__futon_async_result")
+		return json.optString("data", "")
 	}
 
 	private suspend fun executeNativeFetch(
@@ -230,8 +264,31 @@ class LnPluginRuntime(
 				?.takeIf(String::isNotBlank)
 				?.toMediaTypeOrNull()
 			val methodRequiresBody = normalizedMethod in setOf("POST", "PUT", "PATCH", "PROPPATCH", "REPORT")
+
 			val requestBody = if (normalizedMethod !in setOf("GET", "HEAD") && (body != null || methodRequiresBody)) {
-				(body ?: "").toRequestBody(contentType)
+				if (body != null && body.startsWith("{\"__futon_type\":\"FormData\"")) {
+					val json = JSONObject(body)
+					val entries = json.optJSONArray("entries") ?: JSONArray()
+					val formBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
+					for (i in 0 until entries.length()) {
+						val entry = entries.getJSONObject(i)
+						val name = entry.getString("name")
+						val value = entry.getString("value")
+						val filename = if (!entry.isNull("filename")) entry.optString("filename") else null
+						if (filename != null) {
+							formBuilder.addFormDataPart(
+								name,
+								filename,
+								value.toRequestBody("application/octet-stream".toMediaTypeOrNull()),
+							)
+						} else {
+							formBuilder.addFormDataPart(name, value)
+						}
+					}
+					formBuilder.build()
+				} else {
+					(body ?: "").toRequestBody(contentType)
+				}
 			} else null
 			requestBuilder.method(normalizedMethod, requestBody)
 
@@ -264,23 +321,37 @@ class LnPluginRuntime(
 	}
 
 	private fun parseNovelItems(jsonString: String): List<LnNovelItem> {
-		val array = runCatching { JSONArray(jsonString) }.getOrElse { JSONArray() }
+		if (jsonString.isBlank()) {
+			throw IllegalStateException("Plugin returned empty list result")
+		}
+		val array = try {
+			JSONArray(jsonString)
+		} catch (e: Throwable) {
+			throw IllegalStateException("Plugin returned malformed JSON: ${e.message}", e)
+		}
 		val list = ArrayList<LnNovelItem>(array.length())
 		for (i in 0 until array.length()) {
 			val obj = array.getJSONObject(i)
 			list.add(
 				LnNovelItem(
-					name = obj.optString("name", "Untitled"),
-					path = obj.optString("path", ""),
-					cover = obj.optString("cover").takeIf { !it.isNullOrBlank() },
-				)
+					name = obj.optStringOrNull("name") ?: "Untitled",
+					path = obj.optStringOrNull("path").orEmpty(),
+					cover = obj.optStringOrNull("cover"),
+				),
 			)
 		}
 		return list
 	}
 
 	private fun parseSourceNovel(jsonString: String): LnSourceNovel {
-		val obj = JSONObject(jsonString)
+		if (jsonString.isBlank()) {
+			throw IllegalStateException("Plugin returned empty novel details")
+		}
+		val obj = try {
+			JSONObject(jsonString)
+		} catch (e: Throwable) {
+			throw IllegalStateException("Plugin returned malformed JSON: ${e.message}", e)
+		}
 		val chaptersArray = obj.optJSONArray("chapters") ?: JSONArray()
 		val chapters = ArrayList<LnChapterItem>(chaptersArray.length())
 		for (i in 0 until chaptersArray.length()) {
@@ -291,23 +362,23 @@ class LnPluginRuntime(
 
 			chapters.add(
 				LnChapterItem(
-					name = cObj.optString("name", "Chapter ${i + 1}"),
-					path = cObj.optString("path", ""),
+					name = cObj.optStringOrNull("name") ?: "Chapter ${i + 1}",
+					path = cObj.optStringOrNull("path").orEmpty(),
 					chapterNumber = chapNum,
-					releaseTime = cObj.optString("releaseTime").takeIf { !it.isNullOrBlank() },
-				)
+					releaseTime = cObj.optStringOrNull("releaseTime"),
+				),
 			)
 		}
 
 		return LnSourceNovel(
-			name = obj.optString("name", "Untitled"),
-			path = obj.optString("path", ""),
-			cover = obj.optString("cover").takeIf { !it.isNullOrBlank() },
-			author = obj.optString("author").takeIf { !it.isNullOrBlank() },
-			artist = obj.optString("artist").takeIf { !it.isNullOrBlank() },
-			status = obj.optString("status").takeIf { !it.isNullOrBlank() },
-			summary = obj.optString("summary").takeIf { !it.isNullOrBlank() },
-			genres = obj.optString("genres").takeIf { !it.isNullOrBlank() },
+			name = obj.optStringOrNull("name") ?: "Untitled",
+			path = obj.optStringOrNull("path").orEmpty(),
+			cover = obj.optStringOrNull("cover"),
+			author = obj.optStringOrNull("author"),
+			artist = obj.optStringOrNull("artist"),
+			status = obj.optStringOrNull("status"),
+			summary = obj.optStringOrNull("summary"),
+			genres = obj.optStringOrNull("genres"),
 			chapters = chapters,
 		)
 	}
@@ -324,10 +395,9 @@ class LnPluginRuntime(
 @javax.inject.Singleton
 class LnPluginRuntimeFactory @Inject constructor(
 	@ApplicationContext private val context: Context,
-	private val httpClient: OkHttpClient,
+	@BaseHttpClient private val httpClient: OkHttpClient,
 ) {
 	fun create(pluginId: String, pluginScript: String): LnPluginRuntime {
 		return LnPluginRuntime(context, httpClient, pluginId, pluginScript)
 	}
 }
-

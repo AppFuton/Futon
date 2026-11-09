@@ -25,7 +25,7 @@ data class LnPluginSource(
 
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
-		if (other !is MangaSource) return false
+		if (other !is LnPluginSource) return false
 		return name == other.name
 	}
 

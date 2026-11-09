@@ -14,6 +14,7 @@ import io.github.landwarderer.futon.core.cache.MemoryContentCache
 import io.github.landwarderer.futon.core.parser.CachingMangaRepository
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnPlugin
 import io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntime
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Concrete implementation of MangaRepository that executes an LNReader JS plugin via QuickJS.
@@ -33,13 +34,27 @@ class LnReaderNovelRepository(
 		isSearchWithFiltersSupported = false,
 	)
 
+	private data class PagingKey(val query: String, val order: SortOrder?)
+	private val paginators = ConcurrentHashMap<PagingKey, NovelPaginator>()
+
+	private fun getPaginator(key: PagingKey, offset: Int): NovelPaginator {
+		if (offset == 0) {
+			val paginator = NovelPaginator(initialPageSize = 20)
+			paginators[key] = paginator
+			return paginator
+		}
+		return paginators.getOrPut(key) { NovelPaginator(initialPageSize = 20) }
+	}
+
 	override suspend fun getPageUrl(page: MangaPage): String = page.url
 	override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions()
 	override suspend fun getRelatedMangaImpl(seed: Manga): List<Manga> = emptyList()
 
 	override suspend fun getList(offset: Int, order: SortOrder?, filter: MangaListFilter?): List<Manga> {
-		val page = (offset / 20) + 1
 		val query = filter?.query?.trim().orEmpty()
+		val key = PagingKey(query, order)
+		val paginator = getPaginator(key, offset)
+		val page = paginator.getPage(offset)
 
 		val items = if (query.isNotEmpty()) {
 			runtime.searchNovels(query, page)
@@ -47,21 +62,22 @@ class LnReaderNovelRepository(
 			runtime.getPopularNovels(page)
 		}
 
+		paginator.onListReceived(offset, page, items.size)
+
 		return items.map { item ->
 			val fullUrl = resolveUrl(item.path)
-			@Suppress("DEPRECATION")
 			Manga(
 				id = "${plugin.id}_${item.path}".longHashCode(),
 				title = item.name,
-				altTitle = null,
+				altTitles = emptySet(),
 				url = item.path,
 				publicUrl = fullUrl,
 				rating = 0f,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = item.cover.orEmpty(),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				largeCoverUrl = item.cover,
 				description = null,
 				chapters = null,
@@ -73,51 +89,76 @@ class LnReaderNovelRepository(
 	public override suspend fun getDetailsImpl(manga: Manga): Manga {
 		val novel = runtime.parseNovel(manga.url)
 		val chapters = novel.chapters.mapIndexed { index, chapterItem ->
-			val chapUrl = resolveUrl(chapterItem.path)
 			MangaChapter(
 				id = "${plugin.id}_${chapterItem.path}".longHashCode(),
 				title = chapterItem.name,
 				number = chapterItem.chapterNumber ?: (index + 1).toFloat(),
 				volume = 0,
 				url = chapterItem.path,
-				uploadDate = 0L,
-				source = source,
 				scanlator = null,
+				uploadDate = 0L,
 				branch = null,
+				source = source,
 			)
 		}
 
-		val tags = novel.genres?.split(",")?.map { g ->
-			val trimmed = g.trim()
-			MangaTag(title = trimmed, key = trimmed, source = source)
-		}?.toSet().orEmpty()
+		val tags = novel.genres?.split(",")
+			?.map { it.trim() }
+			?.filter { it.isNotEmpty() }
+			?.map { MangaTag(title = it, key = it, source = source) }
+			?.toSet()
+			.orEmpty()
 
 		return manga.copy(
-			description = novel.summary ?: manga.description,
+			title = novel.name.ifBlank { manga.title },
+			authors = novel.author?.takeIf { it.isNotBlank() }?.let { setOf(it) } ?: emptySet(),
+			description = novel.summary,
 			coverUrl = novel.cover ?: manga.coverUrl,
-			authors = novel.author?.let { setOf(it) } ?: manga.authors,
-			tags = if (tags.isNotEmpty()) tags else manga.tags,
+			largeCoverUrl = novel.cover ?: manga.largeCoverUrl,
+			state = null,
+			tags = tags,
 			chapters = chapters,
 		)
 	}
 
 	public override suspend fun getPagesImpl(chapter: MangaChapter): List<MangaPage> {
-		val html = runtime.parseChapter(chapter.url)
+		val content = runtime.parseChapter(chapter.url)
+		val resolvedUrl = resolveUrl(chapter.url)
+		val html = io.github.landwarderer.futon.novel.ui.reader.NovelChapterContent.toHtmlFragment(content, resolvedUrl)
 		return listOf(
 			MangaPage(
 				id = chapter.id,
-				url = html,
-				preview = resolveUrl(chapter.url),
+				url = "novel_content://$html",
+				preview = null,
 				source = source,
-			)
+			),
 		)
 	}
 
 	private fun resolveUrl(path: String): String {
 		if (path.startsWith("http://") || path.startsWith("https://")) return path
-		val siteBase = plugin.site.trimEnd('/')
-		val cleanPath = path.trimStart('/')
-		return "$siteBase/$cleanPath"
+		val base = plugin.site.trimEnd('/')
+		val cleanPath = if (path.startsWith("/")) path else "/$path"
+		return base + cleanPath
 	}
 }
 
+internal class NovelPaginator(private val initialPageSize: Int = 20) {
+	var firstPage: Int = 1
+	private val pages = ConcurrentHashMap<Int, Int>()
+
+	fun getPage(offset: Int): Int {
+		if (offset == 0) {
+			return firstPage
+		}
+		pages[offset]?.let { return it }
+		val pageSize = initialPageSize
+		val intPage = offset / pageSize
+		val tail = offset % pageSize
+		return intPage + firstPage + if (tail == 0) 0 else 1
+	}
+
+	fun onListReceived(offset: Int, page: Int, count: Int) {
+		pages[offset + count] = if (count > 0) page + 1 else page
+	}
+}

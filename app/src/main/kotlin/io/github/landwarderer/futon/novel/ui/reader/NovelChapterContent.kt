@@ -1,12 +1,27 @@
 package io.github.landwarderer.futon.novel.ui.reader
 
 import org.jsoup.Jsoup
+import org.jsoup.safety.Safelist
 import java.net.URI
 
 /** Normalizes parser output while preserving markup and resolving chapter-relative resources. */
 internal object NovelChapterContent {
 	private val htmlTag = Regex("(?is)<!doctype\\s+html\\b|</?[a-z][\\w:-]*(?:\\s[^<>]*?)?/?>")
 	private val resourceUrl = Regex("(?i)url\\(\\s*(['\"]?)(.*?)\\1\\s*\\)")
+
+	private val contentSafelist: Safelist = Safelist.relaxed()
+		.addTags(
+			"hr", "ruby", "rt", "rp", "s", "del", "ins", "mark",
+			"figure", "figcaption", "section", "article",
+		)
+		.addAttributes("img", "src", "data-src", "data-original", "srcset", "alt", "title", "width", "height")
+		.addAttributes("a", "href", "title", "target")
+		.addAttributes(":all", "class", "style", "id", "dir")
+		.addProtocols("img", "src", "http", "https", "data")
+		.addProtocols("img", "data-src", "http", "https", "data")
+		.addProtocols("img", "data-original", "http", "https", "data")
+		.addProtocols("a", "href", "http", "https", "mailto")
+		.preserveRelativeLinks(true)
 
 	fun toHtmlFragment(content: String, baseUrl: String? = null): String {
 		val trimmed = content.trim().removePrefix("\uFEFF")
@@ -21,7 +36,8 @@ internal object NovelChapterContent {
 					"<p>${escapeHtml(paragraph.trim()).replace(Regex("\\r?\\n"), "<br>")}</p>"
 				}
 		}
-		return resolveResources(fragment, baseUrl)
+		val resolved = resolveResources(fragment, baseUrl)
+		return Jsoup.clean(resolved, baseUrl.orEmpty(), contentSafelist)
 	}
 
 	private fun resolveResources(html: String, baseUrl: String?): String {

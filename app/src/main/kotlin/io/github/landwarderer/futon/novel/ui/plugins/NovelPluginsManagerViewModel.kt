@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.ui.BaseViewModel
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
@@ -99,8 +100,7 @@ class NovelPluginsManagerViewModel @Inject constructor(
 
     fun installPlugin(plugin: LnPlugin) {
         launchJob(ioDispatcher) {
-            val installing = _state.value.installingIds + plugin.id
-            _state.value = _state.value.copy(installingIds = installing)
+            _state.update { it.copy(installingIds = it.installingIds + plugin.id) }
             try {
                 val success = pluginManager.installPlugin(plugin)
                 if (success) {
@@ -115,15 +115,14 @@ class NovelPluginsManagerViewModel @Inject constructor(
                 e.printStackTraceDebug()
                 _events.emit(NovelPluginEvent.ShowError(R.string.plugin_install_failed))
             } finally {
-                _state.value = _state.value.copy(installingIds = _state.value.installingIds - plugin.id)
+                _state.update { it.copy(installingIds = it.installingIds - plugin.id) }
             }
         }
     }
 
     fun uninstallPlugin(plugin: LnPlugin) {
         launchJob(ioDispatcher) {
-            val installing = _state.value.installingIds + plugin.id
-            _state.value = _state.value.copy(installingIds = installing)
+            _state.update { it.copy(installingIds = it.installingIds + plugin.id) }
             try {
                 val success = pluginManager.uninstallPlugin(plugin.id)
                 if (success) {
@@ -138,7 +137,7 @@ class NovelPluginsManagerViewModel @Inject constructor(
                 e.printStackTraceDebug()
                 _events.emit(NovelPluginEvent.ShowError(R.string.plugin_uninstall_failed))
             } finally {
-                _state.value = _state.value.copy(installingIds = _state.value.installingIds - plugin.id)
+                _state.update { it.copy(installingIds = it.installingIds - plugin.id) }
             }
         }
     }

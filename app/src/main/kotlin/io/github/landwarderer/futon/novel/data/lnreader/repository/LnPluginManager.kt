@@ -1,5 +1,7 @@
 package io.github.landwarderer.futon.novel.data.lnreader.repository
 
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,10 +16,12 @@ import okhttp3.Request
 import org.json.JSONArray
 import java.io.IOException
 import eu.kanade.tachiyomi.network.awaitSuccess
+import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.network.BaseHttpClient
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnPlugin
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnPluginSource
+import io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntimeManager
 import io.github.landwarderer.futon.novel.data.lnreader.storage.LnPluginStorage
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,8 +31,11 @@ import javax.inject.Singleton
  */
 @Singleton
 class LnPluginManager @Inject constructor(
+	@ApplicationContext private val context: Context,
 	@BaseHttpClient private val httpClient: OkHttpClient,
 	val storage: LnPluginStorage,
+	private val runtimeManager: LnPluginRuntimeManager,
+	private val database: MangaDatabase,
 ) {
 	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private val _installedPlugins = MutableStateFlow<List<LnPlugin>>(
@@ -97,6 +104,7 @@ class LnPluginManager @Inject constructor(
 				response.body.string()
 			}
 			storage.savePlugin(plugin, script)
+			runtimeManager.closeRuntime(plugin.id)
 			refreshInstalledPlugins()
 			true
 		} catch (e: CancellationException) {
@@ -108,6 +116,12 @@ class LnPluginManager @Inject constructor(
 	}
 
 	suspend fun uninstallPlugin(pluginId: String): Boolean = withContext(Dispatchers.IO) {
+		runtimeManager.closeRuntime(pluginId)
+		// Clean up plugin SharedPreferences
+		context.getSharedPreferences("ln_plugin_$pluginId", Context.MODE_PRIVATE).edit().clear().apply()
+		// Remove source from database
+		database.getSourcesDao().delete("${LnPluginSource.PREFIX}$pluginId")
+
 		val success = storage.deletePlugin(pluginId)
 		if (success) {
 			refreshInstalledPlugins()

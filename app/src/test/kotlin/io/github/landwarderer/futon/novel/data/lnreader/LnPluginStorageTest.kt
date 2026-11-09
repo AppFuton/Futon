@@ -1,8 +1,10 @@
 package io.github.landwarderer.futon.novel.data.lnreader
 
 import android.content.Context
+import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnPlugin
 import io.github.landwarderer.futon.novel.data.lnreader.repository.LnPluginManager
+import io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntimeManager
 import io.github.landwarderer.futon.novel.data.lnreader.storage.LnPluginStorage
 import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
@@ -33,7 +35,13 @@ class LnPluginStorageTest {
 		`when`(context.filesDir).thenReturn(filesDir)
 
 		storage = LnPluginStorage(context)
-		manager = LnPluginManager(OkHttpClient(), storage)
+		manager = LnPluginManager(
+			context = context,
+			httpClient = OkHttpClient(),
+			storage = storage,
+			runtimeManager = mock(LnPluginRuntimeManager::class.java),
+			database = mock(MangaDatabase::class.java),
+		)
 	}
 
 	@Test
@@ -94,6 +102,18 @@ class LnPluginStorageTest {
 		assertFalse(manager.isNewerVersion("1.0.0", "1.0.0"))
 		assertFalse(manager.isNewerVersion("1.0.0", "2.0.0"))
 		assertFalse(manager.isNewerVersion("1.2.3", "1.2.4"))
+	}
+
+	@Test
+	fun testPluginIdValidation() {
+		assertTrue(LnPluginStorage.isValidPluginId("boxnovel"))
+		assertTrue(LnPluginStorage.isValidPluginId("novel_bin"))
+		assertTrue(LnPluginStorage.isValidPluginId("site-1.2"))
+		assertFalse(LnPluginStorage.isValidPluginId("."))
+		assertFalse(LnPluginStorage.isValidPluginId(".."))
+		assertFalse(LnPluginStorage.isValidPluginId("../evil"))
+		assertFalse(LnPluginStorage.isValidPluginId("bad/path"))
+		assertFalse(LnPluginStorage.isValidPluginId(""))
 	}
 }
 

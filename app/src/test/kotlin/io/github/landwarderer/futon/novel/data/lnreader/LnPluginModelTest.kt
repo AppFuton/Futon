@@ -102,6 +102,10 @@ class LnPluginModelTest {
 
 		assertEquals(source1, source2)
 		assertEquals(source1.hashCode(), source2.hashCode())
+
+		val anonSource = io.github.landwarderer.futon.core.model.AnonymousMangaSource("lnreader:allnovel")
+		assertFalse(source1 == anonSource)
+		assertFalse(anonSource == source1)
 	}
 
 	@Test
