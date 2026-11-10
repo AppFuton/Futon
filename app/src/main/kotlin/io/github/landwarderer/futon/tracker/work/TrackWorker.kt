@@ -175,6 +175,10 @@ class TrackWorker @AssistedInject constructor(
 			return Result.success()
 		}
 
+		if (recheckSource == null) {
+			// A recheck after a captcha only finishes an earlier check, whose findings should stay on the shelf.
+			settings.trackerLastRunAt = System.currentTimeMillis()
+		}
 		val notifications = checkUpdatesAsync(tracks)
 		if (notifications.isNotEmpty() && applicationContext.checkNotificationPermission(null)) {
 			val groupNotification = notificationHelper.createGroupNotification(notifications)

@@ -93,6 +93,10 @@
 		<item>@string/single_cbz_file</item>
 		<item>@string/multiple_cbz_files</item>
 	</string-array>
+	<string-array name="updates_shelf_windows" translatable="false">
+		<item>@string/updates_shelf_since_last_check</item>
+		<item>@string/updates_shelf_last_24_hours</item>
+	</string-array>
 	<string-array name="tracker_frequency" translatable="false">
 		<item>@string/manual</item>
 		<item>@string/less_frequently</item>

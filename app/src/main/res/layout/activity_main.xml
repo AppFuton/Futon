@@ -79,22 +79,6 @@
 
 	</com.google.android.material.search.SearchView>
 
-	<com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-		android:id="@+id/fab"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_marginHorizontal="16dp"
-		android:text="@string/_continue"
-		android:visibility="gone"
-		app:icon="@drawable/ic_read"
-		app:layout_anchor="@id/bottomNav"
-		app:layout_anchorGravity="top|end"
-		app:layout_behavior="io.github.landwarderer.futon.main.ui.MainActionButtonBehavior"
-		app:layout_dodgeInsetEdges="bottom"
-		app:layout_insetEdge="bottom"
-		tools:ignore="InconsistentLayout"
-		tools:visibility="visible" />
-
 	<io.github.landwarderer.futon.core.ui.widgets.SlidingBottomNavigationView
 		android:id="@+id/bottomNav"
 		android:layout_width="match_parent"
