@@ -47,8 +47,9 @@ class DockBackgroundDrawable(
 		val available = capsule.centerX() - capsule.left - capsule.height() / 2f
 		val top = (halfWidth - radius * TOP_INSET).coerceAtLeast(0f)
 		val wanted = top + bump * SLOPE_SPAN
-		shoulder = min(wanted, available)
-		topHalfWidth = top * (if (wanted > 0f) shoulder / wanted else 1f)
+		// When space runs short, shorten the slopes before the flat top, so the top still clears the button.
+		shoulder = min(wanted, available).coerceAtLeast(0f)
+		topHalfWidth = min(top, shoulder)
 		rebuildPath()
 		invalidateSelf()
 	}
@@ -104,7 +105,7 @@ class DockBackgroundDrawable(
 	private companion object {
 
 		/** Horizontal run of each slope, as a multiple of the bump height. Larger is gentler. */
-		const val SLOPE_SPAN = 1.6f
+		const val SLOPE_SPAN = 2.1f
 
 		/** How far in from the button's outer radius the flat top ends. */
 		const val TOP_INSET = 1.1f
