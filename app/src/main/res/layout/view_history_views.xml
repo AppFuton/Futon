@@ -43,6 +43,7 @@
 			<com.google.android.material.chip.Chip android:id="@+id/chip_mode_recent" style="@style/Widget.Futon.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/history_view_recent" />
 			<com.google.android.material.chip.Chip android:id="@+id/chip_mode_calendar" style="@style/Widget.Futon.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/history_view_calendar" />
 			<com.google.android.material.chip.Chip android:id="@+id/chip_mode_shelf" style="@style/Widget.Futon.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/history_view_shelf" />
+			<com.google.android.material.chip.Chip android:id="@+id/chip_mode_wheel" style="@style/Widget.Futon.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/history_view_wheel" />
 			<com.google.android.material.chip.Chip android:id="@+id/chip_mode_list" style="@style/Widget.Futon.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/history_view_list" />
 
 		</com.google.android.material.chip.ChipGroup>

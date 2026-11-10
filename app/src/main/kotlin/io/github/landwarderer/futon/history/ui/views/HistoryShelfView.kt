@@ -12,15 +12,11 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.util.ext.getAnimationDuration
 import io.github.landwarderer.futon.databinding.ViewHistoryShelfBinding
-import io.github.landwarderer.futon.history.domain.SPINE_COLUMNS
 import io.github.landwarderer.futon.history.domain.SpineCropAnalyzer
-import io.github.landwarderer.futon.history.domain.bestSpineWindow
 import io.github.landwarderer.futon.history.domain.model.HistoryEntry
-import io.github.landwarderer.futon.history.domain.spineWindowColumns
 import org.koitharu.kotatsu.parsers.model.Manga
 
 private const val COVER_ASPECT = 13f / 18f
@@ -35,12 +31,13 @@ private val TILTS = floatArrayOf(-2.2f, 1.6f, -1f, 2.6f, -2.8f, 1.2f, -1.6f, 2.2
 
 class HistoryShelfView(
 	context: Context,
-	private val analyzer: SpineCropAnalyzer,
-	private val scope: LifecycleCoroutineScope,
+	analyzer: SpineCropAnalyzer,
+	scope: LifecycleCoroutineScope,
 	private val onOpen: (Manga) -> Unit,
 ) : LinearLayout(context), HistoryModeView {
 
 	private val binding = ViewHistoryShelfBinding.inflate(LayoutInflater.from(context), this)
+	private val binder = SpineBinder(analyzer, scope)
 	private val shelfAdapter = ShelfAdapter()
 	private var entries: List<HistoryEntry> = emptyList()
 	private var maxChapters = 1
@@ -159,18 +156,11 @@ class HistoryShelfView(
 			animator?.cancel()
 			entry = item
 			index = position
-			spine.percent = item.percent
-			spine.contentDescription = item.manga.title
-			spine.coverHeight = bookHeight.toFloat()
-			spine.coverWidth = coverWidth.toFloat()
+			binder.bind(spine, item, coverWidth, bookHeight)
 			applyGeometry(geometry(item, position, pulledOut == item.manga.id))
-			spine.setCover(item.manga, coverWidth, bookHeight)
-			if (analyzer.peekEnergy(item.manga) == null) {
-				analysis = scope.launch {
-					analyzer.getEnergy(item.manga) ?: return@launch
-					if (entry === item) {
-						animateTo(geometry(item, index, pulledOut == item.manga.id))
-					}
+			analysis = binder.analyze(item.manga) {
+				if (entry === item) {
+					animateTo(geometry(item, index, pulledOut == item.manga.id))
 				}
 			}
 		}
@@ -213,14 +203,7 @@ class HistoryShelfView(
 			val spineWidth = dp(MIN_SPINE_DP) + dp(SPINE_RANGE_DP) * item.chaptersCount / maxChapters
 			val visible = if (isAskew) spineWidth + dp(ASKEW_EXTRA_VISIBLE_DP) else spineWidth
 			val width = if (isAskew) visible + dp(ASKEW_OVERLAP_DP) else visible
-			val energy = analyzer.peekEnergy(item.manga)
-			val windowColumns = spineWindowColumns(visible.toFloat(), coverWidth.toFloat())
-			val start = if (energy != null) {
-				bestSpineWindow(energy, windowColumns)
-			} else {
-				(SPINE_COLUMNS - windowColumns) / 2
-			}
-			val offset = (start.toFloat() / SPINE_COLUMNS * coverWidth).coerceIn(0f, (coverWidth - width).coerceAtLeast(0).toFloat())
+			val offset = binder.cropOffset(item.manga, visible.toFloat(), coverWidth.toFloat(), width.toFloat())
 			val isLast = position == entries.lastIndex
 			return Geometry(
 				width = width,
