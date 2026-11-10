@@ -28,6 +28,7 @@ import io.github.landwarderer.futon.core.util.ext.consumeAll
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.core.util.ext.observeEvent
 import io.github.landwarderer.futon.databinding.FragmentListBinding
+import io.github.landwarderer.futon.databinding.ViewUpdatesViewsBinding
 import io.github.landwarderer.futon.list.domain.ListFilterOption
 import io.github.landwarderer.futon.list.ui.adapter.MangaListListener
 import io.github.landwarderer.futon.list.ui.adapter.TypedListSpacingDecoration
@@ -38,6 +39,7 @@ import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import io.github.landwarderer.futon.tracker.ui.feed.adapter.FeedAdapter
 import io.github.landwarderer.futon.tracker.ui.feed.adapter.FeedItemTouchCallback
+import io.github.landwarderer.futon.tracker.ui.updates.UpdatesViewsDelegate
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -52,6 +54,8 @@ class FeedFragment :
 	lateinit var coil: ImageLoader
 
 	private val viewModel by viewModels<FeedViewModel>()
+
+	private var viewsDelegate: UpdatesViewsDelegate? = null
 
 	override val recyclerView: RecyclerView?
 		get() = viewBinding?.recyclerView
@@ -68,9 +72,10 @@ class FeedFragment :
 			viewModel.onItemClick(item)
 			router.openDetails(item.toMangaWithOverride())
 		}
+		val modeBarHeight = resources.getDimensionPixelOffset(R.dimen.history_views_bar_height)
 		with(binding.recyclerView) {
 			val paddingVertical = resources.getDimensionPixelSize(R.dimen.list_spacing_normal)
-			setPadding(0, paddingVertical, 0, paddingVertical)
+			setPadding(0, paddingVertical + modeBarHeight, 0, paddingVertical)
 			layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
 			adapter = feedAdapter
 			setHasFixedSize(true)
@@ -80,8 +85,24 @@ class FeedFragment :
 		}
 		ItemTouchHelper(FeedItemTouchCallback(viewModel::removeItem))
 			.attachToRecyclerView(binding.recyclerView)
-		binding.swipeRefreshLayout.setOnRefreshListener(this)
+		with(binding.swipeRefreshLayout) {
+			setOnRefreshListener(this@FeedFragment)
+			// Otherwise the indicator would be hidden behind the bar of view modes.
+			setProgressViewOffset(false, modeBarHeight, modeBarHeight + progressCircleDiameter * 2)
+		}
 		addMenuProvider(FeedMenuProvider(binding.recyclerView, viewModel))
+		viewsDelegate = UpdatesViewsDelegate(
+			binding = ViewUpdatesViewsBinding.inflate(layoutInflater, binding.root, true),
+			listView = binding.swipeRefreshLayout,
+			activity = requireActivity(),
+			lifecycleOwner = viewLifecycleOwner,
+			mode = viewModel.viewMode,
+			entries = viewModel.mapEntries,
+			shelf = viewModel.mapShelf,
+			isMinimalTheme = { viewModel.isMinimalThemeEnabled },
+			onModeSelected = viewModel::setViewMode,
+			onOpen = { router.openDetails(it) },
+		).also { it.attach() }
 
 		viewModel.isHeaderEnabled.drop(1).observe(viewLifecycleOwner, MenuInvalidator(requireActivity()))
 		viewModel.content.observe(viewLifecycleOwner, feedAdapter)
@@ -96,11 +117,17 @@ class FeedFragment :
 		val paddingVertical = resources.getDimensionPixelSize(R.dimen.list_spacing_normal)
 		viewBinding?.recyclerView?.setPadding(
 			left = barsInsets.left,
-			top = paddingVertical,
+			top = paddingVertical + resources.getDimensionPixelOffset(R.dimen.history_views_bar_height),
 			right = barsInsets.right,
 			bottom = barsInsets.bottom + paddingVertical,
 		)
+		viewsDelegate?.setSystemInset(barsInsets.bottom)
 		return insets.consumeAll(typeMask)
+	}
+
+	override fun onDestroyView() {
+		viewsDelegate = null
+		super.onDestroyView()
 	}
 
 	override fun onRefresh() {

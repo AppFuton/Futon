@@ -45,6 +45,7 @@ import io.github.landwarderer.futon.core.os.VoiceInputContract
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.HomeBackgroundFont
 import io.github.landwarderer.futon.core.prefs.NavItem
+import io.github.landwarderer.futon.core.prefs.observeAsFlow
 import io.github.landwarderer.futon.core.ui.BaseActivity
 import io.github.landwarderer.futon.core.ui.util.FadingAppbarMediator
 import io.github.landwarderer.futon.core.ui.util.FontCache
@@ -132,7 +133,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		setSupportActionBar(viewBinding.searchBar)
 		updateHomeWatermark()
 
-		viewBinding.fab?.setOnClickListener(this)
+		viewBinding.bottomNav?.continueButton?.setOnClickListener(this)
+		viewBinding.bottomNav?.isCompact = settings.isMinimalThemeEnabled
 		viewBinding.navRail?.headerView?.findViewById<View>(R.id.railFab)?.setOnClickListener(this)
 		fadingAppbarMediator =
 			FadingAppbarMediator(viewBinding.appbar, viewBinding.layoutSearch ?: viewBinding.searchBar)
@@ -185,6 +187,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				viewModel.onError.observeEvent(this@MainActivity, SnackbarErrorObserver(viewBinding.container, null))
 				viewModel.isLoading.observe(this@MainActivity, this@MainActivity::onLoadingStateChanged)
 				viewModel.isResumeEnabled.observe(this@MainActivity, this@MainActivity::onResumeEnabledChanged)
+				settings.observeAsFlow(AppSettings.KEY_MINIMAL_THEME) { isMinimalThemeEnabled }
+					.observe(this@MainActivity) { viewBinding.bottomNav?.isCompact = it }
 				viewModel.feedCounter.observe(this@MainActivity, ::onFeedCounterChanged)
 				viewModel.onShowOnboarding.observeEvent(this@MainActivity) {
 					onboardingLauncher.launch(Intent(this@MainActivity, OnboardingActivity::class.java))
@@ -319,8 +323,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 
 	private fun onOpenReader(manga: Manga) {
-		val fab = viewBinding.fab ?: viewBinding.navRail?.headerView
-		router.openReader(manga, fab)
+		val anchor = viewBinding.bottomNav?.continueButton ?: viewBinding.navRail?.headerView
+		router.openReader(manga, anchor)
 	}
 
 	private fun onFeedCounterChanged(counter: Int) {
@@ -339,8 +343,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 
 	private fun onLoadingStateChanged(isLoading: Boolean) {
-		val fab = viewBinding.fab ?: viewBinding.navRail?.headerView ?: return
-		fab.isEnabled = !isLoading
+		val button = viewBinding.bottomNav?.continueButton ?: viewBinding.navRail?.headerView ?: return
+		button.isEnabled = !isLoading
 	}
 
 	private fun onResumeEnabledChanged(isEnabled: Boolean) {
@@ -382,16 +386,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		isSearchOpened: Boolean = viewBinding.searchView.isShowing,
 	) {
 		navigationDelegate.navRailHeader?.railFab?.isVisible = isResumeEnabled
-		val fab = viewBinding.fab ?: return
-		if (isResumeEnabled && !actionModeDelegate.isActionModeStarted && !isSearchOpened && topFragment is HistoryListFragment) {
-			if (!fab.isVisible) {
-				fab.show()
-			}
-		} else {
-			if (fab.isVisible) {
-				fab.hide()
-			}
-		}
+		viewBinding.bottomNav?.setContinueVisible(
+			isResumeEnabled && !actionModeDelegate.isActionModeStarted && !isSearchOpened && topFragment is HistoryListFragment,
+		)
 	}
 
 	private fun adjustSearchUI(isOpened: Boolean) {

@@ -9,6 +9,7 @@
 	<dimen name="list_spacing_small">6dp</dimen>
 	<dimen name="list_spacing_normal">8dp</dimen>
 	<dimen name="list_spacing_large">12dp</dimen>
+	<dimen name="history_views_bar_height">56dp</dimen>
 	<!-- Navigation -->
 	<dimen name="nav_bar_height_compact">0dp</dimen>
 

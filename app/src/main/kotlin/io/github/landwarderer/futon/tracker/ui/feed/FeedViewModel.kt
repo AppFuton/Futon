@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -33,8 +34,13 @@ import io.github.landwarderer.futon.list.ui.model.ListHeader
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.list.ui.model.toErrorState
+import io.github.landwarderer.futon.tracker.domain.ObserveUpdatesMapUseCase
+import io.github.landwarderer.futon.tracker.domain.ObserveUpdatesShelfUseCase
 import io.github.landwarderer.futon.tracker.domain.TrackingRepository
 import io.github.landwarderer.futon.tracker.domain.UpdatesListQuickFilter
+import io.github.landwarderer.futon.tracker.domain.UpdatesShelf
+import io.github.landwarderer.futon.tracker.domain.UpdatesViewMode
+import io.github.landwarderer.futon.tracker.domain.model.MangaTracking
 import io.github.landwarderer.futon.tracker.domain.model.TrackingLogItem
 import io.github.landwarderer.futon.tracker.ui.feed.model.FeedItem
 import io.github.landwarderer.futon.tracker.ui.feed.model.UpdatedMangaHeader
@@ -51,10 +57,34 @@ class FeedViewModel @Inject constructor(
 	private val scheduler: TrackWorker.Scheduler,
 	private val mangaListMapper: MangaListMapper,
 	private val quickFilter: UpdatesListQuickFilter,
+	observeUpdatesMap: ObserveUpdatesMapUseCase,
+	observeUpdatesShelf: ObserveUpdatesShelfUseCase,
 ) : BaseViewModel(), QuickFilterListener by quickFilter {
 
 	private val limit = MutableStateFlow(PAGE_SIZE)
 	private val isReady = AtomicBoolean(false)
+
+	val viewMode: StateFlow<UpdatesViewMode> = settings.observeAsStateFlow(
+		scope = viewModelScope + Dispatchers.IO,
+		key = AppSettings.KEY_FEED_VIEW_MODE,
+		valueProducer = { feedViewMode },
+	)
+
+	/** Null until loaded, so that the map does not flash its empty state. */
+	val mapEntries: StateFlow<List<MangaTracking>?> = flowOf(emptySet<ListFilterOption>())
+		.combineWithSettings()
+		.flatMapLatest { observeUpdatesMap(it) }
+		.withErrorHandling()
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
+
+	val mapShelf: StateFlow<UpdatesShelf?> = flowOf(emptySet<ListFilterOption>())
+		.combineWithSettings()
+		.flatMapLatest { observeUpdatesShelf(it) }
+		.withErrorHandling()
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
+
+	val isMinimalThemeEnabled: Boolean
+		get() = settings.isMinimalThemeEnabled
 
 	val isRunning = scheduler.observeIsRunning()
 		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Lazily, false)
@@ -119,6 +149,10 @@ class FeedViewModel @Inject constructor(
 
 	fun update() {
 		scheduler.startNow()
+	}
+
+	fun setViewMode(value: UpdatesViewMode) {
+		settings.feedViewMode = value
 	}
 
 	fun setHeaderEnabled(value: Boolean) {
