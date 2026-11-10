@@ -271,10 +271,9 @@ class ExploreViewModel @Inject constructor(
 		isEnabled to mode
 	}.mapLatest { (isEnabled, mode) ->
 		if (isEnabled) {
-			val isNovel = mode.isNovel
 			runCatchingCancellable {
 				suggestionRepository.getRandomList(SUGGESTIONS_COUNT)
-			}.getOrDefault(emptyList()).filter { it.isNovel == isNovel }
+			}.getOrDefault(emptyList()).filter { it.isNovel == mode.isNovel }
 		} else {
 			emptyList()
 		}

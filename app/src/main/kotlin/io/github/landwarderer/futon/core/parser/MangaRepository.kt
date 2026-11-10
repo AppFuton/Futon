@@ -146,7 +146,7 @@ interface MangaRepository {
 					cache = contentCache,
 					source = source,
 					plugin = source.plugin,
-					runtime = lnPluginRuntimeManager.getRuntime(source.plugin),
+					runtimeManager = lnPluginRuntimeManager,
 				)
 			}
 
@@ -165,7 +165,7 @@ interface MangaRepository {
 							cache = contentCache,
 							source = lnSource,
 							plugin = lnSource.plugin,
-							runtime = lnPluginRuntimeManager.getRuntime(lnSource.plugin),
+							runtimeManager = lnPluginRuntimeManager,
 						)
 					}
 				}

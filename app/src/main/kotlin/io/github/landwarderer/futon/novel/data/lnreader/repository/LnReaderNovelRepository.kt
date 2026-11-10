@@ -14,6 +14,7 @@ import io.github.landwarderer.futon.core.cache.MemoryContentCache
 import io.github.landwarderer.futon.core.parser.CachingMangaRepository
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnPlugin
 import io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntime
+import io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntimeManager
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -23,8 +24,11 @@ class LnReaderNovelRepository(
 	cache: MemoryContentCache,
 	override val source: MangaSource,
 	private val plugin: LnPlugin,
-	private val runtime: LnPluginRuntime,
+	private val runtimeManager: LnPluginRuntimeManager,
 ) : CachingMangaRepository(cache) {
+
+	private val runtime: LnPluginRuntime
+		get() = runtimeManager.getRuntime(plugin)
 
 	override val sortOrders: Set<SortOrder> = setOf(SortOrder.POPULARITY)
 	override var defaultSortOrder: SortOrder = SortOrder.POPULARITY
@@ -39,11 +43,11 @@ class LnReaderNovelRepository(
 
 	private fun getPaginator(key: PagingKey, offset: Int): NovelPaginator {
 		if (offset == 0) {
-			val paginator = NovelPaginator(initialPageSize = 20)
+			val paginator = NovelPaginator(firstPage = 1)
 			paginators[key] = paginator
 			return paginator
 		}
-		return paginators.getOrPut(key) { NovelPaginator(initialPageSize = 20) }
+		return paginators.getOrPut(key) { NovelPaginator(firstPage = 1) }
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String = page.url
@@ -128,7 +132,7 @@ class LnReaderNovelRepository(
 		return listOf(
 			MangaPage(
 				id = chapter.id,
-				url = "novel_content://$html",
+				url = html,
 				preview = null,
 				source = source,
 			),
@@ -143,22 +147,25 @@ class LnReaderNovelRepository(
 	}
 }
 
-internal class NovelPaginator(private val initialPageSize: Int = 20) {
-	var firstPage: Int = 1
+internal class NovelPaginator(private val firstPage: Int = 1) {
 	private val pages = ConcurrentHashMap<Int, Int>()
+	@Volatile private var nextPage: Int = firstPage
 
 	fun getPage(offset: Int): Int {
 		if (offset == 0) {
+			nextPage = firstPage
 			return firstPage
 		}
 		pages[offset]?.let { return it }
-		val pageSize = initialPageSize
-		val intPage = offset / pageSize
-		val tail = offset % pageSize
-		return intPage + firstPage + if (tail == 0) 0 else 1
+		// Fallback: If offset does not match an exact recorded boundary (e.g. because duplicate
+		// items were removed by RemoteListViewModel), advance using the last known next page so
+		// we never re-request the previous page and stall.
+		return nextPage
 	}
 
 	fun onListReceived(offset: Int, page: Int, count: Int) {
-		pages[offset + count] = if (count > 0) page + 1 else page
+		val next = if (count > 0) page + 1 else page
+		nextPage = next
+		pages[offset + count] = next
 	}
 }

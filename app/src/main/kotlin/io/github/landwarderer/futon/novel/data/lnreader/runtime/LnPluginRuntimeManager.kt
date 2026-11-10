@@ -2,7 +2,7 @@ package io.github.landwarderer.futon.novel.data.lnreader.runtime
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.github.landwarderer.futon.core.network.BaseHttpClient
+import io.github.landwarderer.futon.core.network.MangaHttpClient
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnPlugin
 import io.github.landwarderer.futon.novel.data.lnreader.storage.LnPluginStorage
 import okhttp3.OkHttpClient
@@ -18,7 +18,7 @@ import javax.inject.Singleton
 @Singleton
 class LnPluginRuntimeManager @Inject constructor(
 	@ApplicationContext private val context: Context,
-	@BaseHttpClient private val httpClient: OkHttpClient,
+	@MangaHttpClient private val httpClient: OkHttpClient,
 	private val pluginStorage: LnPluginStorage,
 ) : Closeable {
 

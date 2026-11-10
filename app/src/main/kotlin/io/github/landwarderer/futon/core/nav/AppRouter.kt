@@ -79,6 +79,7 @@ import io.github.landwarderer.futon.local.ui.ImportDialogFragment
 import io.github.landwarderer.futon.local.ui.info.LocalInfoDialog
 import io.github.landwarderer.futon.main.ui.MainActivity
 import io.github.landwarderer.futon.main.ui.welcome.WelcomeSheet
+import io.github.landwarderer.futon.novel.ui.plugins.NovelPluginsManagerActivity
 import io.github.landwarderer.futon.onboarding.ui.OnboardingActivity
 import io.github.landwarderer.futon.reader.ui.colorfilter.ColorFilterConfigActivity
 import io.github.landwarderer.futon.reader.ui.config.ReaderConfigSheet
@@ -227,7 +228,7 @@ class AppRouter private constructor(
 
     fun openExtensionDownloader() = startActivity(ExtensionDownloaderActivity::class.java)
 
-    fun openNovelPluginsManager() = startActivity(io.github.landwarderer.futon.novel.ui.plugins.NovelPluginsManagerActivity::class.java)
+    fun openNovelPluginsManager() = startActivity(NovelPluginsManagerActivity::class.java)
 
     fun openDownloads() = startActivity(DownloadsActivity::class.java)
 

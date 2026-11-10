@@ -183,8 +183,13 @@
         globalThis.FormData = FormData;
     }
 
+    const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36';
+
     const fetchApi = async function(url, init) {
         init = init || {};
+        if (typeof url === 'string' && url.startsWith('/') && globalThis.__futon_current_plugin && globalThis.__futon_current_plugin.site) {
+            url = globalThis.__futon_current_plugin.site.replace(/\/+$/, '') + url;
+        }
         const method = (init.method || 'GET').toUpperCase();
         const headers = {
             'Connection': 'keep-alive',
@@ -192,6 +197,7 @@
             'Accept-Language': '*',
             'Sec-Fetch-Mode': 'cors',
             'Cache-Control': 'max-age=0',
+            'User-Agent': DEFAULT_USER_AGENT,
         };
         if (init.headers) {
             if (typeof init.headers.forEach === 'function') {

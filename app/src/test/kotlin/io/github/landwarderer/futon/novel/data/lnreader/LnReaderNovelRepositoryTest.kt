@@ -17,10 +17,12 @@ import io.github.landwarderer.futon.novel.data.lnreader.model.LnNovelItem
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnPlugin
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnSourceNovel
 import io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntime
+import io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntimeManager
 
 class LnReaderNovelRepositoryTest {
 
 	private lateinit var runtime: LnPluginRuntime
+	private lateinit var runtimeManager: LnPluginRuntimeManager
 	private lateinit var repository: LnReaderNovelRepository
 	private val fakePlugin = LnPlugin(
 		id = "mock_source",
@@ -39,8 +41,10 @@ class LnReaderNovelRepositoryTest {
 	@Before
 	fun setUp() {
 		runtime = mock(LnPluginRuntime::class.java)
+		runtimeManager = mock(LnPluginRuntimeManager::class.java)
+		`when`(runtimeManager.getRuntime(fakePlugin)).thenReturn(runtime)
 		val cache = mock(MemoryContentCache::class.java)
-		repository = LnReaderNovelRepository(cache, mockSource, fakePlugin, runtime)
+		repository = LnReaderNovelRepository(cache, mockSource, fakePlugin, runtimeManager)
 	}
 
 	@Test
@@ -149,7 +153,26 @@ class LnReaderNovelRepositoryTest {
 		val pages = repository.getPagesImpl(chapter)
 
 		assertEquals(1, pages.size)
-		assertEquals("novel_content://<p>It was a dark and stormy night...</p>", pages[0].url)
+		assertEquals("<p>It was a dark and stormy night...</p>", pages[0].url)
+	}
+
+	@Test
+	fun testPaginationFallbackHandlesDeduplicatedOffsets() = runTest {
+		`when`(runtime.getPopularNovels(1)).thenReturn(
+			(1..10).map { LnNovelItem(name = "Novel $it", path = "/novel/$it", cover = null) },
+		)
+		`when`(runtime.getPopularNovels(2)).thenReturn(
+			(11..20).map { LnNovelItem(name = "Novel $it", path = "/novel/$it", cover = null) },
+		)
+
+		val firstBatch = repository.getList(offset = 0, order = null, filter = null)
+		assertEquals(10, firstBatch.size)
+
+		// Suppose the UI deduped 1 item, so next offset sent is 9 instead of 10.
+		// The paginator must fall back to the last known next page (2) rather than 9 / 20 + 1 = 1.
+		val secondBatch = repository.getList(offset = 9, order = null, filter = null)
+		assertEquals(10, secondBatch.size)
+		assertEquals("Novel 11", secondBatch[0].title)
 	}
 }
 

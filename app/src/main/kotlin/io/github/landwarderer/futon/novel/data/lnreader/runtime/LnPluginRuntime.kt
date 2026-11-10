@@ -5,8 +5,8 @@ import com.dokar.quickjs.QuickJs
 import com.dokar.quickjs.binding.asyncFunction
 import com.dokar.quickjs.binding.function
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.github.landwarderer.futon.core.network.BaseHttpClient
 import io.github.landwarderer.futon.core.network.CloudFlareInterceptor
+import io.github.landwarderer.futon.core.network.MangaHttpClient
 import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnChapterItem
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnNovelItem
@@ -15,10 +15,11 @@ import io.github.landwarderer.futon.novel.data.lnreader.model.LnSourceNovel
 import io.github.landwarderer.futon.novel.data.lnreader.storage.LnPluginStorage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -66,6 +67,7 @@ class LnPluginRuntime(
 	)
 
 	private var quickJs: QuickJs? = null
+	@Volatile private var isClosed = false
 	private val mutex = Mutex()
 	private val prefs by lazy {
 		context.getSharedPreferences("ln_plugin_$pluginId", Context.MODE_PRIVATE)
@@ -73,6 +75,8 @@ class LnPluginRuntime(
 
 	companion object {
 		private const val PLUGIN_TIMEOUT_MS = 30_000L
+		private const val DEFAULT_USER_AGENT =
+			"Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
 
 		private fun JSONObject.optStringOrNull(name: String): String? {
 			if (isNull(name)) return null
@@ -82,6 +86,9 @@ class LnPluginRuntime(
 	}
 
 	private suspend fun ensureInitialized() {
+		if (isClosed) {
+			throw IllegalStateException("LnPluginRuntime[$pluginId] is closed")
+		}
 		if (quickJs != null) return
 
 		val qjs = QuickJs.create(jobDispatcher = Dispatchers.IO)
@@ -221,9 +228,9 @@ class LnPluginRuntime(
 			})()
 		""".trimIndent()
 
-		val rawJson = withTimeout(PLUGIN_TIMEOUT_MS) {
+		val rawJson = withTimeoutOrNull(PLUGIN_TIMEOUT_MS) {
 			qjs.evaluate<String>(wrapper)
-		}
+		} ?: throw IllegalStateException("Plugin evaluation timed out after ${PLUGIN_TIMEOUT_MS / 1000}s")
 
 		if (rawJson.isNullOrBlank()) {
 			throw IllegalStateException("Plugin evaluation completed without result or error")
@@ -249,12 +256,26 @@ class LnPluginRuntime(
 		body: String?,
 	): String = withContext(Dispatchers.IO) {
 		try {
+			if (!url.startsWith("http://", ignoreCase = true) && !url.startsWith("https://", ignoreCase = true)) {
+				return@withContext JSONObject().apply {
+					put("status", 400)
+					put("statusText", "Bad Request")
+					put("body", "")
+					put("error", "Unsupported URL scheme: only HTTP and HTTPS are allowed")
+				}.toString()
+			}
+
 			val requestBuilder = Request.Builder().url(url)
 			val headersObj = if (headersJson.isNotBlank()) JSONObject(headersJson) else JSONObject()
 			val keys = headersObj.keys()
 			while (keys.hasNext()) {
 				val key = keys.next()
 				requestBuilder.header(key, headersObj.getString(key))
+			}
+
+			val hasUserAgent = headersObj.keys().asSequence().any { it.equals("User-Agent", ignoreCase = true) }
+			if (!hasUserAgent) {
+				requestBuilder.header("User-Agent", DEFAULT_USER_AGENT)
 			}
 
 			val normalizedMethod = method.uppercase()
@@ -384,8 +405,13 @@ class LnPluginRuntime(
 	}
 
 	override fun close() {
-		quickJs?.close()
-		quickJs = null
+		runBlocking(Dispatchers.IO) {
+			mutex.withLock {
+				isClosed = true
+				quickJs?.close()
+				quickJs = null
+			}
+		}
 	}
 }
 
@@ -395,7 +421,7 @@ class LnPluginRuntime(
 @javax.inject.Singleton
 class LnPluginRuntimeFactory @Inject constructor(
 	@ApplicationContext private val context: Context,
-	@BaseHttpClient private val httpClient: OkHttpClient,
+	@MangaHttpClient private val httpClient: OkHttpClient,
 ) {
 	fun create(pluginId: String, pluginScript: String): LnPluginRuntime {
 		return LnPluginRuntime(context, httpClient, pluginId, pluginScript)
