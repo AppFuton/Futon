@@ -42,16 +42,16 @@ private const val SLIDE_DOWN_ANIMATION_DURATION = 175L
 
 private const val MAX_ITEM_COUNT = 6
 
-private const val DOCK_BUMP_DP = 44f
+private const val DOCK_BUMP_DP = 47f
 private const val DOCK_MARGIN_DP = 16f
 private const val DOCK_BOTTOM_MARGIN_DP = 8f
 private const val DOCK_BUTTON_HEIGHT_DP = 44f
 private const val DOCK_BUTTON_WIDTH_DP = 136f
-private const val DOCK_BUTTON_GAP_DP = 6f
+private const val DOCK_BUTTON_GAP_DP = 9f
 private const val DOCK_TOP_SPARE_DP = 4f
 private const val DOCK_ANIMATION_DURATION = 320L
 
-private const val COMPACT_BUMP_DP = 40f
+private const val COMPACT_BUMP_DP = 42f
 private const val COMPACT_HEIGHT_DP = 56f
 private const val COMPACT_ITEM_WIDTH_DP = 64f
 private const val COMPACT_ITEM_PADDING_DP = 10f
@@ -61,7 +61,7 @@ private const val COMPACT_INDICATOR_HEIGHT_DP = 36f
 private const val COMPACT_BUTTON_HEIGHT_DP = 36f
 private const val COMPACT_BUTTON_WIDTH_DP = 60f
 private const val COMPACT_BUTTON_ICON_DP = 20f
-private const val COMPACT_BUTTON_GAP_DP = 3f
+private const val COMPACT_BUTTON_GAP_DP = 5f
 
 class SlidingBottomNavigationView @JvmOverloads constructor(
 	context: Context,
