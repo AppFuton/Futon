@@ -1160,6 +1160,13 @@
     <string name="history_shelf_count">%d series on this shelf</string>
     <string name="history_tap_spine">Tap a spine to pull it out</string>
     <string name="history_shelf_meta">%1$d%% · %2$s</string>
+    <string name="history_view_wheel">Wheel</string>
+    <string name="history_wheel_click">Click wheel</string>
+    <string name="history_wheel_arc">Arc</string>
+    <string name="history_wheel_latest">Latest</string>
+    <string name="history_wheel_peek">Peek</string>
+    <string name="history_wheel_previous">Previous</string>
+    <string name="history_wheel_open">Open</string>
     <string name="updates_shelf_window">Updates map shelf</string>
     <string name="updates_shelf_since_last_check">Since the last check</string>
     <string name="updates_shelf_last_24_hours">Last 24 hours</string>

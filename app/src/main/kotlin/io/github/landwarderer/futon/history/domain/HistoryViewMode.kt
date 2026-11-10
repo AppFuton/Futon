@@ -9,4 +9,5 @@ enum class HistoryViewMode {
 	RECENT,
 	CALENDAR,
 	SHELF,
+	WHEEL,
 }

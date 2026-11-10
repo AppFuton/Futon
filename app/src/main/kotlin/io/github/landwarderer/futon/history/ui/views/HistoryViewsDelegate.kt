@@ -110,6 +110,7 @@ class HistoryViewsDelegate(
 			HistoryViewMode.RECENT -> HistoryRecentView(context, onOpen)
 			HistoryViewMode.CALENDAR -> HistoryCalendarView(context, onOpen)
 			HistoryViewMode.SHELF -> HistoryShelfView(context, spineCropAnalyzer, lifecycleOwner.lifecycleScope, onOpen)
+			HistoryViewMode.WHEEL -> HistoryWheelView(context, spineCropAnalyzer, lifecycleOwner.lifecycleScope, onOpen)
 			HistoryViewMode.LIST -> error("The list is hosted by the fragment")
 		}
 		applyBottomInset(view as HistoryModeView)
@@ -137,6 +138,7 @@ class HistoryViewsDelegate(
 			HistoryViewMode.RECENT to R.id.chip_mode_recent,
 			HistoryViewMode.CALENDAR to R.id.chip_mode_calendar,
 			HistoryViewMode.SHELF to R.id.chip_mode_shelf,
+			HistoryViewMode.WHEEL to R.id.chip_mode_wheel,
 		)
 	}
 }
