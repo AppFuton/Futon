@@ -135,6 +135,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 		viewBinding.bottomNav?.continueButton?.setOnClickListener(this)
 		viewBinding.bottomNav?.isCompact = settings.isMinimalThemeEnabled
+		viewBinding.bottomNav?.dockStyle = settings.dockStyle
 		viewBinding.navRail?.headerView?.findViewById<View>(R.id.railFab)?.setOnClickListener(this)
 		fadingAppbarMediator =
 			FadingAppbarMediator(viewBinding.appbar, viewBinding.layoutSearch ?: viewBinding.searchBar)
@@ -189,6 +190,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				viewModel.isResumeEnabled.observe(this@MainActivity, this@MainActivity::onResumeEnabledChanged)
 				settings.observeAsFlow(AppSettings.KEY_MINIMAL_THEME) { isMinimalThemeEnabled }
 					.observe(this@MainActivity) { viewBinding.bottomNav?.isCompact = it }
+				settings.observeAsFlow(AppSettings.KEY_DOCK_STYLE) { dockStyle }
+					.observe(this@MainActivity) { viewBinding.bottomNav?.dockStyle = it }
 				viewModel.feedCounter.observe(this@MainActivity, ::onFeedCounterChanged)
 				viewModel.onShowOnboarding.observeEvent(this@MainActivity) {
 					onboardingLauncher.launch(Intent(this@MainActivity, OnboardingActivity::class.java))
