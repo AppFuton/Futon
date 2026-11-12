@@ -91,6 +91,9 @@ class LnPluginRuntime(
 			throw LnPluginRuntimeClosedException(pluginId)
 		}
 		if (quickJs != null) return
+		check(pluginScript.isNotBlank()) {
+			"LNReader plugin '$pluginId' is not installed or has no script"
+		}
 
 		val qjs = QuickJs.create(jobDispatcher = Dispatchers.IO)
 		try {
