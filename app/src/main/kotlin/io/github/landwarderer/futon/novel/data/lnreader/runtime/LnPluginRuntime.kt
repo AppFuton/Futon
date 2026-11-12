@@ -75,8 +75,6 @@ class LnPluginRuntime(
 
 	companion object {
 		private const val PLUGIN_TIMEOUT_MS = 30_000L
-		private const val DEFAULT_USER_AGENT =
-			"Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
 
 		private fun JSONObject.optStringOrNull(name: String): String? {
 			if (isNull(name)) return null
@@ -271,11 +269,6 @@ class LnPluginRuntime(
 			while (keys.hasNext()) {
 				val key = keys.next()
 				requestBuilder.header(key, headersObj.getString(key))
-			}
-
-			val hasUserAgent = headersObj.keys().asSequence().any { it.equals("User-Agent", ignoreCase = true) }
-			if (!hasUserAgent) {
-				requestBuilder.header("User-Agent", DEFAULT_USER_AGENT)
 			}
 
 			val normalizedMethod = method.uppercase()
