@@ -287,6 +287,9 @@ class LnPluginRuntime(
 
 			val requestBody = if (normalizedMethod !in setOf("GET", "HEAD") && (body != null || methodRequiresBody)) {
 				if (body != null && body.startsWith("{\"__futon_type\":\"FormData\"")) {
+					// OkHttp's MultipartBody supplies its own boundary. Keep a plugin-provided
+					// bare multipart Content-Type from suppressing that generated boundary.
+					requestBuilder.removeHeader("Content-Type")
 					val json = JSONObject(body)
 					val entries = json.optJSONArray("entries") ?: JSONArray()
 					val formBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
