@@ -14,8 +14,10 @@ import io.github.landwarderer.futon.novel.data.lnreader.model.LnPlugin
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnSourceNovel
 import io.github.landwarderer.futon.novel.data.lnreader.storage.LnPluginStorage
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -69,6 +71,7 @@ class LnPluginRuntime(
 	private var quickJs: QuickJs? = null
 	@Volatile private var isClosed = false
 	private val mutex = Mutex()
+	private val closeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private val prefs by lazy {
 		context.getSharedPreferences("ln_plugin_$pluginId", Context.MODE_PRIVATE)
 	}
@@ -85,7 +88,7 @@ class LnPluginRuntime(
 
 	private suspend fun ensureInitialized() {
 		if (isClosed) {
-			throw IllegalStateException("LnPluginRuntime[$pluginId] is closed")
+			throw LnPluginRuntimeClosedException(pluginId)
 		}
 		if (quickJs != null) return
 
@@ -398,15 +401,19 @@ class LnPluginRuntime(
 	}
 
 	override fun close() {
-		runBlocking(Dispatchers.IO) {
+		if (isClosed) return
+		isClosed = true
+		closeScope.launch {
 			mutex.withLock {
-				isClosed = true
 				quickJs?.close()
 				quickJs = null
 			}
 		}
 	}
 }
+
+class LnPluginRuntimeClosedException(pluginId: String) :
+	IllegalStateException("LnPluginRuntime[$pluginId] is closed")
 
 /**
  * Factory for creating LnPluginRuntime instances.

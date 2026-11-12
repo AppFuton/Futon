@@ -14,6 +14,7 @@ import io.github.landwarderer.futon.core.cache.MemoryContentCache
 import io.github.landwarderer.futon.core.parser.CachingMangaRepository
 import io.github.landwarderer.futon.novel.data.lnreader.model.LnPlugin
 import io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntime
+import io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntimeClosedException
 import io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntimeManager
 import java.util.concurrent.ConcurrentHashMap
 
@@ -27,8 +28,14 @@ class LnReaderNovelRepository(
 	private val runtimeManager: LnPluginRuntimeManager,
 ) : CachingMangaRepository(cache) {
 
-	private val runtime: LnPluginRuntime
-		get() = runtimeManager.getRuntime(plugin)
+	private suspend fun <T> withRuntime(block: suspend (LnPluginRuntime) -> T): T {
+		val current = runtimeManager.getRuntime(plugin)
+		return try {
+			block(current)
+		} catch (e: LnPluginRuntimeClosedException) {
+			block(runtimeManager.getRuntime(plugin))
+		}
+	}
 
 	override val sortOrders: Set<SortOrder> = setOf(SortOrder.POPULARITY)
 	override var defaultSortOrder: SortOrder = SortOrder.POPULARITY
@@ -60,10 +67,12 @@ class LnReaderNovelRepository(
 		val paginator = getPaginator(key, offset)
 		val page = paginator.getPage(offset)
 
-		val items = if (query.isNotEmpty()) {
-			runtime.searchNovels(query, page)
-		} else {
-			runtime.getPopularNovels(page)
+		val items = withRuntime { currentRuntime ->
+			if (query.isNotEmpty()) {
+				currentRuntime.searchNovels(query, page)
+			} else {
+				currentRuntime.getPopularNovels(page)
+			}
 		}
 
 		paginator.onListReceived(offset, page, items.size)
@@ -91,7 +100,7 @@ class LnReaderNovelRepository(
 	}
 
 	public override suspend fun getDetailsImpl(manga: Manga): Manga {
-		val novel = runtime.parseNovel(manga.url)
+		val novel = withRuntime { it.parseNovel(manga.url) }
 		val chapters = novel.chapters.mapIndexed { index, chapterItem ->
 			MangaChapter(
 				id = "${plugin.id}_${chapterItem.path}".longHashCode(),
@@ -126,7 +135,7 @@ class LnReaderNovelRepository(
 	}
 
 	public override suspend fun getPagesImpl(chapter: MangaChapter): List<MangaPage> {
-		val content = runtime.parseChapter(chapter.url)
+		val content = withRuntime { it.parseChapter(chapter.url) }
 		val resolvedUrl = resolveUrl(chapter.url)
 		val html = io.github.landwarderer.futon.novel.ui.reader.NovelChapterContent.toHtmlFragment(content, resolvedUrl)
 		return listOf(
