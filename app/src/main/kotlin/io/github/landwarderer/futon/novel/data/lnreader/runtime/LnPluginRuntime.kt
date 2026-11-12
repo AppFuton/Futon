@@ -47,6 +47,7 @@ class LnPluginRuntime(
 	httpClient: OkHttpClient,
 	private val pluginId: String,
 	private val pluginScript: String,
+	private val pluginSite: String = "",
 ) : Closeable {
 	// LNReader plugins need the raw HTTP response so their own fetch/error handling can
 	// inspect challenge pages. Futon's reader interceptor throws and loses that response.
@@ -66,6 +67,7 @@ class LnPluginRuntime(
 		pluginScript = pluginStorage.getPluginScript(plugin.id).let { file ->
 			if (file.exists()) file.readText(Charsets.UTF_8) else ""
 		},
+		pluginSite = plugin.site,
 	)
 
 	private var quickJs: QuickJs? = null
@@ -269,7 +271,11 @@ class LnPluginRuntime(
 				}.toString()
 			}
 
-			val requestBuilder = Request.Builder().url(url)
+			val requestUrl = runCatching {
+				val requested = java.net.URI(url)
+				if (requested.isAbsolute) requested.toString() else java.net.URI(pluginSite).resolve(requested).toString()
+			}.getOrDefault(url)
+			val requestBuilder = Request.Builder().url(requestUrl)
 			val headersObj = if (headersJson.isNotBlank()) JSONObject(headersJson) else JSONObject()
 			val keys = headersObj.keys()
 			while (keys.hasNext()) {
@@ -429,7 +435,7 @@ class LnPluginRuntimeFactory @Inject constructor(
 	@ApplicationContext private val context: Context,
 	@MangaHttpClient private val httpClient: OkHttpClient,
 ) {
-	fun create(pluginId: String, pluginScript: String): LnPluginRuntime {
-		return LnPluginRuntime(context, httpClient, pluginId, pluginScript)
+	fun create(pluginId: String, pluginScript: String, pluginSite: String = ""): LnPluginRuntime {
+		return LnPluginRuntime(context, httpClient, pluginId, pluginScript, pluginSite)
 	}
 }

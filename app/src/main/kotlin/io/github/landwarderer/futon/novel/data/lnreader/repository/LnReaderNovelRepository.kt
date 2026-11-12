@@ -149,10 +149,13 @@ class LnReaderNovelRepository(
 	}
 
 	private fun resolveUrl(path: String): String {
-		if (path.startsWith("http://") || path.startsWith("https://")) return path
-		val base = plugin.site.trimEnd('/')
-		val cleanPath = if (path.startsWith("/")) path else "/$path"
-		return base + cleanPath
+		if (path.startsWith("//")) {
+			val scheme = runCatching { java.net.URI(plugin.site).scheme }.getOrNull() ?: "https"
+			return "$scheme:$path"
+		}
+		if (Regex("^[a-z][a-z0-9+.-]*:", RegexOption.IGNORE_CASE).containsMatchIn(path)) return path
+		return runCatching { java.net.URI(plugin.site).resolve(path).toString() }
+			.getOrDefault(path)
 	}
 }
 
