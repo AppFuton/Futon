@@ -427,8 +427,9 @@ class MangaSourcesRepository @Inject constructor(
 		dao.insertIfAbsent(entities)
 
 		// Always ensure all NovelParserSource entries are enabled
+		val existingSources = dao.findAll().associateBy { it.source }
 		for (novelSource in NovelParserSource.entries) {
-			val existing = dao.findAll().find { it.source == novelSource.name }
+			val existing = existingSources[novelSource.name]
 			if (existing == null || !existing.isEnabled) {
 				dao.setEnabled(novelSource.name, true)
 			}
