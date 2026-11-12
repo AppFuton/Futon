@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceScreen
         android:fragment="io.github.landwarderer.futon.settings.AppearanceSettingsFragment"
@@ -55,5 +56,12 @@
         android:icon="@drawable/ic_info_outline"
         android:key="about"
         android:title="@string/about" />
+
+    <ListPreference
+        android:entries="@array/dock_styles"
+        android:icon="@drawable/ic_appearance"
+        android:key="dock_style_experimental"
+        android:title="@string/dock_style"
+        app:useSimpleSummaryProvider="true" />
 
 </PreferenceScreen>

@@ -5,17 +5,21 @@ import android.view.View
 import androidx.annotation.StringRes
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.landwarderer.futon.BuildConfig
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.prefs.DockStyle
 import io.github.landwarderer.futon.core.ui.BasePreferenceFragment
 import io.github.landwarderer.futon.core.util.ext.addMenuProvider
 import io.github.landwarderer.futon.core.util.ext.getQuantityStringSafe
 import io.github.landwarderer.futon.core.util.ext.observe
+import io.github.landwarderer.futon.core.util.ext.setDefaultValueCompat
 import io.github.landwarderer.futon.settings.search.SettingsSearchMenuProvider
 import io.github.landwarderer.futon.settings.search.SettingsSearchViewModel
+import org.koitharu.kotatsu.parsers.util.names
 
 @AndroidEntryPoint
 class RootSettingsFragment : BasePreferenceFragment(0) {
@@ -34,6 +38,10 @@ class RootSettingsFragment : BasePreferenceFragment(0) {
 		bindPreferenceSummary("tracker", R.string.track_sources, R.string.notifications_settings)
 		bindPreferenceSummary("services", R.string.suggestions, R.string.sync, R.string.tracking)
 		findPreference<Preference>("about")?.summary = getString(R.string.app_version, BuildConfig.VERSION_NAME)
+		findPreference<ListPreference>(AppSettings.KEY_DOCK_STYLE)?.run {
+			entryValues = DockStyle.entries.names()
+			setDefaultValueCompat(DockStyle.BUMP.name)
+		}
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
