@@ -13,4 +13,7 @@ enum class DockStyle {
 
 	/** Continue joins the History item as the right half of a split pill. */
 	MERGED,
+
+	/** The dock is a stitched cushion, and Continue is a round button rising out of its middle. */
+	TUFTED,
 }

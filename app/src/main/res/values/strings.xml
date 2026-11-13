@@ -1171,6 +1171,7 @@
     <string name="dock_style_bump">Continue rises from the bar</string>
     <string name="dock_style_beside">Continue beside the bar</string>
     <string name="dock_style_merged">Continue inside History</string>
+    <string name="dock_style_tufted">Tufted cushion</string>
     <string name="updates_shelf_window">Updates map shelf</string>
     <string name="updates_shelf_since_last_check">Since the last check</string>
     <string name="updates_shelf_last_24_hours">Last 24 hours</string>
