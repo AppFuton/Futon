@@ -262,19 +262,23 @@ class LnPluginRuntime(
 		body: String?,
 	): String = withContext(Dispatchers.IO) {
 		try {
-			if (!url.startsWith("http://", ignoreCase = true) && !url.startsWith("https://", ignoreCase = true)) {
+			val requestUrl = runCatching {
+				val requested = java.net.URI(url)
+				val resolved = if (requested.isAbsolute) requested else java.net.URI(pluginSite).resolve(requested)
+				require(resolved.scheme.equals("http", ignoreCase = true) || resolved.scheme.equals("https", ignoreCase = true)) {
+					"Unsupported URL scheme: only HTTP and HTTPS are allowed"
+				}
+				require(!resolved.host.isNullOrBlank()) { "Request URL must include a host" }
+				resolved.toString()
+			}.getOrElse { error ->
 				return@withContext JSONObject().apply {
 					put("status", 400)
 					put("statusText", "Bad Request")
 					put("body", "")
-					put("error", "Unsupported URL scheme: only HTTP and HTTPS are allowed")
+					put("error", error.message ?: "Invalid request URL")
 				}.toString()
 			}
 
-			val requestUrl = runCatching {
-				val requested = java.net.URI(url)
-				if (requested.isAbsolute) requested.toString() else java.net.URI(pluginSite).resolve(requested).toString()
-			}.getOrDefault(url)
 			val requestBuilder = Request.Builder().url(requestUrl)
 			val headersObj = if (headersJson.isNotBlank()) JSONObject(headersJson) else JSONObject()
 			val keys = headersObj.keys()

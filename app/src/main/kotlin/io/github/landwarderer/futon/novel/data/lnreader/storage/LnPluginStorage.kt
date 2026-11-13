@@ -42,6 +42,8 @@ class LnPluginStorage @Inject constructor(
 	}
 
 	fun getPluginScript(pluginId: String): File = File(getPluginDir(pluginId), "index.js")
+	fun getPluginCustomJs(pluginId: String): File = File(getPluginDir(pluginId), "custom.js")
+	fun getPluginCustomCss(pluginId: String): File = File(getPluginDir(pluginId), "custom.css")
 
 	private fun getPluginMeta(pluginId: String): File = File(getPluginDir(pluginId), "meta.json")
 
@@ -50,7 +52,12 @@ class LnPluginStorage @Inject constructor(
 		return getPluginScript(pluginId).exists() && getPluginMeta(pluginId).exists()
 	}
 
-	suspend fun savePlugin(plugin: LnPlugin, scriptContent: String) = withContext(Dispatchers.IO) {
+	suspend fun savePlugin(
+		plugin: LnPlugin,
+		scriptContent: String,
+		customJsContent: String? = null,
+		customCssContent: String? = null,
+	) = withContext(Dispatchers.IO) {
 		require(isValidPluginId(plugin.id)) { "Invalid plugin ID: ${plugin.id}" }
 		val dir = getPluginDir(plugin.id).apply { mkdirs() }
 
@@ -69,7 +76,29 @@ class LnPluginStorage @Inject constructor(
 			tempMetaFile.copyTo(targetMetaFile, overwrite = true)
 			tempMetaFile.delete()
 		}
+		writeOptionalAsset(getPluginCustomJs(plugin.id), customJsContent)
+		writeOptionalAsset(getPluginCustomCss(plugin.id), customCssContent)
 	}
+
+	private fun writeOptionalAsset(file: File, content: String?) {
+		if (content == null) {
+			file.delete()
+			return
+		}
+		val tempFile = File(file.parentFile, "${file.name}.tmp")
+		tempFile.writeText(content, Charsets.UTF_8)
+		if (!tempFile.renameTo(file)) {
+			tempFile.copyTo(file, overwrite = true)
+			tempFile.delete()
+		}
+	}
+
+	fun readPluginCustomJs(pluginId: String): String? = readOptionalAsset(getPluginCustomJs(pluginId))
+
+	fun readPluginCustomCss(pluginId: String): String? = readOptionalAsset(getPluginCustomCss(pluginId))
+
+	private fun readOptionalAsset(file: File): String? =
+		if (file.exists()) runCatching { file.readText(Charsets.UTF_8) }.getOrNull() else null
 
 	suspend fun deletePlugin(pluginId: String): Boolean = withContext(Dispatchers.IO) {
 		if (!isValidPluginId(pluginId)) return@withContext false

@@ -103,7 +103,9 @@ class LnPluginManager @Inject constructor(
 			val script = httpClient.newCall(request).awaitSuccess().use { response ->
 				response.body.string()
 			}
-			storage.savePlugin(plugin, script)
+			val customJs = plugin.customJsUrl?.let { downloadAsset(it) }
+			val customCss = plugin.customCssUrl?.let { downloadAsset(it) }
+			storage.savePlugin(plugin, script, customJs, customCss)
 			runtimeManager.closeRuntime(plugin.id)
 			refreshInstalledPlugins()
 			true
@@ -112,6 +114,13 @@ class LnPluginManager @Inject constructor(
 		} catch (e: Throwable) {
 			e.printStackTraceDebug()
 			false
+		}
+	}
+
+	private suspend fun downloadAsset(url: String): String {
+		val request = Request.Builder().url(url).build()
+		return httpClient.newCall(request).awaitSuccess().use { response ->
+			response.body.string()
 		}
 	}
 

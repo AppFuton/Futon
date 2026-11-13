@@ -40,6 +40,16 @@ internal object NovelChapterContent {
 		return Jsoup.clean(resolved, baseUrl.orEmpty(), contentSafelist)
 	}
 
+	fun appendPluginAssets(content: String, customJs: String?, customCss: String?): String {
+		val styles = customCss?.takeIf(String::isNotBlank)?.let {
+			"<style>${it.replace("</style", "<\\/style", ignoreCase = true)}</style>"
+		}.orEmpty()
+		val script = customJs?.takeIf(String::isNotBlank)?.let {
+			"<script>${it.replace("</script", "<\\/script", ignoreCase = true)}</script>"
+		}.orEmpty()
+		return styles + content + script
+	}
+
 	private fun resolveResources(html: String, baseUrl: String?): String {
 		if (baseUrl.isNullOrBlank()) return html
 
