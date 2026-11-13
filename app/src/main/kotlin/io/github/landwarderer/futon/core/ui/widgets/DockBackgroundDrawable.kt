@@ -234,8 +234,8 @@ class DockBackgroundDrawable(
 		const val STITCH_INSET_DP = 6f
 		const val STITCH_WIDTH_DP = 1.2f
 		const val STITCH_DASH_DP = 4f
-		const val TUFT_RADIUS_DP = 3f
-		const val TUFT_RING_DP = 6.5f
+		const val TUFT_RADIUS_DP = 2.5f
+		const val TUFT_RING_DP = 5f
 		const val TUFT_RING_WIDTH_DP = 1f
 		const val PUCKER_WIDTH_DP = 1.2f
 		const val PUCKER_ALPHA = 0.6f

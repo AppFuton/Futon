@@ -62,6 +62,10 @@ private const val DOCK_BUTTON_HEIGHT_DP = 44f
 private const val DOCK_BUTTON_WIDTH_DP = 136f
 private const val DOCK_BUTTON_GAP_DP = 9f
 private const val DOCK_TOP_SPARE_DP = 4f
+
+/** Room inside each rounded end of the dock, so the end items' highlights stay clear of the curve. */
+private const val DOCK_END_INSET_DP = 10f
+private const val COMPACT_DOCK_END_INSET_DP = 6f
 private const val DOCK_ANIMATION_DURATION = 320L
 
 private const val COMPACT_BUMP_DP = 42f
@@ -95,6 +99,9 @@ private const val TUFT_RISE_DP = 14f
 private const val COMPACT_TUFT_RISE_DP = 12f
 private const val TUFT_HALO_DP = 4f
 private const val COMPACT_TUFT_HALO_DP = 3f
+
+/** The gap the items part by, just enough to clear the button's seat between their highlights. */
+private const val TUFT_GAP_DP = 42f
 private const val TUFT_ICON_DP = 18f
 private const val COMPACT_TUFT_ICON_DP = 16f
 private const val TUFT_STITCH_INSET_DP = 4f
@@ -344,7 +351,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 			continueButton.translationY = tuftRise * (1f - progress)
 			(getChildAt(0) as? DockMenuView)?.let {
 				it.isGapInMiddle = true
-				it.extra = tuftSeat * 2f * progress
+				it.extra = TUFT_GAP_DP * density * progress
 			}
 			requestLayout()
 		} else {
@@ -427,7 +434,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		dockDrawable.setCushionDetails(
 			tuftX = tuftX,
 			tuftAlpha = tuftAlpha,
-			tuftY = menu.top + menu.height / 2f,
+			tuftY = iconCenterY(items.firstOrNull()) ?: (menu.top + menu.height / 2f),
 			haloX = centerX,
 			haloY = buttonTop + size / 2f + continueButton.translationY,
 			haloRadius = seat,
@@ -436,11 +443,15 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		)
 	}
 
+	/** The menu sits this far in from each end of the dock it draws. */
+	private val endInset: Int
+		get() = ((if (isCompact) COMPACT_DOCK_END_INSET_DP else DOCK_END_INSET_DP) * density).toInt()
+
 	private fun setFlatCapsule(menu: View) {
 		dockDrawable.setCapsule(
-			left = menu.left.toFloat(),
+			left = (menu.left - endInset).toFloat(),
 			top = menu.top.toFloat(),
-			right = menu.right.toFloat(),
+			right = (menu.right + endInset).toFloat(),
 			bottom = menu.bottom.toFloat(),
 			bump = 0f,
 			halfWidth = 0f,
@@ -453,9 +464,9 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		// Anything drawn above the top of this view would be cut off flat.
 		val bump = min(bumpHeight, menu.top.toFloat())
 		dockDrawable.setCapsule(
-			left = menu.left.toFloat(),
+			left = (menu.left - endInset).toFloat(),
 			top = menu.top.toFloat(),
-			right = menu.right.toFloat(),
+			right = (menu.right + endInset).toFloat(),
 			bottom = menu.bottom.toFloat(),
 			bump = bump,
 			halfWidth = continueButton.measuredWidth / 2f + gap,
@@ -474,7 +485,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 	private fun layoutBeside(menu: View) {
 		setFlatCapsule(menu)
 		val size = continueButton.measuredWidth
-		val gap = besideGap.toInt()
+		val gap = besideGap.toInt() + endInset
 		val buttonLeft = if (layoutDirection == LAYOUT_DIRECTION_RTL) menu.right + gap else menu.left - gap - size
 		val buttonTop = menu.top + (menu.height - size) / 2
 		continueButton.layout(buttonLeft, buttonTop, buttonLeft + size, buttonTop + size)
@@ -506,14 +517,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		} else {
 			centerX + indicatorHalf + gap
 		}.toInt()
-		val icon = item.findViewById<View>(materialR.id.navigation_bar_item_icon_view)
-		val centerY = if (icon != null) {
-			tempRect.set(0, 0, icon.width, icon.height)
-			offsetDescendantRectToMyCoords(icon, tempRect)
-			tempRect.exactCenterY()
-		} else {
-			menu.top + itemPaddingTop + itemActiveIndicatorHeight / 2f
-		}
+		val centerY = iconCenterY(item) ?: (menu.top + itemPaddingTop + itemActiveIndicatorHeight / 2f)
 		val buttonTop = (centerY - continueButton.measuredHeight / 2f).toInt()
 		continueButton.layout(
 			buttonLeft,
@@ -521,6 +525,14 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 			buttonLeft + segment,
 			buttonTop + continueButton.measuredHeight,
 		)
+	}
+
+	/** The vertical centre of an item's icon, in this view's coordinates. */
+	private fun iconCenterY(item: View?): Float? {
+		val icon = item?.findViewById<View>(materialR.id.navigation_bar_item_icon_view) ?: return null
+		tempRect.set(0, 0, icon.width, icon.height)
+		offsetDescendantRectToMyCoords(icon, tempRect)
+		return tempRect.exactCenterY()
 	}
 
 	private fun mergedShape(isRtl: Boolean): ShapeAppearanceModel {
@@ -580,7 +592,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 
 	override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
 		(getChildAt(0).layoutParams as FrameLayout.LayoutParams).run {
-			val margin = (DOCK_MARGIN_DP * density).toInt()
+			val margin = (DOCK_MARGIN_DP * density).toInt() + endInset
 			val room = if (dockStyle == DockStyle.BESIDE) besideRoom else 0f
 			// A full dock shrinks to make room. A centred compact dock moves over by half, so the pair stays centred.
 			val start = margin + (if (isCompact) room / 2f else room).toInt()
@@ -595,7 +607,9 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 			}
 			if (isCompact && menu.size > 0) {
 				val available = MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight - leftMargin - rightMargin
-				width = min(available, (menu.size * COMPACT_ITEM_WIDTH_DP * density).toInt())
+				// The compact dock grows by any gap it opens, rather than squeezing its items.
+				val gap = (getChildAt(0) as? DockMenuView)?.extra ?: 0f
+				width = min(available, (menu.size * COMPACT_ITEM_WIDTH_DP * density + gap).toInt())
 				gravity = Gravity.CENTER_HORIZONTAL or Gravity.TOP
 			} else {
 				width = FrameLayout.LayoutParams.MATCH_PARENT
