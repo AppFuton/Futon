@@ -14,6 +14,8 @@ import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.history.data.HistoryRepository
 import io.github.landwarderer.futon.novel.data.epub.EpubParser
 import io.github.landwarderer.futon.novel.data.pdf.PdfRendererHelper
+import io.github.landwarderer.futon.novel.data.lnreader.model.LnPluginSource
+import io.github.landwarderer.futon.novel.data.lnreader.storage.LnPluginStorage
 import io.github.landwarderer.futon.core.nav.ReaderIntent
 import io.github.landwarderer.futon.reader.ui.ReaderState
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +35,7 @@ class NovelReaderViewModel @Inject constructor(
 	private val mangaDataRepository: MangaDataRepository,
 	private val mangaRepositoryFactory: io.github.landwarderer.futon.core.parser.MangaRepository.Factory,
 	private val historyRepository: HistoryRepository,
+	private val lnPluginStorage: LnPluginStorage,
 	val settings: AppSettings,
 ) : BaseViewModel() {
 
@@ -234,17 +237,19 @@ class NovelReaderViewModel @Inject constructor(
 			// Online novel source: fetch pages / chapter content
 			val repo = mangaRepositoryFactory.create(curManga.source)
 			val pages = repo.getPages(chapter)
-			// For text sources, pages may contain formatted text in url or html content
-			val textBuilder = StringBuilder()
-			for (page in pages) {
-				val trimmed = page.url.trim()
-				if (trimmed.startsWith("<p") || trimmed.startsWith("<div") || trimmed.startsWith("<html") || trimmed.startsWith("<span") || trimmed.startsWith("<article")) {
-					textBuilder.append(trimmed)
-				} else if (trimmed.isNotEmpty()) {
-					textBuilder.append("<p>${trimmed}</p>")
-				}
+			val content = pages.joinToString(separator = "") { page ->
+				NovelChapterContent.toHtmlFragment(page.url, page.preview)
 			}
-			textBuilder.toString()
+			val pluginSource = curManga.source as? LnPluginSource
+			if (pluginSource != null) {
+				NovelChapterContent.appendPluginAssets(
+					content = content,
+					customJs = lnPluginStorage.readPluginCustomJs(pluginSource.plugin.id),
+					customCss = lnPluginStorage.readPluginCustomCss(pluginSource.plugin.id),
+				)
+			} else {
+				content
+			}
 		} catch (e: Exception) {
 			e.printStackTraceDebug()
 			null

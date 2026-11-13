@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.model.MangaSourceInfo
+import io.github.landwarderer.futon.core.model.isNovel
 import io.github.landwarderer.futon.core.model.isNovelSource
 import io.github.landwarderer.futon.core.os.AppShortcutManager
 import io.github.landwarderer.futon.core.prefs.AppSettings
@@ -224,18 +225,35 @@ class ExploreViewModel @Inject constructor(
 			result += RecommendationsItem(recommendation.toRecommendationList())
 		}
 		if (sources.isNotEmpty()) {
-			result += ListHeader(
-				textRes = R.string.remote_sources,
-				buttonTextRes = if (allSourcesEnabled && activePreset == null) R.string.manage else R.string.catalog,
-				badge = if (!allSourcesEnabled && activePreset == null && hasNewSources) "" else null,
-			)
+			val headerTextRes = if (appMode.value.isNovel) R.string.novel_explore_title else R.string.remote_sources
+			val buttonRes = if (appMode.value.isNovel) {
+				R.string.novel_plugins_manager
+			} else if (allSourcesEnabled && activePreset == null) {
+				R.string.manage
+			} else {
+				R.string.catalog
+			}
+			val badge = if (!allSourcesEnabled && activePreset == null && hasNewSources) "" else null
+			result += if (activePreset != null) {
+				ListHeader(
+					text = activePreset.title,
+					buttonTextRes = buttonRes,
+					badge = badge,
+				)
+			} else {
+				ListHeader(
+					textRes = headerTextRes,
+					buttonTextRes = buttonRes,
+					badge = badge,
+				)
+			}
 			sources.mapTo(result) { MangaSourceItem(it, isGrid) }
 		} else {
 			result += EmptyHint(
 				icon = R.drawable.ic_empty_common,
-				textPrimary = R.string.no_manga_sources,
-				textSecondary = R.string.no_manga_sources_text,
-				actionStringRes = R.string.catalog,
+				textPrimary = if (appMode.value.isNovel) R.string.no_novel_sources else R.string.no_manga_sources,
+				textSecondary = if (appMode.value.isNovel) R.string.no_novel_sources_text else R.string.no_manga_sources_text,
+				actionStringRes = if (appMode.value.isNovel) R.string.novel_plugins_manager else R.string.catalog,
 			)
 		}
 		return result
@@ -246,11 +264,16 @@ class ExploreViewModel @Inject constructor(
 		LoadingState(),
 	)
 
-	private fun getSuggestionFlow() = isSuggestionsEnabled.mapLatest { isEnabled ->
+	private fun getSuggestionFlow(): Flow<List<Manga>> = combineFlows(
+		isSuggestionsEnabled,
+		appMode,
+	) { isEnabled, mode ->
+		isEnabled to mode
+	}.mapLatest { (isEnabled, mode) ->
 		if (isEnabled) {
 			runCatchingCancellable {
 				suggestionRepository.getRandomList(SUGGESTIONS_COUNT)
-			}.getOrDefault(emptyList())
+			}.getOrDefault(emptyList()).filter { it.isNovel == mode.isNovel }
 		} else {
 			emptyList()
 		}

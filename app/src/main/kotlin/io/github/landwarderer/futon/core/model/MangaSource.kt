@@ -60,6 +60,9 @@ fun MangaSource(name: String?, title: String? = null): MangaSource {
 	if (name.startsWith("mihon:") || name.startsWith("MIHON_")) {
 		return AnonymousMangaSource(name, title)
 	}
+	if (io.github.landwarderer.futon.novel.data.lnreader.model.LnPluginSource.isLnReaderSource(name)) {
+		return AnonymousMangaSource(name, title)
+	}
 	MangaParserSource.entries.forEach {
 		if (it.name == name) return it
 	}
@@ -109,6 +112,7 @@ tailrec fun MangaSource.unwrap(): MangaSource = if (this is MangaSourceInfo) {
 fun MangaSource.getLocale(): Locale? = when (val source = unwrap()) {
 	is MangaParserSource -> source.locale.toLocaleOrNull()
 	is io.github.landwarderer.futon.novel.data.source.NovelParserSource -> source.locale.toLocaleOrNull()
+	is io.github.landwarderer.futon.novel.data.lnreader.model.LnPluginSource -> source.locale.toLocaleOrNull()
 	else -> null
 }
 
@@ -122,6 +126,12 @@ fun MangaSource.getSummary(context: Context): String? = when (val source = unwra
 	is io.github.landwarderer.futon.novel.data.source.NovelParserSource -> {
 		val type = context.getString(source.contentType.titleResId)
 		val locale = source.locale.toLocale().getDisplayName(context)
+		context.getString(R.string.source_summary_pattern, type, locale)
+	}
+
+	is io.github.landwarderer.futon.novel.data.lnreader.model.LnPluginSource -> {
+		val type = context.getString(source.contentType.titleResId)
+		val locale = source.locale.toLocaleOrNull()?.getDisplayName(context) ?: source.locale
 		context.getString(R.string.source_summary_pattern, type, locale)
 	}
 
@@ -154,6 +164,7 @@ fun MangaSource.getSummary(context: Context): String? = when (val source = unwra
 fun MangaSource.getTitle(context: Context): String = when (val source = unwrap()) {
 	is MangaParserSource -> source.title
 	is io.github.landwarderer.futon.novel.data.source.NovelParserSource -> source.title
+	is io.github.landwarderer.futon.novel.data.lnreader.model.LnPluginSource -> source.title
 	LocalMangaSource -> context.getString(R.string.local_storage)
 	LocalNovelSource -> context.getString(R.string.light_novels)
 	TestMangaSource -> context.getString(R.string.test_parser)
