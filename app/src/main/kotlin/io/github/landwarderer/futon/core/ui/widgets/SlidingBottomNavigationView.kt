@@ -7,7 +7,11 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.Rect
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.InsetDrawable
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
@@ -20,6 +24,7 @@ import android.widget.FrameLayout
 import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.core.view.size
 import androidx.customview.view.AbsSavedState
@@ -83,6 +88,19 @@ private const val COMPACT_MERGED_SEGMENT_DP = 36f
 private const val MERGED_GAP_DP = 3f
 private const val MERGED_INNER_CORNER_DP = 4f
 private const val MERGED_ICON_DP = 20f
+
+private const val TUFT_SIZE_DP = 44f
+private const val COMPACT_TUFT_SIZE_DP = 36f
+private const val TUFT_RISE_DP = 14f
+private const val COMPACT_TUFT_RISE_DP = 12f
+private const val TUFT_HALO_DP = 4f
+private const val COMPACT_TUFT_HALO_DP = 3f
+private const val TUFT_ICON_DP = 18f
+private const val COMPACT_TUFT_ICON_DP = 16f
+private const val TUFT_STITCH_INSET_DP = 4f
+private const val TUFT_STITCH_WIDTH_DP = 1.2f
+private const val TUFT_STITCH_DASH_DP = 3f
+private const val TUFT_STITCH_ALPHA = 90
 
 class SlidingBottomNavigationView @JvmOverloads constructor(
 	context: Context,
@@ -192,10 +210,17 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		itemIconSize = if (compact) px(COMPACT_ICON_DP) else defaultIconSize
 		applyMinimumHeight(if (compact) px(COMPACT_HEIGHT_DP) else requestedMinimumHeight)
 		val isBump = dockStyle == DockStyle.BUMP
+		val isTufted = dockStyle == DockStyle.TUFTED
 		val bumpDp = if (compact) COMPACT_BUMP_DP else DOCK_BUMP_DP
 		bumpHeight = if (isBump) bumpDp * density else 0f
-		// Only the bump needs room above the capsule.
-		setPadding(paddingLeft, px(if (isBump) bumpDp + DOCK_TOP_SPARE_DP else DOCK_TOP_SPARE_DP), paddingRight, paddingBottom)
+		// Only the bump and the cushion's button need room above the capsule.
+		val roomAbove = when {
+			isBump -> bumpDp
+			isTufted -> if (compact) COMPACT_TUFT_RISE_DP + COMPACT_TUFT_HALO_DP else TUFT_RISE_DP + TUFT_HALO_DP
+			else -> 0f
+		}
+		setPadding(paddingLeft, px(roomAbove + DOCK_TOP_SPARE_DP), paddingRight, paddingBottom)
+		dockDrawable.setCushion(isTufted, context.getThemeColor(materialR.attr.colorOutlineVariant), density)
 		val isLabelled = isBump && !compact
 		with(continueButton) {
 			text = if (isLabelled) context.getString(R.string._continue) else null
@@ -204,8 +229,10 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 				isLabelled -> defaultButtonIconSize
 				isBump -> px(COMPACT_BUTTON_ICON_DP)
 				dockStyle == DockStyle.BESIDE -> px(if (compact) COMPACT_BESIDE_ICON_DP else BESIDE_ICON_DP)
+				isTufted -> px(if (compact) COMPACT_TUFT_ICON_DP else TUFT_ICON_DP)
 				else -> px(MERGED_ICON_DP)
 			}
+			foreground = if (isTufted) stitchRing() else null
 			iconPadding = if (isLabelled) defaultButtonIconPadding else 0
 			if (isLabelled) {
 				setPaddingRelative(defaultButtonPaddingStart, 0, defaultButtonPaddingEnd, 0)
@@ -230,10 +257,26 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		requestLayout()
 	}
 
+	/** A dashed ring of thread just inside the edge, so the cushion's button looks sewn on. */
+	private fun stitchRing(): Drawable {
+		val ring = GradientDrawable().apply {
+			shape = GradientDrawable.OVAL
+			setColor(Color.TRANSPARENT)
+			val thread = context.getThemeColor(materialR.attr.colorOnPrimaryContainer)
+			setStroke(
+				(TUFT_STITCH_WIDTH_DP * density).toInt().coerceAtLeast(1),
+				ColorUtils.setAlphaComponent(thread, TUFT_STITCH_ALPHA),
+				TUFT_STITCH_DASH_DP * density,
+				TUFT_STITCH_DASH_DP * density,
+			)
+		}
+		return InsetDrawable(ring, (TUFT_STITCH_INSET_DP * density).toInt())
+	}
+
 	/** Beside the dock the button takes the dock's colour; merged it takes the History highlight's, as one pill. */
 	private fun applyButtonColors() {
 		val (background, content) = when (dockStyle) {
-			DockStyle.BUMP -> ColorStateList.valueOf(context.getThemeColor(materialR.attr.colorPrimaryContainer)) to
+			DockStyle.BUMP, DockStyle.TUFTED -> ColorStateList.valueOf(context.getThemeColor(materialR.attr.colorPrimaryContainer)) to
 				context.getThemeColor(materialR.attr.colorOnPrimaryContainer)
 
 			DockStyle.BESIDE -> ColorStateList.valueOf(context.getThemeColor(materialR.attr.colorSurfaceContainer)) to
@@ -292,16 +335,28 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		continueButton.alpha = progress
 		if (dockStyle == DockStyle.BUMP) {
 			dockDrawable.bumpProgress = progress
-			(getChildAt(0) as? DockMenuView)?.historyExtra = 0f
+			(getChildAt(0) as? DockMenuView)?.extra = 0f
 			continueButton.scaleX = 0.7f + 0.3f * progress
 			continueButton.translationY = bumpHeight * (1f - progress)
+		} else if (dockStyle == DockStyle.TUFTED) {
+			// The button sinks into the cushion as it goes, and the items part around it as it comes.
+			continueButton.scaleX = 0.5f + 0.5f * progress
+			continueButton.translationY = tuftRise * (1f - progress)
+			(getChildAt(0) as? DockMenuView)?.let {
+				it.isGapInMiddle = true
+				it.extra = tuftSeat * 2f * progress
+			}
+			requestLayout()
 		} else {
 			continueButton.scaleX = 0.6f + 0.4f * progress
 			continueButton.translationY = 0f
-			(getChildAt(0) as? DockMenuView)?.historyExtra = if (dockStyle == DockStyle.MERGED) {
-				(mergedSegmentWidth + MERGED_GAP_DP * density) * progress
-			} else {
-				0f
+			(getChildAt(0) as? DockMenuView)?.let {
+				it.isGapInMiddle = false
+				it.extra = if (dockStyle == DockStyle.MERGED) {
+					(mergedSegmentWidth + MERGED_GAP_DP * density) * progress
+				} else {
+					0f
+				}
 			}
 			// The dock makes room for the button as it appears.
 			requestLayout()
@@ -318,6 +373,16 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 	private val besideSize: Int
 		get() = ((if (isCompact) COMPACT_BESIDE_SIZE_DP else BESIDE_SIZE_DP) * density).toInt()
 
+	private val tuftSize: Int
+		get() = ((if (isCompact) COMPACT_TUFT_SIZE_DP else TUFT_SIZE_DP) * density).toInt()
+
+	private val tuftRise: Float
+		get() = (if (isCompact) COMPACT_TUFT_RISE_DP else TUFT_RISE_DP) * density
+
+	/** The radius of the raised seat around the cushion's button. */
+	private val tuftSeat: Float
+		get() = tuftSize / 2f + (if (isCompact) COMPACT_TUFT_HALO_DP else TUFT_HALO_DP) * density
+
 	/** The capsule moves over by the beside button plus the gap. */
 	private val besideRoom: Float
 		get() = (besideSize + besideGap) * continueProgress
@@ -329,7 +394,46 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 			DockStyle.BUMP -> layoutBump(menu)
 			DockStyle.BESIDE -> layoutBeside(menu)
 			DockStyle.MERGED -> layoutMerged(menu)
+			DockStyle.TUFTED -> layoutTufted(menu)
 		}
+	}
+
+	/** Tufting buttons sit between the items; the middle one gives way to Continue, which rises out of the cushion. */
+	private fun layoutTufted(menu: View) {
+		setFlatCapsule(menu)
+		val dock = menu as? DockMenuView
+		val items = dock?.visibleItems.orEmpty()
+		val gapItem = dock?.gapItem(items)
+		val extra = dock?.extra ?: 0f
+		val isRtl = layoutDirection == LAYOUT_DIRECTION_RTL
+		val count = (items.size - 1).coerceAtLeast(0)
+		val tuftX = FloatArray(count)
+		val tuftAlpha = FloatArray(count) { 1f }
+		var centerX = menu.left + menu.width / 2f
+		for (i in 0 until count) {
+			val child = items[i]
+			val half = if (child === gapItem) extra / 2f else 0f
+			tuftX[i] = menu.left + if (isRtl) child.left - half else child.right + half
+			if (child === gapItem) {
+				tuftAlpha[i] = 1f - continueProgress
+				centerX = tuftX[i]
+			}
+		}
+		val size = continueButton.measuredWidth
+		val buttonLeft = (centerX - size / 2f).toInt()
+		val buttonTop = (menu.top - tuftRise).toInt()
+		continueButton.layout(buttonLeft, buttonTop, buttonLeft + size, buttonTop + size)
+		val seat = if (continueProgress > 0f) tuftSeat * continueButton.scaleX else 0f
+		dockDrawable.setCushionDetails(
+			tuftX = tuftX,
+			tuftAlpha = tuftAlpha,
+			tuftY = menu.top + menu.height / 2f,
+			haloX = centerX,
+			haloY = buttonTop + size / 2f + continueButton.translationY,
+			haloRadius = seat,
+			scale = size / TUFT_SIZE_DP,
+			pucker = continueProgress,
+		)
 	}
 
 	private fun setFlatCapsule(menu: View) {
@@ -517,6 +621,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 			DockStyle.BUMP -> return
 			DockStyle.BESIDE -> besideSize to besideSize
 			DockStyle.MERGED -> mergedSegmentWidth to itemActiveIndicatorHeight
+			DockStyle.TUFTED -> tuftSize to tuftSize
 		}
 		continueButton.measure(
 			MeasureSpec.makeMeasureSpec(buttonWidth, MeasureSpec.EXACTLY),
@@ -668,12 +773,15 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 	}
 }
 
-/** The menu, able to widen the History slot so the merged Continue button fits beside its indicator. */
+/**
+ * The menu, able to open a gap after one item: after History, so the merged Continue button fits beside its
+ * indicator, or in the middle, for the cushion's button.
+ */
 @SuppressLint("RestrictedApi", "ViewConstructor")
 private class DockMenuView(context: Context) : BottomNavigationMenuView(context) {
 
-	/** Extra room after the History item, in pixels, taken evenly from the other items. */
-	var historyExtra = 0f
+	/** Extra room after the gap item, in pixels, taken from the other items. */
+	var extra = 0f
 		set(value) {
 			if (field != value) {
 				field = value
@@ -681,20 +789,43 @@ private class DockMenuView(context: Context) : BottomNavigationMenuView(context)
 			}
 		}
 
-	private val visibleItems: List<View>
+	/** Opens the gap in the middle of the items, taken from all of them, instead of after History. */
+	var isGapInMiddle = false
+		set(value) {
+			if (field != value) {
+				field = value
+				requestLayout()
+			}
+		}
+
+	val visibleItems: List<View>
 		get() = (0 until childCount).map { getChildAt(it) }.filter { it.visibility != GONE }
+
+	/** The item the gap follows, or null when there is none to follow. */
+	fun gapItem(items: List<View>): View? {
+		if (items.size < 2) {
+			return null
+		}
+		if (isGapInMiddle) {
+			return items[(items.size - 1) / 2]
+		}
+		val history = findItemView(R.id.nav_history)
+		return items.firstOrNull { it === history }
+	}
 
 	override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 		val items = visibleItems
-		val history = findItemView(R.id.nav_history)
-		if (historyExtra <= 0f || items.size < 2 || items.none { it === history }) {
+		val gapItem = gapItem(items)
+		if (extra <= 0f || gapItem == null) {
 			return
 		}
 		val base = items.sumOf { it.measuredWidth } / items.size
-		val narrowed = (base - historyExtra / (items.size - 1)).toInt().coerceAtLeast(0)
+		// Merged, History keeps its width so its indicator stays whole; in the middle every item gives a share.
+		val sharing = if (isGapInMiddle) items.size else items.size - 1
+		val narrowed = (base - extra / sharing).toInt().coerceAtLeast(0)
 		for (child in items) {
-			if (child !== history) {
+			if (isGapInMiddle || child !== gapItem) {
 				child.measure(
 					MeasureSpec.makeMeasureSpec(narrowed, MeasureSpec.EXACTLY),
 					MeasureSpec.makeMeasureSpec(child.measuredHeight, MeasureSpec.EXACTLY),
@@ -705,8 +836,8 @@ private class DockMenuView(context: Context) : BottomNavigationMenuView(context)
 
 	override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
 		val items = visibleItems
-		val history = findItemView(R.id.nav_history)
-		if (historyExtra <= 0f || items.size < 2 || items.none { it === history }) {
+		val gapItem = gapItem(items)
+		if (extra <= 0f || gapItem == null) {
 			super.onLayout(changed, left, top, right, bottom)
 			return
 		}
@@ -722,7 +853,7 @@ private class DockMenuView(context: Context) : BottomNavigationMenuView(context)
 			} else {
 				child.layout(start, 0, start + childWidth, height)
 			}
-			used += childWidth + if (child === history) historyExtra else 0f
+			used += childWidth + if (child === gapItem) extra else 0f
 		}
 	}
 }

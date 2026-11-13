@@ -4,6 +4,7 @@
 		<item>@string/dock_style_bump</item>
 		<item>@string/dock_style_beside</item>
 		<item>@string/dock_style_merged</item>
+		<item>@string/dock_style_tufted</item>
 	</string-array>
 	<string-array name="themes" translatable="false">
 		<item>@string/follow_system</item>
