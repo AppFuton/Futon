@@ -4,6 +4,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:title="@string/appearance">
 
+    <SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:key="minimal_theme"
+        android:summary="@string/minimal_theme_summary"
+        android:title="@string/minimal_theme" />
+
     <io.github.landwarderer.futon.settings.utils.ThemeChooserPreference
         android:key="color_theme"
         android:title="@string/color_theme" />

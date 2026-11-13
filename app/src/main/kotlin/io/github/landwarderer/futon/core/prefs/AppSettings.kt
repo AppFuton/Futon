@@ -26,8 +26,11 @@ import io.github.landwarderer.futon.core.util.ext.putEnumValue
 import io.github.landwarderer.futon.core.util.ext.takeIfReadable
 import io.github.landwarderer.futon.core.util.ext.toUriOrNull
 import io.github.landwarderer.futon.explore.data.SourcesSortOrder
+import io.github.landwarderer.futon.history.domain.HistoryViewMode
 import io.github.landwarderer.futon.list.domain.ListSortOrder
 import io.github.landwarderer.futon.reader.domain.ReaderColorFilter
+import io.github.landwarderer.futon.tracker.domain.UpdatesShelfWindow
+import io.github.landwarderer.futon.tracker.domain.UpdatesViewMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -613,6 +616,31 @@ class AppSettings internal constructor(
 		get() = prefs.getEnumValue(KEY_HISTORY_ORDER, ListSortOrder.LAST_READ)
 		set(value) = prefs.edit { putEnumValue(KEY_HISTORY_ORDER, value) }
 
+	val isMinimalThemeEnabled: Boolean
+		get() = prefs.getBoolean(KEY_MINIMAL_THEME, false)
+
+	val dockStyle: DockStyle
+		get() = prefs.getEnumValue(KEY_DOCK_STYLE, DockStyle.BUMP)
+
+	var historyViewMode: HistoryViewMode
+		get() = prefs.getEnumValue(KEY_HISTORY_VIEW_MODE, HistoryViewMode.RECENT)
+		set(value) = prefs.edit { putEnumValue(KEY_HISTORY_VIEW_MODE, value) }
+
+	var updatesViewMode: UpdatesViewMode
+		get() = prefs.getEnumValue(KEY_UPDATES_VIEW_MODE, UpdatesViewMode.MAP)
+		set(value) = prefs.edit { putEnumValue(KEY_UPDATES_VIEW_MODE, value) }
+
+	var feedViewMode: UpdatesViewMode
+		get() = prefs.getEnumValue(KEY_FEED_VIEW_MODE, UpdatesViewMode.MAP)
+		set(value) = prefs.edit { putEnumValue(KEY_FEED_VIEW_MODE, value) }
+
+	val updatesShelfWindow: UpdatesShelfWindow
+		get() = prefs.getEnumValue(KEY_UPDATES_SHELF_WINDOW, UpdatesShelfWindow.LAST_CHECK)
+
+	var trackerLastRunAt: Long
+		get() = prefs.getLong(KEY_TRACKER_LAST_RUN, 0L)
+		set(value) = prefs.edit { putLong(KEY_TRACKER_LAST_RUN, value) }
+
 	var allFavoritesSortOrder: ListSortOrder
 		get() = prefs.getEnumValue(KEY_FAVORITES_ORDER, ListSortOrder.NEWEST)
 		set(value) = prefs.edit { putEnumValue(KEY_FAVORITES_ORDER, value) }
@@ -1014,6 +1042,13 @@ class AppSettings internal constructor(
 		const val KEY_EINK_FLASH_COLOR = "eink_flash_color"
 		const val KEY_LOCAL_LIST_ORDER = "local_order"
 		const val KEY_HISTORY_ORDER = "history_order"
+		const val KEY_HISTORY_VIEW_MODE = "history_view_mode"
+		const val KEY_UPDATES_VIEW_MODE = "updates_view_mode"
+		const val KEY_FEED_VIEW_MODE = "feed_view_mode"
+		const val KEY_UPDATES_SHELF_WINDOW = "updates_shelf_window"
+		const val KEY_TRACKER_LAST_RUN = "tracker_last_run"
+		const val KEY_MINIMAL_THEME = "minimal_theme"
+		const val KEY_DOCK_STYLE = "dock_style_experimental"
 		const val KEY_FAVORITES_ORDER = "fav_order"
 		const val KEY_WEBTOON_GAPS = "webtoon_gaps"
 		const val KEY_WEBTOON_ZOOM = "webtoon_zoom"

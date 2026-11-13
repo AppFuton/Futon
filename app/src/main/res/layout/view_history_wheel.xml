@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto">
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="48dp"
+		android:gravity="center_vertical"
+		android:orientation="horizontal"
+		android:paddingHorizontal="16dp">
+
+		<TextView
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:text="@string/history_most_recent_first"
+			android:textAppearance="?attr/textAppearanceBodyMedium"
+			android:textColor="?android:attr/textColorSecondary" />
+
+		<com.google.android.material.chip.ChipGroup
+			android:id="@+id/chipGroup_style"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			app:checkedChip="@+id/chip_click_wheel"
+			app:selectionRequired="true"
+			app:singleLine="true"
+			app:singleSelection="true">
+
+			<com.google.android.material.chip.Chip android:id="@+id/chip_click_wheel" style="@style/Widget.Futon.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/history_wheel_click" />
+			<com.google.android.material.chip.Chip android:id="@+id/chip_arc" style="@style/Widget.Futon.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/history_wheel_arc" />
+
+		</com.google.android.material.chip.ChipGroup>
+
+	</LinearLayout>
+
+	<FrameLayout
+		android:id="@+id/container_spines"
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:layout_weight="1.3" />
+
+	<LinearLayout
+		android:id="@+id/layout_panel"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:background="?attr/selectableItemBackground"
+		android:minHeight="56dp"
+		android:orientation="vertical"
+		android:paddingHorizontal="16dp"
+		android:paddingVertical="8dp">
+
+		<TextView
+			android:id="@+id/textView_title"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ellipsize="end"
+			android:maxLines="1"
+			android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+		<TextView
+			android:id="@+id/textView_meta"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ellipsize="end"
+			android:maxLines="1"
+			android:textAppearance="?attr/textAppearanceBodySmall"
+			android:textColor="?android:attr/textColorSecondary" />
+
+	</LinearLayout>
+
+	<io.github.landwarderer.futon.history.ui.views.ClickWheelView
+		android:id="@+id/wheel"
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:layout_weight="1"
+		android:paddingVertical="8dp" />
+
+</merge>

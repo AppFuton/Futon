@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -15,6 +16,7 @@ import io.github.landwarderer.futon.core.parser.MangaDataRepository
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.ListMode
 import io.github.landwarderer.futon.core.prefs.observeAsFlow
+import io.github.landwarderer.futon.core.prefs.observeAsStateFlow
 import io.github.landwarderer.futon.core.ui.model.DateTimeAgo
 import io.github.landwarderer.futon.core.util.ext.calculateTimeAgo
 import io.github.landwarderer.futon.core.util.ext.onFirst
@@ -27,8 +29,12 @@ import io.github.landwarderer.futon.list.ui.model.ListHeader
 import io.github.landwarderer.futon.list.ui.model.ListModel
 import io.github.landwarderer.futon.list.ui.model.LoadingState
 import io.github.landwarderer.futon.list.ui.model.toErrorState
+import io.github.landwarderer.futon.tracker.domain.ObserveUpdatesMapUseCase
+import io.github.landwarderer.futon.tracker.domain.ObserveUpdatesShelfUseCase
 import io.github.landwarderer.futon.tracker.domain.TrackingRepository
 import io.github.landwarderer.futon.tracker.domain.UpdatesListQuickFilter
+import io.github.landwarderer.futon.tracker.domain.UpdatesShelf
+import io.github.landwarderer.futon.tracker.domain.UpdatesViewMode
 import io.github.landwarderer.futon.tracker.domain.model.MangaTracking
 import javax.inject.Inject
 import io.github.landwarderer.futon.local.data.LocalStorageChanges
@@ -38,12 +44,29 @@ import kotlinx.coroutines.flow.SharedFlow
 @HiltViewModel
 class UpdatesViewModel @Inject constructor(
 	private val repository: TrackingRepository,
-	settings: AppSettings,
+	private val settings: AppSettings,
 	private val mangaListMapper: MangaListMapper,
 	private val quickFilter: UpdatesListQuickFilter,
 	mangaDataRepository: MangaDataRepository,
+	observeUpdatesMap: ObserveUpdatesMapUseCase,
+	observeUpdatesShelf: ObserveUpdatesShelfUseCase,
 	@LocalStorageChanges localStorageChanges: SharedFlow<LocalManga?>,
 ) : MangaListViewModel(settings, mangaDataRepository, localStorageChanges), QuickFilterListener by quickFilter {
+
+	val viewMode: StateFlow<UpdatesViewMode> = settings.observeAsStateFlow(
+		scope = viewModelScope + Dispatchers.IO,
+		key = AppSettings.KEY_UPDATES_VIEW_MODE,
+		valueProducer = { updatesViewMode },
+	)
+
+	/** Null until loaded, so that the map does not flash its empty state. */
+	val mapEntries: StateFlow<List<MangaTracking>?> = observeUpdatesMap(emptySet())
+		.withErrorHandling()
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
+
+	val mapShelf: StateFlow<UpdatesShelf?> = observeUpdatesShelf(emptySet())
+		.withErrorHandling()
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
 
 	override val content = combine(
 		quickFilter.appliedOptions.flatMapLatest { filterOptions ->
@@ -86,6 +109,10 @@ class UpdatesViewModel @Inject constructor(
 	override fun onRefresh() = Unit
 
 	override fun onRetry() = Unit
+
+	fun setViewMode(value: UpdatesViewMode) {
+		settings.updatesViewMode = value
+	}
 
 	fun remove(ids: Set<Long>) {
 		launchJob(Dispatchers.IO) {
