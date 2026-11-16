@@ -7,7 +7,6 @@ import android.view.View
 import androidx.preference.ListPreference
 import androidx.preference.EditTextPreference
 import androidx.core.os.bundleOf
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import dagger.hilt.android.AndroidEntryPoint
@@ -18,7 +17,6 @@ import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.prefs.ChapterCompletionMode
 import io.github.landwarderer.futon.core.prefs.EInkFlashColor
 import io.github.landwarderer.futon.settings.reader.SmartResumeThresholdDialog
-import io.github.landwarderer.futon.settings.utils.HelpSwitchPreference
 import io.github.landwarderer.futon.core.prefs.ReaderAnimation
 import io.github.landwarderer.futon.core.prefs.ReaderBackground
 import io.github.landwarderer.futon.core.prefs.ReaderControl
@@ -95,23 +93,19 @@ class ReaderSettingsFragment :
                 val count = settings.smartResumePagesRemaining
                 resources.getQuantityString(R.plurals.smart_resume_pages_summary, count, count)
             }
-        findPreference<HelpSwitchPreference>(AppSettings.KEY_SMART_RESUME_WAIT)?.run {
-            helpDescription = getString(R.string.smart_resume_wait_help_title)
-            onHelpClick = {
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.smart_resume_wait_help_title)
-                    .setMessage(R.string.smart_resume_wait_help)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show()
+        findPreference<EditTextPreference>(AppSettings.KEY_SMART_RESUME_TIMEOUT)?.summaryProvider =
+            Preference.SummaryProvider<EditTextPreference> {
+                val seconds = settings.smartResumeTimeoutSeconds
+                resources.getQuantityString(R.plurals.smart_resume_timeout_summary, seconds, seconds)
             }
-        }
         updateSmartResumeRule()
 	}
 
     @Suppress("DEPRECATION")
     override fun onDisplayPreferenceDialog(preference: Preference) {
         if (preference.key != AppSettings.KEY_SMART_RESUME_PERCENTAGE &&
-            preference.key != AppSettings.KEY_SMART_RESUME_PAGES
+            preference.key != AppSettings.KEY_SMART_RESUME_PAGES &&
+            preference.key != AppSettings.KEY_SMART_RESUME_TIMEOUT
         ) {
             super.onDisplayPreferenceDialog(preference)
             return

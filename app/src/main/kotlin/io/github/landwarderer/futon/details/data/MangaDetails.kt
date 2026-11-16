@@ -82,6 +82,8 @@ data class MangaDetails(
         return manga.source.getLocale()
     }
 
+    fun withChapters(chapters: List<MangaChapter>) = copy(manga = manga.copy(chapters = chapters))
+
     fun filterChapters(branch: String?) = copy(
         manga = manga.filterChapters(branch),
         localManga = localManga?.run {

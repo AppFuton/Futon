@@ -64,7 +64,7 @@ class SmartResumeReaderTest {
             .putBoolean(AppSettings.KEY_SMART_RESUME, true)
             .putString(AppSettings.KEY_SMART_RESUME_MODE, "PERCENTAGE")
             .putString(AppSettings.KEY_SMART_RESUME_PERCENTAGE, "90")
-            .putBoolean(AppSettings.KEY_SMART_RESUME_WAIT, false)
+            .putString(AppSettings.KEY_SMART_RESUME_TIMEOUT, "15")
             .commit()
     }
 
@@ -85,20 +85,8 @@ class SmartResumeReaderTest {
     }
 
     @Test
-    fun cachedModeDoesNotJumpWhenDetailsArriveLater() = runBlocking {
-        val fixture = fixture(ReaderMode.STANDARD, cachedSuccessor = false, deferUpdate = true)
-        launch(fixture).use { scenario ->
-            val model = model(scenario)
-            awaitChapter(model, 29)
-            fixture.update.complete(Result.success(fixture.updated))
-            withTimeout(30_000) { model.mangaDetails.first { it?.isLoaded == true } }
-            assertEquals(29L, model.readingState.value?.chapterId)
-        }
-    }
-
-    @Test
-    fun waitingDefersContentAndHistoryUntilUpdate() = runBlocking {
-        setWaiting()
+    fun staleListWaitsForUpdateBeforeDeciding() = runBlocking {
+        // The details screen has not refreshed the stored list yet: it ends at the finished chapter
         val fixture = fixture(ReaderMode.STANDARD, cachedSuccessor = false, deferUpdate = true)
         launch(fixture).use { scenario ->
             val model = model(scenario)
@@ -113,8 +101,35 @@ class SmartResumeReaderTest {
     }
 
     @Test
+    fun timeoutResumesSavedChapter() = runBlocking {
+        setTimeout(1)
+        val fixture = fixture(ReaderMode.STANDARD, cachedSuccessor = false, deferUpdate = true)
+        launch(fixture).use { scenario ->
+            val model = model(scenario)
+            awaitChapter(model, 29)
+            assertEquals(13, model.readingState.value?.page)
+            // A late update must not move the reader any more
+            fixture.update.complete(Result.success(fixture.updated))
+            withTimeout(30_000) { model.mangaDetails.first { it?.isLoaded == true } }
+            assertEquals(29L, model.readingState.value?.chapterId)
+        }
+    }
+
+    @Test
+    fun timeoutUsesChapterListStoredMeanwhile() = runBlocking {
+        setTimeout(3)
+        val fixture = fixture(ReaderMode.STANDARD, cachedSuccessor = false, deferUpdate = true)
+        launch(fixture).use { scenario ->
+            val model = model(scenario)
+            withTimeout(30_000) { model.readerMode.first { it != null } }
+            // The details screen finished its own refresh while the reader was waiting
+            data.storeManga(fixture.updated, replaceExisting = true)
+            awaitChapter(model, 30)
+        }
+    }
+
+    @Test
     fun failedUpdateReleasesSavedChapter() = runBlocking {
-        setWaiting()
         val fixture = fixture(ReaderMode.STANDARD, cachedSuccessor = false, deferUpdate = true)
         launch(fixture).use { scenario ->
             val model = model(scenario)
@@ -146,9 +161,9 @@ class SmartResumeReaderTest {
         }
     }
 
-    private fun setWaiting() {
+    private fun setTimeout(seconds: Int) {
         PreferenceManager.getDefaultSharedPreferences(context).edit()
-            .putBoolean(AppSettings.KEY_SMART_RESUME_WAIT, true).commit()
+            .putString(AppSettings.KEY_SMART_RESUME_TIMEOUT, seconds.toString()).commit()
     }
 
     private suspend fun fixture(mode: ReaderMode, cachedSuccessor: Boolean, deferUpdate: Boolean = false): Fixture {

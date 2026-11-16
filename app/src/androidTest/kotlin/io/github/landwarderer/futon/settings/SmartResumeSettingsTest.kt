@@ -1,7 +1,6 @@
 package io.github.landwarderer.futon.settings
 
 import android.content.Intent
-import android.view.View
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.preference.EditTextPreference
@@ -49,7 +48,7 @@ class SmartResumeSettingsTest {
             .remove(AppSettings.KEY_SMART_RESUME_MODE)
             .remove(AppSettings.KEY_SMART_RESUME_PERCENTAGE)
             .remove(AppSettings.KEY_SMART_RESUME_PAGES)
-            .remove(AppSettings.KEY_SMART_RESUME_WAIT)
+            .remove(AppSettings.KEY_SMART_RESUME_TIMEOUT)
             .commit()
     }
 
@@ -59,7 +58,7 @@ class SmartResumeSettingsTest {
             scenario.onActivity { activity ->
                 val fragment = readerSettings(activity)
                 assertFalse(settings.isSmartResumeEnabled)
-                assertFalse(settings.isSmartResumeWaitForUpdates)
+                assertEquals(15, settings.smartResumeTimeoutSeconds)
                 assertEquals(90, settings.smartResumePercentage)
                 assertEquals(1, settings.smartResumePagesRemaining)
                 val mode = fragment.findPreference<ListPreference>(AppSettings.KEY_SMART_RESUME_MODE)!!
@@ -119,17 +118,31 @@ class SmartResumeSettingsTest {
     }
 
     @Test
-    fun helpButtonIsAccessibleAndDoesNotToggleWaiting() {
+    fun timeoutDialogAcceptsOnlyTheAllowedRange() {
         launch().use { scenario ->
-            scenario.onActivity { readerSettings(it).scrollToPreference(AppSettings.KEY_SMART_RESUME_WAIT) }
+            scenario.onActivity { activity ->
+                val fragment = readerSettings(activity)
+                fragment.findPreference<SwitchPreferenceCompat>(AppSettings.KEY_SMART_RESUME)!!.isChecked = true
+                fragment.onDisplayPreferenceDialog(
+                    fragment.findPreference<Preference>(AppSettings.KEY_SMART_RESUME_TIMEOUT)!!,
+                )
+            }
             instrumentation.waitForIdleSync()
             scenario.onActivity { activity ->
-                val help = activity.findViewById<View>(R.id.preference_help)
-                assertNotNull(help)
-                assertTrue(help.isEnabled)
-                assertFalse(help.contentDescription.isNullOrBlank())
-                help.performClick()
-                assertFalse(settings.isSmartResumeWaitForUpdates)
+                val dialog = activity.supportFragmentManager
+                    .findFragmentByTag("androidx.preference.PreferenceFragment.DIALOG") as SmartResumeThresholdDialog
+                val alert = dialog.requireDialog() as AlertDialog
+                val editor = alert.findViewById<EditText>(android.R.id.edit)!!
+                for (invalid in listOf("", "0", "121", "-1", "1.5")) {
+                    editor.setText(invalid)
+                    alert.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+                    assertTrue(alert.isShowing)
+                    assertNotNull(editor.error)
+                    assertEquals(15, settings.smartResumeTimeoutSeconds)
+                }
+                editor.setText("30")
+                alert.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+                assertEquals(30, settings.smartResumeTimeoutSeconds)
             }
         }
     }

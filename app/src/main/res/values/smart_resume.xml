@@ -13,10 +13,14 @@
     </plurals>
     <string name="smart_resume_percentage_error">Enter a whole number from 1 to 100.</string>
     <string name="smart_resume_pages_error">Enter a whole number from 0 to 2147483647.</string>
-    <string name="smart_resume_wait">Wait for chapter updates</string>
-    <string name="smart_resume_wait_summary">Wait for Futon to check for chapter updates before choosing where to continue.</string>
-    <string name="smart_resume_wait_help_title">About waiting for chapter updates</string>
-    <string name="smart_resume_wait_help">Off: Resume using the chapter list Futon already has. If more chapters appear afterward, your reading position won’t change.\n\nOn: Wait for Futon’s usual chapter update before resuming. This may take longer. Futon may reuse previously downloaded chapter information instead of fetching a fresh list. If the update fails, resume at your saved position.</string>
+    <string name="smart_resume_timeout">Chapter update timeout</string>
+    <plurals name="smart_resume_timeout_summary">
+        <item quantity="one">Wait up to %d second for new chapters.</item>
+        <item quantity="other">Wait up to %d seconds for new chapters.</item>
+    </plurals>
+    <string name="smart_resume_timeout_help">When you finished the latest chapter, Futon checks for new chapters before choosing where to continue. Enter how many seconds to wait. If the check takes longer or fails, Futon uses the chapter list it already has, and resumes at your saved position if there is no next chapter.</string>
+    <string name="smart_resume_timeout_error">Enter a whole number from 1 to 120.</string>
+    <string name="smart_resume_update_timeout">Couldn’t check for new chapters in time</string>
     <string name="smart_resume_percentage_help">Count pages reached, including the page you’re on. At 90%, page 14 of 15 qualifies; page 13 does not. This does not measure how far you’ve scrolled within a long image.</string>
     <string name="smart_resume_pages_help">Choose how many pages may remain after the page you’re on. Set this to 0 to require reaching the final page. This does not measure how far you’ve scrolled within a long image.</string>
     <string-array name="smart_resume_modes">
