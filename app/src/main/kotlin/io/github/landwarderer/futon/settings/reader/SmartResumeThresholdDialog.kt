@@ -8,6 +8,7 @@ import androidx.preference.EditTextPreferenceDialogFragmentCompat
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.prefs.AppSettings
 
+/** Whole-number input for the smart resume threshold and update timeout preferences. */
 class SmartResumeThresholdDialog : EditTextPreferenceDialogFragmentCompat() {
     override fun onStart() {
         super.onStart()
@@ -17,12 +18,16 @@ class SmartResumeThresholdDialog : EditTextPreferenceDialogFragmentCompat() {
         editor.inputType = InputType.TYPE_CLASS_NUMBER
         alert.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             val number = editor.text.toString().toIntOrNull()
-            val percentage = pref.key == AppSettings.KEY_SMART_RESUME_PERCENTAGE
-            val valid = number != null && if (percentage) number in 1..100 else number >= 0
-            if (!valid) {
-                editor.error = getString(
-                    if (percentage) R.string.smart_resume_percentage_error else R.string.smart_resume_pages_error,
-                )
+            val (valid, error) = when (pref.key) {
+                AppSettings.KEY_SMART_RESUME_PERCENTAGE ->
+                    (number != null && number in 1..100) to R.string.smart_resume_percentage_error
+                AppSettings.KEY_SMART_RESUME_TIMEOUT ->
+                    (number != null && number in AppSettings.SMART_RESUME_TIMEOUT_RANGE) to
+                        R.string.smart_resume_timeout_error
+                else -> (number != null && number >= 0) to R.string.smart_resume_pages_error
+            }
+            if (!valid || number == null) {
+                editor.error = getString(error)
             } else if (pref.callChangeListener(number.toString())) {
                 pref.text = number.toString()
                 dismiss()

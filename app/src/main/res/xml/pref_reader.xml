@@ -48,12 +48,13 @@
         android:dialogTitle="@string/smart_resume_threshold"
         android:title="@string/smart_resume_threshold" />
 
-    <io.github.landwarderer.futon.settings.utils.HelpSwitchPreference
-        android:defaultValue="false"
+    <EditTextPreference
+        android:defaultValue="15"
         android:dependency="reader_smart_resume"
-        android:key="reader_smart_resume_wait"
-        android:title="@string/smart_resume_wait"
-        android:summary="@string/smart_resume_wait_summary" />
+        android:key="reader_smart_resume_timeout"
+        android:dialogMessage="@string/smart_resume_timeout_help"
+        android:dialogTitle="@string/smart_resume_timeout"
+        android:title="@string/smart_resume_timeout" />
 
 	<ListPreference
 		android:entries="@array/zoom_modes"

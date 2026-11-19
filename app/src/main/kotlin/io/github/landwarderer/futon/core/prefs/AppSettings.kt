@@ -663,8 +663,9 @@ class AppSettings internal constructor(
         get() = prefs.getString(KEY_SMART_RESUME_PAGES, null)?.toIntOrNull()
             ?.takeIf { it >= 0 } ?: 1
 
-    val isSmartResumeWaitForUpdates: Boolean
-        get() = prefs.getBoolean(KEY_SMART_RESUME_WAIT, false)
+    val smartResumeTimeoutSeconds: Int
+        get() = prefs.getString(KEY_SMART_RESUME_TIMEOUT, null)?.toIntOrNull()
+            ?.takeIf { it in SMART_RESUME_TIMEOUT_RANGE } ?: SMART_RESUME_TIMEOUT_DEFAULT
 
 	val isPagesPreloadEnabled: Boolean
 		get() {
@@ -978,7 +979,9 @@ class AppSettings internal constructor(
         const val KEY_SMART_RESUME_MODE = "reader_smart_resume_mode"
         const val KEY_SMART_RESUME_PERCENTAGE = "reader_smart_resume_percentage"
         const val KEY_SMART_RESUME_PAGES = "reader_smart_resume_pages"
-        const val KEY_SMART_RESUME_WAIT = "reader_smart_resume_wait"
+        const val KEY_SMART_RESUME_TIMEOUT = "reader_smart_resume_timeout"
+        const val SMART_RESUME_TIMEOUT_DEFAULT = 15
+        val SMART_RESUME_TIMEOUT_RANGE = 1..120
 		const val KEY_SUGGESTIONS = "suggestions"
 		const val KEY_SUGGESTIONS_WIFI_ONLY = "suggestions_wifi"
 		const val KEY_SUGGESTIONS_EXCLUDE_NSFW = "suggestions_exclude_nsfw"

@@ -1,6 +1,7 @@
 package io.github.landwarderer.futon.reader.domain
 
 import io.github.landwarderer.futon.core.model.MangaHistory
+import io.github.landwarderer.futon.core.model.TestMangaSource
 import io.github.landwarderer.futon.core.prefs.ChapterCompletionMode
 import io.github.landwarderer.futon.reader.ui.ReaderState
 import kotlinx.coroutines.CancellationException
@@ -10,6 +11,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 import java.time.Instant
 
 class SmartResumeResolverTest {
@@ -61,7 +63,7 @@ class SmartResumeResolverTest {
     fun `old chapter existing successor and unfinished positions never advance`() = runTest {
         for (history in listOf(history(count = 30), history(page = 12), history(count = 0))) {
             val start = ReaderState(history)
-            val resolver = SmartResumeResolver(start, history, percentage, true)
+            val resolver = SmartResumeResolver(start, history, percentage)
             assertEquals(start, resolver.resolve(ids(32), 15, false) { error("Must not load") })
         }
     }
@@ -69,7 +71,7 @@ class SmartResumeResolverTest {
     @Test
     fun `explicit restored recovered and new starts have no eligible history`() = runTest {
         val start = ReaderState(29, 14, 120)
-        val resolver = SmartResumeResolver(start, null, percentage, true)
+        val resolver = SmartResumeResolver(start, null, percentage)
         assertEquals(start, resolver.resolve(ids(30), 15, false) { error("Must not load") })
     }
 
@@ -81,35 +83,74 @@ class SmartResumeResolverTest {
     }
 
     @Test
-    fun `cached decision cannot jump after an update`() = runTest {
+    fun `a decision cannot jump after an update`() = runTest {
         val resolver = resolver()
-        assertEquals(ReaderState(history()), resolver.resolve(ids(29), 15, false) { error("No successor") })
+        assertEquals(ReaderState(history()), resolver.resolve(ids(29), 15, true) { error("No successor") })
         assertEquals(ReaderState(history()), resolver.resolve(ids(30), 15, true) { error("Already decided") })
     }
 
     @Test
     fun `waiting holds the original history until updated details arrive`() = runTest {
         val saved = history()
-        val resolver = SmartResumeResolver(ReaderState(saved), saved, percentage, true)
+        val resolver = SmartResumeResolver(ReaderState(saved), saved, percentage)
         assertNull(resolver.resolve(ids(29), 15, false) { error("Not ready") })
-        assertNull(resolver.resolve(ids(30), 15, false) { error("Still not ready") })
+        assertNull(resolver.resolve(ids(29), 15, false) { error("Still not ready") })
         assertEquals(ReaderState(30, 0, 0), resolver.resolve(ids(32), 15, true) { true })
         assertEquals(29, saved.chaptersCount)
         assertEquals(ReaderState(30, 0, 0), resolver.resolve(ids(33), 15, true) { error("Second jump") })
     }
 
     @Test
+    fun `a known successor advances without waiting for the update`() = runTest {
+        assertEquals(ReaderState(30, 0, 0), resolver().resolve(ids(30), 15, false) { true })
+    }
+
+    @Test
+    fun `starts that cannot advance never wait`() = runTest {
+        for (history in listOf(history(page = 12), history(count = 30), history(count = 0))) {
+            val start = ReaderState(history)
+            val resolver = SmartResumeResolver(start, history, percentage)
+            assertEquals(start, resolver.resolve(ids(29), 15, false) { error("Must not load") })
+        }
+        val start = ReaderState(29, 14, 120)
+        assertEquals(start, SmartResumeResolver(start, null, percentage).resolve(ids(29), 15, false) { error("") })
+    }
+
+    @Test
+    fun `a chapter with a new id still advances`() = runTest {
+        // The source renumbered every chapter id: chapter 29 is now 129, the new chapter 130
+        val renumbered = (101L..130L).toList()
+        assertEquals(
+            ReaderState(130, 0, 0),
+            resolver().resolve(renumbered, 15, true, chapterId = 129) { true },
+        )
+    }
+
+    @Test
+    fun `the opened chapter is found again under a new id`() {
+        val original = chapter(29, url = "/c/29")
+        val renumbered = listOf(chapter(128, url = "/c/28"), chapter(129, url = "/c/29"), chapter(130, url = "/c/30"))
+        assertEquals(129L, renumbered.findResumeChapter(original)?.id)
+        assertEquals(29L, listOf(original, chapter(30, url = "/c/30")).findResumeChapter(original)?.id)
+        // Ambiguous: two chapters with the same number and a different link
+        val ambiguous = listOf(chapter(1, url = "/a", number = 29f), chapter(2, url = "/b", number = 29f))
+        assertNull(ambiguous.findResumeChapter(chapter(29, url = "/c/29", number = 29f)))
+    }
+
+    @Test
     fun `normal flow completion can release a deferred start`() = runTest {
-        val resolver = resolver(wait = true)
+        val resolver = resolver()
         assertNull(resolver.resolve(ids(29), 15, false) { error("No successor") })
         assertEquals(ReaderState(history()), resolver.resolve(ids(29), 15, true) { error("No successor") })
     }
 
     @Test
     fun `update failure permanently releases original state`() = runTest {
-        val resolver = resolver(wait = true)
-        assertNull(resolver.resolve(ids(30), 15, false) { error("Not ready") })
+        val resolver = resolver()
+        assertNull(resolver.resolve(ids(29), 15, false) { error("Not ready") })
+        assertFalse(resolver.isResolved)
         assertEquals(ReaderState(history()), resolver.fallback())
+        assertTrue(resolver.isResolved)
         assertEquals(ReaderState(history()), resolver.resolve(ids(30), 15, true) { error("Already fell back") })
     }
 
@@ -132,8 +173,11 @@ class SmartResumeResolverTest {
         assertEquals(ChapterCompletionMode.PAGES_REMAINING, ChapterCompletionMode.from("PAGES_REMAINING"))
     }
 
-    private fun resolver(wait: Boolean = false) = SmartResumeResolver(
-        ReaderState(history()), history(), percentage, wait,
+    private fun resolver() = SmartResumeResolver(ReaderState(history()), history(), percentage)
+
+    private fun chapter(id: Long, url: String, number: Float = id.toFloat()) = MangaChapter(
+        id = id, title = "Chapter $id", number = number, volume = 0,
+        url = url, uploadDate = 0L, scanlator = null, branch = null, source = TestMangaSource,
     )
 
     private fun history(page: Int = 13, count: Int = 29) = MangaHistory(
