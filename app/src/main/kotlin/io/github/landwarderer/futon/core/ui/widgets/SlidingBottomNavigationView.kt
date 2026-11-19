@@ -212,12 +212,17 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		super.setLabelVisibilityMode(if (compact) LABEL_VISIBILITY_UNLABELED else requestedLabelMode)
 		itemPaddingTop = if (compact) px(COMPACT_ITEM_PADDING_DP) else defaultItemPaddingTop
 		itemPaddingBottom = if (compact) px(COMPACT_ITEM_PADDING_DP) else defaultItemPaddingBottom
-		itemActiveIndicatorWidth = if (compact) px(COMPACT_INDICATOR_WIDTH_DP) else defaultIndicatorWidth
-		itemActiveIndicatorHeight = if (compact) px(COMPACT_INDICATOR_HEIGHT_DP) else defaultIndicatorHeight
-		itemIconSize = if (compact) px(COMPACT_ICON_DP) else defaultIconSize
-		applyMinimumHeight(if (compact) px(COMPACT_HEIGHT_DP) else requestedMinimumHeight)
 		val isBump = dockStyle == DockStyle.BUMP
 		val isTufted = dockStyle == DockStyle.TUFTED
+		itemActiveIndicatorHeight = if (compact) px(COMPACT_INDICATOR_HEIGHT_DP) else defaultIndicatorHeight
+		// On the cushion the highlights are round, like its buttons, so they stay clear of the tufts between items.
+		itemActiveIndicatorWidth = when {
+			isTufted -> itemActiveIndicatorHeight
+			compact -> px(COMPACT_INDICATOR_WIDTH_DP)
+			else -> defaultIndicatorWidth
+		}
+		itemIconSize = if (compact) px(COMPACT_ICON_DP) else defaultIconSize
+		applyMinimumHeight(if (compact) px(COMPACT_HEIGHT_DP) else requestedMinimumHeight)
 		val bumpDp = if (compact) COMPACT_BUMP_DP else DOCK_BUMP_DP
 		bumpHeight = if (isBump) bumpDp * density else 0f
 		// Only the bump and the cushion's button need room above the capsule.
