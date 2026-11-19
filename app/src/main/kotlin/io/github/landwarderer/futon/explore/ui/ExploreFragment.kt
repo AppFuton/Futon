@@ -117,6 +117,8 @@ class ExploreFragment :
 	override fun onListHeaderClick(item: ListHeader, view: View) {
 		if (item.payload == R.id.nav_suggestions) {
 			router.openSuggestions()
+		} else if (viewModel.appMode.value.isNovel) {
+			router.openNovelPluginsManager()
 		} else if (viewModel.isPresetActive) {
 			// A preset's sources are picked in the catalog, which switches to preset mode.
 			router.openSourcesCatalog()
@@ -175,7 +177,13 @@ class ExploreFragment :
 
 	override fun onRetryClick(error: Throwable) = Unit
 
-	override fun onEmptyActionClick() = router.openSourcesCatalog()
+	override fun onEmptyActionClick() {
+		if (viewModel.appMode.value.isNovel) {
+			router.openNovelPluginsManager()
+		} else {
+			router.openSourcesCatalog()
+		}
+	}
 
 	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {
 		viewBinding?.recyclerView?.invalidateItemDecorations()

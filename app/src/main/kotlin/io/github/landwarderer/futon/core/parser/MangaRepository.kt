@@ -15,6 +15,11 @@ import io.github.landwarderer.futon.local.data.LocalMangaRepository
 import io.github.landwarderer.futon.mihon.MihonExtensionManager
 import io.github.landwarderer.futon.mihon.MihonMangaRepository
 import io.github.landwarderer.futon.mihon.model.MihonMangaSource
+import io.github.landwarderer.futon.novel.data.lnreader.model.LnPluginSource
+import io.github.landwarderer.futon.novel.data.lnreader.repository.LnPluginManager
+import io.github.landwarderer.futon.novel.data.lnreader.repository.LnReaderNovelRepository
+import io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntime
+import io.github.landwarderer.futon.novel.data.lnreader.storage.LnPluginStorage
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
@@ -65,6 +70,8 @@ interface MangaRepository {
 		private val contentCache: MemoryContentCache,
 		private val mirrorSwitcher: MirrorSwitcher,
 		private val mihonExtensionManager: MihonExtensionManager,
+		private val lnPluginManager: LnPluginManager,
+		private val lnPluginRuntimeManager: io.github.landwarderer.futon.novel.data.lnreader.runtime.LnPluginRuntimeManager,
 	) {
 
 		private val cache = ArrayMap<MangaSource, WeakReference<MangaRepository>>()
@@ -134,12 +141,31 @@ interface MangaRepository {
 				cache = contentCache,
 			)
 
+			is LnPluginSource -> {
+				LnReaderNovelRepository(
+					cache = contentCache,
+					source = source,
+					plugin = source.plugin,
+					runtimeManager = lnPluginRuntimeManager,
+				)
+			}
+
 			else -> {
 				if (source.name.startsWith("mihon:") || source.name.startsWith("MIHON_")) {
 					mihonExtensionManager.getMihonMangaSourceByName(source.name)?.let {
 						return MihonMangaRepository(
 							source = it,
 							cache = contentCache,
+						)
+					}
+				}
+				if (LnPluginSource.isLnReaderSource(source.name)) {
+					lnPluginManager.getPluginSource(source.name)?.let { lnSource ->
+						return LnReaderNovelRepository(
+							cache = contentCache,
+							source = lnSource,
+							plugin = lnSource.plugin,
+							runtimeManager = lnPluginRuntimeManager,
 						)
 					}
 				}

@@ -149,9 +149,11 @@ val MangaSource.isNovelSource: Boolean
 	get() = when (val s = unwrap()) {
 		LocalNovelSource -> true
 		is io.github.landwarderer.futon.novel.data.source.NovelParserSource -> true
+		is io.github.landwarderer.futon.novel.data.lnreader.model.LnPluginSource -> true
 		is MangaParserSource -> s.contentType == org.koitharu.kotatsu.parsers.model.ContentType.NOVEL
 		is io.github.landwarderer.futon.mihon.model.MihonMangaSource -> s.contentType == io.github.landwarderer.futon.mihon.parsers.model.ContentType.NOVEL
-		else -> io.github.landwarderer.futon.novel.data.source.NovelParserSource.fromName(s.name) != null
+		else -> io.github.landwarderer.futon.novel.data.source.NovelParserSource.fromName(s.name) != null ||
+			io.github.landwarderer.futon.novel.data.lnreader.model.LnPluginSource.isLnReaderSource(s.name)
 	}
 
 val Manga.isNovel: Boolean

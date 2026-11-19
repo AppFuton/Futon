@@ -8,12 +8,17 @@ import android.content.Context
 import android.os.ParcelFileDescriptor
 import androidx.annotation.VisibleForTesting
 import com.google.common.io.ByteStreams
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import io.github.landwarderer.futon.backups.data.BackupRepository
 import io.github.landwarderer.futon.core.db.MangaDatabase
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.explore.data.MangaSourcesRepository
 import io.github.landwarderer.futon.filter.data.SavedFiltersRepository
 import io.github.landwarderer.futon.mihon.MihonExtensionManager
+import io.github.landwarderer.futon.novel.data.lnreader.repository.LnPluginManager
 import io.github.landwarderer.futon.reader.data.TapGridSettings
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -26,8 +31,34 @@ import javax.inject.Inject
 import javax.inject.Provider
 
 class AppBackupAgent : BackupAgent() {
-    @Inject
-    lateinit var mihonExtensionManager: Provider<MihonExtensionManager>
+	@Inject
+	lateinit var mihonExtensionManager: Provider<MihonExtensionManager>
+
+	@Inject
+	lateinit var lnPluginManager: Provider<LnPluginManager>
+
+	@EntryPoint
+	@InstallIn(SingletonComponent::class)
+	interface BackupAgentEntryPoint {
+		fun getMihonExtensionManager(): MihonExtensionManager
+		fun getLnPluginManager(): LnPluginManager
+	}
+
+	private fun resolveMihonExtensionManager(): MihonExtensionManager {
+		return if (::mihonExtensionManager.isInitialized) {
+			mihonExtensionManager.get()
+		} else {
+			EntryPointAccessors.fromApplication(applicationContext, BackupAgentEntryPoint::class.java).getMihonExtensionManager()
+		}
+	}
+
+	private fun resolveLnPluginManager(): LnPluginManager {
+		return if (::lnPluginManager.isInitialized) {
+			lnPluginManager.get()
+		} else {
+			EntryPointAccessors.fromApplication(applicationContext, BackupAgentEntryPoint::class.java).getLnPluginManager()
+		}
+	}
 
 	override fun onBackup(
 		oldState: ParcelFileDescriptor?,
@@ -54,7 +85,8 @@ class AppBackupAgent : BackupAgent() {
 					context = applicationContext,
 					db = MangaDatabase(context = applicationContext),
 					settings = AppSettings(applicationContext),
-					mihonExtensionManager = mihonExtensionManager.get(),
+					mihonExtensionManager = resolveMihonExtensionManager(),
+					lnPluginManager = resolveLnPluginManager(),
 				),
 				savedFiltersRepository = SavedFiltersRepository(
 					context = applicationContext,
@@ -88,7 +120,8 @@ class AppBackupAgent : BackupAgent() {
 						context = applicationContext,
 						db = MangaDatabase(context = applicationContext),
 						settings = AppSettings(applicationContext),
-						mihonExtensionManager = mihonExtensionManager.get(),
+						mihonExtensionManager = resolveMihonExtensionManager(),
+						lnPluginManager = resolveLnPluginManager(),
 					),
 					savedFiltersRepository = SavedFiltersRepository(
 						context = applicationContext,

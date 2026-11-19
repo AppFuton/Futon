@@ -55,6 +55,9 @@ abstract class MangaSourcesDao {
 	@Query("UPDATE sources SET title = :title WHERE source = :source")
 	abstract suspend fun setTitle(source: String, title: String?)
 
+	@Query("DELETE FROM sources WHERE source = :source")
+	abstract suspend fun delete(source: String)
+
 	@Transaction
 	open suspend fun setPinned(source: String, isPinned: Boolean) {
 		if (updateIsPinned(source, isPinned) == 0) {

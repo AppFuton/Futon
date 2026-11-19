@@ -38,6 +38,12 @@
         android:summary="@string/extensions_manager_summary"
         android:title="@string/extensions_manager" />
 
+    <Preference
+        android:key="novel_plugins_manager"
+        android:persistent="false"
+        android:summary="@string/novel_plugins_manager_summary"
+        android:title="@string/novel_plugins_manager" />
+
     <SwitchPreferenceCompat
         android:defaultValue="true"
         android:key="no_nsfw"
