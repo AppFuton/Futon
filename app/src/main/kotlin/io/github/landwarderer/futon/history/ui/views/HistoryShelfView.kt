@@ -22,12 +22,8 @@ import org.koitharu.kotatsu.parsers.model.Manga
 private const val COVER_ASPECT = 13f / 18f
 private const val MIN_SPINE_DP = 44
 private const val SPINE_RANGE_DP = 30
-private const val ASKEW_EXTRA_VISIBLE_DP = 34
-private const val ASKEW_OVERLAP_DP = 60
 private const val SPINE_GAP_DP = 3
 private const val PULLED_OUT_GAP_DP = 10
-
-private val TILTS = floatArrayOf(-2.2f, 1.6f, -1f, 2.6f, -2.8f, 1.2f, -1.6f, 2.2f)
 
 class HistoryShelfView(
 	context: Context,
@@ -41,7 +37,6 @@ class HistoryShelfView(
 	private val shelfAdapter = ShelfAdapter()
 	private var entries: List<HistoryEntry> = emptyList()
 	private var maxChapters = 1
-	private var isAskew = false
 	private var pulledOut: Long? = null
 
 	init {
@@ -50,15 +45,6 @@ class HistoryShelfView(
 			layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
 			adapter = shelfAdapter
 			itemAnimator = null
-		}
-		binding.chipGroupStyle.setOnCheckedStateChangeListener { _, checkedIds ->
-			val askew = checkedIds.firstOrNull() == R.id.chip_askew
-			if (askew != isAskew) {
-				isAskew = askew
-				pulledOut = null
-				updatePanel()
-				shelfAdapter.refresh()
-			}
 		}
 		binding.recyclerView.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
 			if (bottom - top != oldBottom - oldTop) {
@@ -114,7 +100,7 @@ class HistoryShelfView(
 
 		override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = SpineHolder(SpineView(parent.context))
 
-		override fun onBindViewHolder(holder: SpineHolder, position: Int) = holder.bind(entries[position], position)
+		override fun onBindViewHolder(holder: SpineHolder, position: Int) = holder.bind(entries[position])
 
 		override fun onViewRecycled(holder: SpineHolder) = holder.recycle()
 	}
@@ -122,7 +108,6 @@ class HistoryShelfView(
 	private inner class SpineHolder(private val spine: SpineView) : RecyclerView.ViewHolder(spine) {
 
 		private var entry: HistoryEntry? = null
-		private var index = 0
 		private var analysis: Job? = null
 		private var animator: ValueAnimator? = null
 
@@ -151,16 +136,15 @@ class HistoryShelfView(
 			}
 		}
 
-		fun bind(item: HistoryEntry, position: Int) {
+		fun bind(item: HistoryEntry) {
 			analysis?.cancel()
 			animator?.cancel()
 			entry = item
-			index = position
 			binder.bind(spine, item, coverWidth, bookHeight)
-			applyGeometry(geometry(item, position, pulledOut == item.manga.id))
+			applyGeometry(geometry(item, pulledOut == item.manga.id))
 			analysis = binder.analyze(item.manga) {
 				if (entry === item) {
-					animateTo(geometry(item, index, pulledOut == item.manga.id))
+					animateTo(geometry(item, pulledOut == item.manga.id))
 				}
 			}
 		}
@@ -176,7 +160,7 @@ class HistoryShelfView(
 			val previous = pulledOut
 			pulledOut = if (previous == item.manga.id) null else item.manga.id
 			updatePanel()
-			animateTo(geometry(item, index, pulledOut == item.manga.id))
+			animateTo(geometry(item, pulledOut == item.manga.id))
 			if (previous != null) {
 				val previousIndex = entries.indexOfFirst { it.manga.id == previous }
 				if (previousIndex >= 0 && previous != item.manga.id) {
@@ -196,21 +180,16 @@ class HistoryShelfView(
 			}
 		}
 
-		private fun geometry(item: HistoryEntry, position: Int, isOut: Boolean): Geometry {
+		private fun geometry(item: HistoryEntry, isOut: Boolean): Geometry {
 			if (isOut) {
-				return Geometry(coverWidth, coverWidth.toFloat(), dp(PULLED_OUT_GAP_DP), 0f, 0f, true)
+				return Geometry(coverWidth, coverWidth.toFloat(), dp(PULLED_OUT_GAP_DP), 0f, true)
 			}
-			val spineWidth = dp(MIN_SPINE_DP) + dp(SPINE_RANGE_DP) * item.chaptersCount / maxChapters
-			val visible = if (isAskew) spineWidth + dp(ASKEW_EXTRA_VISIBLE_DP) else spineWidth
-			val width = if (isAskew) visible + dp(ASKEW_OVERLAP_DP) else visible
-			val offset = binder.cropOffset(item.manga, visible.toFloat(), coverWidth.toFloat(), width.toFloat())
-			val isLast = position == entries.lastIndex
+			val width = dp(MIN_SPINE_DP) + dp(SPINE_RANGE_DP) * item.chaptersCount / maxChapters
 			return Geometry(
 				width = width,
-				visible = visible.toFloat(),
-				margin = if (isAskew && !isLast) -dp(ASKEW_OVERLAP_DP) else dp(SPINE_GAP_DP),
-				offset = offset,
-				rotation = if (isAskew) TILTS[position % TILTS.size] else 0f,
+				visible = width.toFloat(),
+				margin = dp(SPINE_GAP_DP),
+				offset = binder.cropOffset(item.manga, width.toFloat(), coverWidth.toFloat(), width.toFloat()),
 				isOut = false,
 			)
 		}
@@ -224,9 +203,6 @@ class HistoryShelfView(
 			spine.layoutParams = params
 			spine.visibleWidth = target.visible
 			spine.cropOffset = target.offset
-			spine.pivotX = target.width / 2f
-			spine.pivotY = bookHeight.toFloat()
-			spine.rotation = target.rotation
 			spine.isPulledOut = target.isOut
 			spine.translationZ = if (target.isOut) dp(6).toFloat() else 0f
 		}
@@ -238,7 +214,6 @@ class HistoryShelfView(
 			val startMargin = params.marginEnd
 			val startVisible = spine.visibleWidth
 			val startOffset = spine.cropOffset
-			val startRotation = spine.rotation
 			spine.isPulledOut = target.isOut
 			spine.translationZ = if (target.isOut) dp(6).toFloat() else 0f
 			animator = ValueAnimator.ofFloat(0f, 1f).apply {
@@ -251,8 +226,6 @@ class HistoryShelfView(
 					spine.layoutParams = params
 					spine.visibleWidth = startVisible + (target.visible - startVisible) * t
 					spine.cropOffset = startOffset + (target.offset - startOffset) * t
-					spine.rotation = startRotation + (target.rotation - startRotation) * t
-					spine.pivotX = params.width / 2f
 				}
 				start()
 			}
@@ -266,7 +239,6 @@ class HistoryShelfView(
 		val visible: Float,
 		val margin: Int,
 		val offset: Float,
-		val rotation: Float,
 		val isOut: Boolean,
 	)
 }

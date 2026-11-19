@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:app="http://schemas.android.com/apk/res-auto">
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<LinearLayout
 		android:layout_width="match_parent"
@@ -17,20 +15,6 @@
 			android:text="@string/history_most_recent_first"
 			android:textAppearance="?attr/textAppearanceBodyMedium"
 			android:textColor="?android:attr/textColorSecondary" />
-
-		<com.google.android.material.chip.ChipGroup
-			android:id="@+id/chipGroup_style"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			app:checkedChip="@+id/chip_straight"
-			app:selectionRequired="true"
-			app:singleLine="true"
-			app:singleSelection="true">
-
-			<com.google.android.material.chip.Chip android:id="@+id/chip_straight" style="@style/Widget.Futon.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/history_shelf_straight" />
-			<com.google.android.material.chip.Chip android:id="@+id/chip_askew" style="@style/Widget.Futon.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/history_shelf_askew" />
-
-		</com.google.android.material.chip.ChipGroup>
 
 	</LinearLayout>
 

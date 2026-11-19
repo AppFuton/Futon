@@ -1155,8 +1155,6 @@
     <string name="updates_map_more">%1$d more in %2$s</string>
     <string name="updates_map_detail">%1$s · %2$s · %3$d%%</string>
     <string name="history_most_recent_first">Most recent first</string>
-    <string name="history_shelf_straight">Straight</string>
-    <string name="history_shelf_askew">Askew</string>
     <string name="history_shelf_count">%d series on this shelf</string>
     <string name="history_tap_spine">Tap a spine to pull it out</string>
     <string name="history_shelf_meta">%1$d%% · %2$s</string>
