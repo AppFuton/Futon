@@ -357,6 +357,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 			continueButton.translationY = tuftRise * (1f - progress)
 			(getChildAt(0) as? DockMenuView)?.let {
 				it.isGapInMiddle = true
+				it.centring = progress
 				it.extra = TUFT_GAP_DP * density * progress
 			}
 			requestLayout()
@@ -419,6 +420,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		val gapItem = dock?.gapItem(items)
 		val extra = dock?.extra ?: 0f
 		val isRtl = layoutDirection == LAYOUT_DIRECTION_RTL
+		val folded = dock?.foldedItem(items)
 		val count = (items.size - 1).coerceAtLeast(0)
 		val tuftX = FloatArray(count)
 		val tuftAlpha = FloatArray(count) { 1f }
@@ -430,6 +432,9 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 			if (child === gapItem) {
 				tuftAlpha[i] = 1f - continueProgress
 				centerX = tuftX[i]
+			} else if (items[i + 1] === folded || child === folded && (i == 0 || items[i - 1] === gapItem)) {
+				// Folding History merges the tufts either side of it into one, or none at an end or by the gap.
+				tuftAlpha[i] = 1f - continueProgress
 			}
 		}
 		val size = continueButton.measuredWidth
@@ -830,8 +835,29 @@ private class DockMenuView(context: Context) : BottomNavigationMenuView(context)
 			}
 		}
 
+	/**
+	 * How far a middle gap has settled, from 0 to 1, eased in with the gap. With an odd number of items the halves
+	 * cannot match, so History, which Continue stands in for, folds away over it and the rest balance around the gap.
+	 */
+	var centring = 0f
+		set(value) {
+			if (field != value) {
+				field = value
+				requestLayout()
+			}
+		}
+
 	val visibleItems: List<View>
 		get() = (0 until childCount).map { getChildAt(it) }.filter { it.visibility != GONE }
+
+	/** With an odd number of items around a middle gap, the History item that folds away to even them up. */
+	fun foldedItem(items: List<View>): View? {
+		if (!isGapInMiddle || items.size < 3 || items.size % 2 == 0) {
+			return null
+		}
+		val history = findItemView(R.id.nav_history)
+		return items.firstOrNull { it === history }
+	}
 
 	/** The item the gap follows, or null when there is none to follow. */
 	fun gapItem(items: List<View>): View? {
@@ -839,7 +865,10 @@ private class DockMenuView(context: Context) : BottomNavigationMenuView(context)
 			return null
 		}
 		if (isGapInMiddle) {
-			return items[(items.size - 1) / 2]
+			val folded = foldedItem(items)
+			val rest = if (folded != null) items - folded else items
+			// Without a fold, an odd count puts the fewer items first, so with five the gap falls after the second.
+			return rest[rest.size / 2 - 1]
 		}
 		val history = findItemView(R.id.nav_history)
 		return items.firstOrNull { it === history }
@@ -852,23 +881,60 @@ private class DockMenuView(context: Context) : BottomNavigationMenuView(context)
 		if (extra <= 0f || gapItem == null) {
 			return
 		}
+		if (isGapInMiddle) {
+			val folded = foldedItem(items)
+			if (folded != null) {
+				measureFolding(items, folded)
+			} else {
+				measureAroundMiddle(items, items.indexOf(gapItem) + 1)
+			}
+			return
+		}
 		val base = items.sumOf { it.measuredWidth } / items.size
-		// Merged, History keeps its width so its indicator stays whole; in the middle every item gives a share.
-		val sharing = if (isGapInMiddle) items.size else items.size - 1
-		val narrowed = (base - extra / sharing).toInt().coerceAtLeast(0)
+		// History keeps its width so its indicator stays whole, and the other items give up the room.
+		val narrowed = (base - extra / (items.size - 1)).toInt().coerceAtLeast(0)
 		for (child in items) {
-			if (isGapInMiddle || child !== gapItem) {
-				child.measure(
-					MeasureSpec.makeMeasureSpec(narrowed, MeasureSpec.EXACTLY),
-					MeasureSpec.makeMeasureSpec(child.measuredHeight, MeasureSpec.EXACTLY),
-				)
+			if (child !== gapItem) {
+				child.setExactWidth(narrowed)
 			}
 		}
 	}
 
+	/** Shares what the gap leaves between the [before] items ahead of it and the rest, the gap ending up centred. */
+	private fun measureAroundMiddle(items: List<View>, before: Int) {
+		val total = items.sumOf { it.measuredWidth }.toFloat()
+		val left = total - extra
+		val even = left / items.size
+		val centred = left / 2f / before
+		val start = even + (centred - even) * centring
+		val end = (left - start * before) / (items.size - before)
+		items.forEachIndexed { i, child ->
+			child.setExactWidth((if (i < before) start else end).toInt().coerceAtLeast(0))
+		}
+	}
+
+	/** Narrows [folded] to nothing as the gap settles, the others sharing what it and the gap leave evenly. */
+	private fun measureFolding(items: List<View>, folded: View) {
+		val total = items.sumOf { it.measuredWidth }.toFloat()
+		val foldedWidth = total / items.size * (1f - centring)
+		val each = (total - extra - foldedWidth) / (items.size - 1)
+		for (child in items) {
+			child.setExactWidth((if (child === folded) foldedWidth else each).toInt().coerceAtLeast(0))
+		}
+	}
+
+	private fun View.setExactWidth(width: Int) = measure(
+		MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+		MeasureSpec.makeMeasureSpec(measuredHeight, MeasureSpec.EXACTLY),
+	)
+
 	override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
 		val items = visibleItems
 		val gapItem = gapItem(items)
+		val folded = if (extra > 0f) foldedItem(items) else null
+		for (child in items) {
+			child.alpha = if (child === folded) 1f - centring else 1f
+		}
 		if (extra <= 0f || gapItem == null) {
 			super.onLayout(changed, left, top, right, bottom)
 			return
