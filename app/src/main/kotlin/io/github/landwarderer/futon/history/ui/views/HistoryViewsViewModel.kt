@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
@@ -53,31 +54,35 @@ class HistoryViewsViewModel @Inject constructor(
 		valueProducer = { isMinimalThemeEnabled },
 	)
 
-	val entries: StateFlow<List<HistoryEntry>> = combine(
-		historyRepository.observeAllWithHistory(ListSortOrder.LAST_READ, emptySet(), MAX_ENTRIES),
-		settings.observeAppMode(),
-		isStatsEnabled.flatMapLatest { isEnabled ->
-			if (isEnabled) statsRepository.observeAll() else flowOf(emptyList())
-		},
-	) { history, appMode, stats ->
-		val isNovel = appMode.isNovel
-		val hideNsfw = settings.isNsfwContentDisabled
-		val sessions = stats.groupBy(
-			keySelector = { it.mangaId },
-			valueTransform = { ReadingSession(it.startedAt, it.duration, it.pages) },
-		)
-		history.filter { (manga, _) ->
-			manga.isNovel == isNovel && !(hideNsfw && manga.isNsfw())
-		}.map { (manga, item) ->
-			HistoryEntry(
-				manga = manga,
-				percent = item.percent,
-				updatedAt = item.updatedAt.toEpochMilli(),
-				chaptersCount = item.chaptersCount,
-				sessions = sessions[manga.id].orEmpty(),
+	/** Null until the first load, so the views do not flash their empty text. Prepared on a background thread. */
+	val state: StateFlow<HistoryViewsState?> = isStatsEnabled.flatMapLatest { isStatsOn ->
+		combine(
+			historyRepository.observeAllWithHistory(ListSortOrder.LAST_READ, emptySet(), MAX_ENTRIES),
+			settings.observeAppMode(),
+			// Summed per manga and day by the database, rather than loading every session.
+			if (isStatsOn) statsRepository.observeDailyTotals() else flowOf(emptyList()),
+		) { history, appMode, stats ->
+			val isNovel = appMode.isNovel
+			val hideNsfw = settings.isNsfwContentDisabled
+			val sessions = stats.groupBy(
+				keySelector = { it.mangaId },
+				valueTransform = { ReadingSession(it.startedAt, it.duration, it.pages) },
 			)
+			val entries = history.filter { (manga, _) ->
+				manga.isNovel == isNovel && !(hideNsfw && manga.isNsfw())
+			}.map { (manga, item) ->
+				HistoryEntry(
+					manga = manga,
+					percent = item.percent,
+					updatedAt = item.updatedAt.toEpochMilli(),
+					chaptersCount = item.chaptersCount,
+					sessions = sessions[manga.id].orEmpty(),
+				)
+			}
+			HistoryViewsState(entries, isStatsOn)
 		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), emptyList())
+	}.flowOn(Dispatchers.Default)
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), null)
 
 	fun setMode(value: HistoryViewMode) {
 		settings.historyViewMode = value

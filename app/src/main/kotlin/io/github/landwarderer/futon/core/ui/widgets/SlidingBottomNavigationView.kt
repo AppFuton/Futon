@@ -321,7 +321,8 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		}
 		isContinueShown = isVisible
 		dockAnimator?.cancel()
-		continueButton.isEnabled = isVisible
+		// Enabled belongs to the activity, which turns the button off while a resume loads.
+		continueButton.isClickable = isVisible
 		if (isVisible) {
 			continueButton.isVisible = true
 		}
@@ -567,7 +568,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 	}
 
 	private fun isOnContinueButton(ev: MotionEvent): Boolean = with(continueButton) {
-		isVisible && isEnabled && ev.x >= left && ev.x < right && ev.y >= top && ev.y < bottom
+		isVisible && isContinueShown && ev.x >= left && ev.x < right && ev.y >= top && ev.y < bottom
 	}
 
 	var isPinned: Boolean
@@ -732,6 +733,18 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 			SLIDE_DOWN_ANIMATION_DURATION,
 			FastOutLinearInInterpolator(),
 		)
+	}
+
+	/**
+	 * Brings back a dock that scrolling slid away, for screens that stop scrolling and could not bring it back
+	 * otherwise. A dock hidden on purpose, such as during action mode or search, stays hidden.
+	 */
+	fun revealIfScrolledAway() {
+		if (currentState != STATE_UP || translationY == 0f) {
+			return
+		}
+		currentAnimator?.cancel()
+		animateTranslation(0F, SLIDE_UP_ANIMATION_DURATION, LinearOutSlowInInterpolator())
 	}
 
 	fun showOrHide(show: Boolean) {

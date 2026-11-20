@@ -17,7 +17,6 @@ import io.github.landwarderer.futon.core.util.ext.getThemeColor
 import io.github.landwarderer.futon.databinding.ItemHistoryBentoBinding
 import io.github.landwarderer.futon.databinding.ItemHistoryHeaderBinding
 import io.github.landwarderer.futon.databinding.ItemHistoryTileBinding
-import io.github.landwarderer.futon.history.domain.activityScore
 import io.github.landwarderer.futon.history.domain.model.HistoryEntry
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.time.Instant
@@ -70,10 +69,9 @@ class HistoryRecentView(
 	}
 
 	@SuppressLint("NotifyDataSetChanged")
-	override fun setEntries(entries: List<HistoryEntry>, isStatsEnabled: Boolean) {
-		this.isStatsEnabled = isStatsEnabled
-		val now = System.currentTimeMillis()
-		val ranked = entries.sortedByDescending { activityScore(it.updatedAt, it.sessions, now) }
+	override fun setState(state: HistoryViewsState) {
+		isStatsEnabled = state.isStatsEnabled
+		val ranked = state.ranked
 		rows.clear()
 		ranked.firstOrNull()?.let { rows += Row.Bento(it, ranked.getOrNull(1), ranked.getOrNull(2)) }
 		ranked.drop(3).take(MEDIUM_COUNT).mapTo(rows) { Row.Medium(it) }

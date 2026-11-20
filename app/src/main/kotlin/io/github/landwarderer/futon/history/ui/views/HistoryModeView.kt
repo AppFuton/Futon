@@ -9,7 +9,7 @@ interface HistoryModeView {
 	/** Views that do not scroll cannot collapse the app bar, so they must fit above it being expanded. */
 	val scrollsVertically: Boolean
 
-	fun setEntries(entries: List<HistoryEntry>, isStatsEnabled: Boolean)
+	fun setState(state: HistoryViewsState)
 
 	/** Room to leave below the content for the navigation dock and system bars. */
 	fun setBottomInset(inset: Int)

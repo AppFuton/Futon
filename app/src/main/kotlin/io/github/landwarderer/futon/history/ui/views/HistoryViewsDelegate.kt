@@ -15,7 +15,6 @@ import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.databinding.ViewHistoryViewsBinding
 import io.github.landwarderer.futon.history.domain.HistoryViewMode
 import io.github.landwarderer.futon.history.domain.SpineCropAnalyzer
-import io.github.landwarderer.futon.history.domain.model.HistoryEntry
 import io.github.landwarderer.futon.main.ui.dockClearance
 import org.koitharu.kotatsu.parsers.model.Manga
 
@@ -62,12 +61,7 @@ class HistoryViewsDelegate(
 			show(mode)
 		}
 		// Only while visible, since reading elsewhere in the app updates statistics on every page.
-		combine(viewModel.entries, viewModel.isStatsEnabled, ::Pair).observe(
-			lifecycleOwner,
-			Lifecycle.State.STARTED,
-		) { (entries, isStatsEnabled) ->
-			updateEntries(entries, isStatsEnabled)
-		}
+		viewModel.state.observe(lifecycleOwner, Lifecycle.State.STARTED, ::updateState)
 	}
 
 	fun setBottomInset(systemInset: Int) {
@@ -102,7 +96,7 @@ class HistoryViewsDelegate(
 		if (!(view as HistoryModeView).scrollsVertically) {
 			onFixedViewShown()
 		}
-		updateEntries(viewModel.entries.value, viewModel.isStatsEnabled.value)
+		updateState(viewModel.state.value)
 	}
 
 	private fun createModeView(mode: HistoryViewMode): View {
@@ -121,14 +115,20 @@ class HistoryViewsDelegate(
 		return view
 	}
 
-	private fun updateEntries(entries: List<HistoryEntry>, isStatsEnabled: Boolean) {
+	private fun updateState(state: HistoryViewsState?) {
 		val mode = displayedMode ?: return
 		if (mode == HistoryViewMode.LIST) {
 			return
 		}
-		binding.textViewEmpty.isVisible = entries.isEmpty()
-		binding.containerMode.isVisible = entries.isNotEmpty()
-		(modeViews[mode] as? HistoryModeView)?.setEntries(entries, isStatsEnabled)
+		if (state == null) {
+			// Still loading: show neither the empty text nor an empty view.
+			binding.textViewEmpty.isVisible = false
+			binding.containerMode.isVisible = false
+			return
+		}
+		binding.textViewEmpty.isVisible = state.entries.isEmpty()
+		binding.containerMode.isVisible = state.entries.isNotEmpty()
+		(modeViews[mode] as? HistoryModeView)?.setState(state)
 	}
 
 	private companion object {

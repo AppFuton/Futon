@@ -57,7 +57,8 @@ class HistoryShelfView(
 		updatePanel()
 	}
 
-	override fun setEntries(entries: List<HistoryEntry>, isStatsEnabled: Boolean) {
+	override fun setState(state: HistoryViewsState) {
+		val entries = state.entries
 		this.entries = entries
 		maxChapters = entries.maxOfOrNull { it.chaptersCount }?.coerceAtLeast(1) ?: 1
 		if (entries.none { it.manga.id == pulledOut }) {

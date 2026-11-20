@@ -19,13 +19,10 @@ import io.github.landwarderer.futon.databinding.ItemHistoryCalendarSummaryBindin
 import io.github.landwarderer.futon.databinding.ItemHistoryCalendarWeekdayBinding
 import io.github.landwarderer.futon.databinding.ItemHistorySessionBinding
 import io.github.landwarderer.futon.history.domain.leadingCalendarBlanks
-import io.github.landwarderer.futon.history.domain.model.HistoryEntry
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.time.DayOfWeek
-import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.WeekFields
@@ -50,13 +47,6 @@ class HistoryCalendarView(
 	private val onOpen: (Manga) -> Unit,
 ) : RecyclerView(context), HistoryModeView {
 
-	private data class DayRead(
-		val entry: HistoryEntry,
-		val startedAt: Long,
-		val duration: Long,
-		val pages: Int,
-	)
-
 	private sealed interface Row {
 		data object Header : Row
 		data class Weekday(val day: DayOfWeek) : Row
@@ -67,7 +57,6 @@ class HistoryCalendarView(
 	}
 
 	private val locale = Locale.getDefault()
-	private val zone = ZoneId.systemDefault()
 	private val firstDayOfWeek = WeekFields.of(locale).firstDayOfWeek
 	private val monthFormat = DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "yMMMM"), locale)
 	private val dayFormat = DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "EEEdMMM"), locale)
@@ -96,9 +85,9 @@ class HistoryCalendarView(
 		adapter = CalendarAdapter()
 	}
 
-	override fun setEntries(entries: List<HistoryEntry>, isStatsEnabled: Boolean) {
-		this.isStatsEnabled = isStatsEnabled
-		reads = buildReads(entries, isStatsEnabled)
+	override fun setState(state: HistoryViewsState) {
+		isStatsEnabled = state.isStatsEnabled
+		reads = state.days
 		firstMonth = reads.keys.minOrNull()?.let(YearMonth::from) ?: YearMonth.now()
 		rebuild()
 	}
@@ -108,28 +97,6 @@ class HistoryCalendarView(
 	override fun setBottomInset(inset: Int) {
 		updatePadding(bottom = inset)
 	}
-
-	private fun buildReads(entries: List<HistoryEntry>, useSessions: Boolean): Map<LocalDate, List<DayRead>> {
-		val result = HashMap<LocalDate, MutableList<DayRead>>()
-		for (entry in entries) {
-			if (useSessions && entry.sessions.isNotEmpty()) {
-				entry.sessions.groupBy { it.startedAt.toLocalDate() }.forEach { (date, sessions) ->
-					result.getOrPut(date) { ArrayList() } += DayRead(
-						entry = entry,
-						startedAt = sessions.minOf { it.startedAt },
-						duration = sessions.sumOf { it.duration },
-						pages = sessions.sumOf { it.pages },
-					)
-				}
-			} else if (!useSessions) {
-				result.getOrPut(entry.updatedAt.toLocalDate()) { ArrayList() } += DayRead(entry, entry.updatedAt, 0L, 0)
-			}
-		}
-		result.values.forEach { list -> list.sortWith(compareByDescending<DayRead> { it.duration }.thenByDescending { it.startedAt }) }
-		return result
-	}
-
-	private fun Long.toLocalDate(): LocalDate = Instant.ofEpochMilli(this).atZone(zone).toLocalDate()
 
 	@SuppressLint("NotifyDataSetChanged")
 	private fun rebuild() {
@@ -243,6 +210,7 @@ class HistoryCalendarView(
 			if (top != null) {
 				imageViewCover.isVisible = true
 				imageViewCover.setImageAsync(top.entry.manga.coverUrl, top.entry.manga)
+				// Reading from before statistics were on has no time to weigh, so it shows as the faintest.
 				imageViewCover.alpha = if (isStatsEnabled) {
 					MIN_ART_ALPHA + (1f - MIN_ART_ALPHA) * row.total.toFloat() / peak
 				} else {
@@ -252,7 +220,7 @@ class HistoryCalendarView(
 				imageViewCover.disposeImage()
 				imageViewCover.isVisible = false
 			}
-			progressBar.isVisible = top != null && isStatsEnabled
+			progressBar.isVisible = top != null && isStatsEnabled && row.total > 0L
 			progressBar.progress = (row.total * 100f / peak).roundToInt().coerceAtLeast(12)
 			root.setOnClickListener {
 				selected = row.date
@@ -269,7 +237,7 @@ class HistoryCalendarView(
 			val dayReads = reads[selected].orEmpty()
 			textViewSummary.text = when {
 				dayReads.isEmpty() -> context.getString(R.string.history_nothing_read)
-				isStatsEnabled -> listOfNotNull(
+				isStatsEnabled && dayReads.any { it.isTimed } -> listOfNotNull(
 					resources.formatDurationShort(dayReads.sumOf { it.duration }),
 					resources.getQuantityString(R.plurals.pages, dayReads.sumOf { it.pages }, dayReads.sumOf { it.pages }),
 				).joinToString(" · ")
@@ -285,7 +253,7 @@ class HistoryCalendarView(
 			imageViewCover.setImageAsync(manga.coverUrl, manga)
 			textViewTitle.text = manga.title
 			val time = timeFormat.format(Date(read.startedAt))
-			textViewMeta.text = if (isStatsEnabled) {
+			textViewMeta.text = if (isStatsEnabled && read.isTimed) {
 				listOfNotNull(
 					time,
 					resources.formatDurationShort(read.duration),

@@ -41,6 +41,9 @@ import io.github.landwarderer.futon.local.data.LocalStorageChanges
 import io.github.landwarderer.futon.local.domain.model.LocalManga
 import kotlinx.coroutines.flow.SharedFlow
 
+/** How long the map keeps its data after it stops being shown, so a quick switch back does not reload it. */
+internal const val MAP_STOP_TIMEOUT = 5000L
+
 @HiltViewModel
 class UpdatesViewModel @Inject constructor(
 	private val repository: TrackingRepository,
@@ -59,14 +62,19 @@ class UpdatesViewModel @Inject constructor(
 		valueProducer = { updatesViewMode },
 	)
 
-	/** Null until loaded, so that the map does not flash its empty state. */
-	val mapEntries: StateFlow<List<MangaTracking>?> = observeUpdatesMap(emptySet())
+	/**
+	 * Null until loaded, so that the map does not flash its empty state.
+	 * Only observed while the map is shown, and narrowed by the same quick filters as the list.
+	 */
+	val mapEntries: StateFlow<List<MangaTracking>?> = quickFilter.appliedOptions
+		.flatMapLatest { observeUpdatesMap(it) }
 		.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.WhileSubscribed(MAP_STOP_TIMEOUT), null)
 
-	val mapShelf: StateFlow<UpdatesShelf?> = observeUpdatesShelf(emptySet())
+	val mapShelf: StateFlow<UpdatesShelf?> = quickFilter.appliedOptions
+		.flatMapLatest { observeUpdatesShelf(it) }
 		.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.WhileSubscribed(MAP_STOP_TIMEOUT), null)
 
 	override val content = combine(
 		quickFilter.appliedOptions.flatMapLatest { filterOptions ->

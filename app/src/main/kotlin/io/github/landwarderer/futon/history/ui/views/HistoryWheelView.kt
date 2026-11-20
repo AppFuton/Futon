@@ -44,7 +44,8 @@ class HistoryWheelView(
 
 	override val scrollsVertically = false
 
-	override fun setEntries(entries: List<HistoryEntry>, isStatsEnabled: Boolean) {
+	override fun setState(state: HistoryViewsState) {
+		val entries = state.entries
 		this.entries = entries
 		val index = entries.indexOfFirst { it.manga.id == selectedId }.coerceAtLeast(0)
 		selectedId = entries.getOrNull(index)?.manga?.id

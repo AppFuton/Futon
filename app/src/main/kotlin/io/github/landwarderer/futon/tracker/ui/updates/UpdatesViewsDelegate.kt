@@ -7,7 +7,11 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.databinding.ViewUpdatesViewsBinding
@@ -56,16 +60,22 @@ class UpdatesViewsDelegate(
 			}
 		}
 		mode.observe(lifecycleOwner, ::show)
-		entries.observe(lifecycleOwner) { list ->
+		// The map's data is only loaded while the map is the mode shown.
+		whileMapShown(entries).observe(lifecycleOwner) { list ->
 			if (list != null) {
 				mapView?.setEntries(list)
 			}
 		}
-		shelf.observe(lifecycleOwner) { value ->
+		whileMapShown(shelf).observe(lifecycleOwner) { value ->
 			if (value != null) {
 				mapView?.setShelf(value)
 			}
 		}
+	}
+
+	@OptIn(ExperimentalCoroutinesApi::class)
+	private fun <T> whileMapShown(source: Flow<T>): Flow<T> = mode.flatMapLatest {
+		if (it == UpdatesViewMode.MAP) source else emptyFlow()
 	}
 
 	fun setSystemInset(inset: Int) {
@@ -83,7 +93,7 @@ class UpdatesViewsDelegate(
 			ensureMapView()
 			// The map does not scroll, so it could not otherwise bring the app bar or the dock back.
 			(activity as? AppBarOwner)?.appBar?.setExpanded(true, true)
-			(activity as? BottomNavOwner)?.bottomNav?.animate()?.translationY(0f)
+			(activity as? BottomNavOwner)?.bottomNav?.revealIfScrolledAway()
 		}
 	}
 
@@ -102,8 +112,6 @@ class UpdatesViewsDelegate(
 			ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
 		)
 		applyBottomInset()
-		entries.value?.let(view::setEntries)
-		shelf.value?.let(view::setShelf)
 	}
 
 	private fun updateZoomCallback() {

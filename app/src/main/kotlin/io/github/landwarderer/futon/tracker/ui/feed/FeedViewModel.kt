@@ -44,6 +44,7 @@ import io.github.landwarderer.futon.tracker.domain.model.MangaTracking
 import io.github.landwarderer.futon.tracker.domain.model.TrackingLogItem
 import io.github.landwarderer.futon.tracker.ui.feed.model.FeedItem
 import io.github.landwarderer.futon.tracker.ui.feed.model.UpdatedMangaHeader
+import io.github.landwarderer.futon.tracker.ui.updates.MAP_STOP_TIMEOUT
 import io.github.landwarderer.futon.tracker.work.TrackWorker
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
@@ -71,17 +72,17 @@ class FeedViewModel @Inject constructor(
 	)
 
 	/** Null until loaded, so that the map does not flash its empty state. */
-	val mapEntries: StateFlow<List<MangaTracking>?> = flowOf(emptySet<ListFilterOption>())
+	val mapEntries: StateFlow<List<MangaTracking>?> = quickFilter.appliedOptions
 		.combineWithSettings()
 		.flatMapLatest { observeUpdatesMap(it) }
 		.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.WhileSubscribed(MAP_STOP_TIMEOUT), null)
 
-	val mapShelf: StateFlow<UpdatesShelf?> = flowOf(emptySet<ListFilterOption>())
+	val mapShelf: StateFlow<UpdatesShelf?> = quickFilter.appliedOptions
 		.combineWithSettings()
 		.flatMapLatest { observeUpdatesShelf(it) }
 		.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, null)
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.WhileSubscribed(MAP_STOP_TIMEOUT), null)
 
 	val isMinimalThemeEnabled: Boolean
 		get() = settings.isMinimalThemeEnabled

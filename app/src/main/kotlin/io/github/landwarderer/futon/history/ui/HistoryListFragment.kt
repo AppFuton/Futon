@@ -61,7 +61,7 @@ class HistoryListFragment : MangaListFragment() {
 			appBarScrollRange = { (activity as? AppBarOwner)?.appBar?.totalScrollRange ?: 0 },
 			onFixedViewShown = {
 				(activity as? AppBarOwner)?.appBar?.setExpanded(true, true)
-				(activity as? BottomNavOwner)?.bottomNav?.animate()?.translationY(0f)
+				(activity as? BottomNavOwner)?.bottomNav?.revealIfScrolledAway()
 			},
 		).also { it.attach(viewModel.isSearching) }
 	}

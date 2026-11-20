@@ -104,7 +104,7 @@ class StatsRepository @Inject constructor(
 		db.getStatsDao().clear()
 	}
 
-	fun observeAll(): Flow<List<StatsEntity>> = db.getStatsDao().observeAll()
+	fun observeDailyTotals(): Flow<List<StatsEntity>> = db.getStatsDao().observeDailyTotals()
 
 	fun observeHasStats(mangaId: Long): Flow<Boolean> = settings.observeAsFlow(AppSettings.KEY_STATS_ENABLED) {
 		isStatsEnabled
