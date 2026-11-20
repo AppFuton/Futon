@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:layout_margin="4dp"
+	android:clickable="true"
+	android:focusable="true"
+	app:cardBackgroundColor="?attr/colorSurfaceContainer"
+	app:cardCornerRadius="16dp"
+	app:cardElevation="0dp"
+	app:strokeWidth="0dp">
+
+	<io.github.landwarderer.futon.image.ui.CoverImageView
+		android:id="@+id/imageView_cover"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:importantForAccessibility="no" />
+
+	<io.github.landwarderer.futon.history.ui.util.ReadingProgressView
+		android:id="@+id/progressView"
+		android:layout_width="@dimen/card_indicator_size"
+		android:layout_height="@dimen/card_indicator_size"
+		android:layout_gravity="top|end"
+		android:layout_margin="6dp" />
+
+	<LinearLayout
+		android:id="@+id/layout_caption"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom"
+		android:baselineAligned="false"
+		android:gravity="bottom"
+		android:orientation="horizontal"
+		android:padding="8dp">
+
+		<LinearLayout
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:orientation="vertical">
+
+			<TextView
+				android:id="@+id/textView_title"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:ellipsize="end"
+				android:maxLines="1"
+				android:textColor="?android:attr/textColorPrimary"
+				android:textStyle="bold" />
+
+			<TextView
+				android:id="@+id/textView_meta"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:ellipsize="end"
+				android:maxLines="1"
+				android:textColor="?android:attr/textColorSecondary"
+				android:textSize="11sp" />
+
+		</LinearLayout>
+
+		<io.github.landwarderer.futon.history.ui.views.SparkBarsView
+			android:id="@+id/sparkBars"
+			android:layout_width="46dp"
+			android:layout_height="32dp"
+			android:layout_marginStart="10dp"
+			android:visibility="gone" />
+
+	</LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+	<string-array name="dock_styles" translatable="false">
+		<item>@string/dock_style_bump</item>
+		<item>@string/dock_style_beside</item>
+		<item>@string/dock_style_merged</item>
+		<item>@string/dock_style_tufted</item>
+	</string-array>
 	<string-array name="themes" translatable="false">
 		<item>@string/follow_system</item>
 		<item>@string/light</item>
@@ -92,6 +98,10 @@
 		<item>@string/automatic</item>
 		<item>@string/single_cbz_file</item>
 		<item>@string/multiple_cbz_files</item>
+	</string-array>
+	<string-array name="updates_shelf_windows" translatable="false">
+		<item>@string/updates_shelf_since_last_check</item>
+		<item>@string/updates_shelf_last_24_hours</item>
 	</string-array>
 	<string-array name="tracker_frequency" translatable="false">
 		<item>@string/manual</item>
