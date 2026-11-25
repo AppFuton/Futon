@@ -4,12 +4,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:title="@string/appearance">
 
-    <SwitchPreferenceCompat
-        android:defaultValue="false"
-        android:key="minimal_theme"
-        android:summary="@string/minimal_theme_summary"
-        android:title="@string/minimal_theme" />
-
     <io.github.landwarderer.futon.settings.utils.ThemeChooserPreference
         android:key="color_theme"
         android:title="@string/color_theme" />
@@ -123,26 +117,9 @@
             android:title="@string/search_suggestions" />
 
         <PreferenceScreen
-            android:fragment="io.github.landwarderer.futon.settings.nav.NavConfigFragment"
-            android:key="nav_main"
-            android:title="@string/main_screen_sections" />
-
-        <SwitchPreferenceCompat
-            android:defaultValue="true"
-            android:key="main_fab"
-            android:summary="@string/main_screen_fab_summary"
-            android:title="@string/main_screen_fab" />
-
-        <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="nav_labels"
-            android:title="@string/show_labels_in_navbar" />
-
-        <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="nav_pinned"
-            android:summary="@string/pin_navigation_ui_summary"
-            android:title="@string/pin_navigation_ui" />
+            android:fragment="io.github.landwarderer.futon.settings.nav.NavBarSettingsFragment"
+            android:key="nav_bar"
+            android:title="@string/navigation_bar" />
 
         <SwitchPreferenceCompat
             android:defaultValue="false"

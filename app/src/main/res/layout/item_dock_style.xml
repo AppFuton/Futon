@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:id="@+id/card"
+	style="?materialCardViewFilledStyle"
+	android:layout_width="0dp"
+	android:layout_height="wrap_content"
+	android:layout_margin="4dp"
+	android:layout_weight="1"
+	android:checkable="true"
+	app:checkedIconTint="?colorPrimary"
+	app:strokeColor="?colorPrimary">
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:padding="8dp">
+
+		<io.github.landwarderer.futon.settings.nav.ScaledPreviewFrame
+			android:layout_width="match_parent"
+			android:layout_height="64dp"
+			android:importantForAccessibility="noHideDescendants">
+
+			<io.github.landwarderer.futon.settings.nav.NavBarPreviewView
+				android:id="@+id/preview"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" />
+
+		</io.github.landwarderer.futon.settings.nav.ScaledPreviewFrame>
+
+		<TextView
+			android:id="@+id/textView_title"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginHorizontal="4dp"
+			android:layout_marginTop="6dp"
+			android:textAppearance="?textAppearanceTitleSmall" />
+
+		<TextView
+			android:id="@+id/textView_summary"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginHorizontal="4dp"
+			android:textAppearance="?textAppearanceBodySmall"
+			android:textColor="?android:attr/textColorSecondary" />
+
+	</LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

@@ -165,7 +165,9 @@ class AppearanceSettingsFragment :
                 AppCompatDelegate.setApplicationLocales(settings.appLocales)
             }
 
-            AppSettings.KEY_NAV_MAIN -> {
+            AppSettings.KEY_NAV_MAIN,
+            AppSettings.KEY_DOCK_STYLE,
+                -> {
                 bindNavSummary()
             }
 
@@ -323,15 +325,15 @@ class AppearanceSettingsFragment :
     }
 
     private fun bindNavSummary() {
-        val pref = findPreference<Preference>(AppSettings.KEY_NAV_MAIN) ?: return
-        pref.summary = settings.mainNavItems.joinToString {
-            getString(it.title)
-        }
+        val pref = findPreference<Preference>(KEY_NAV_BAR) ?: return
+        val tabs = settings.mainNavItems.joinToString { getString(it.title) }
+        pref.summary = getString(settings.dockStyle.titleResId) + " · " + tabs
     }
 
     private companion object {
         const val KEY_CUSTOM_THEMES_MANAGEMENT = "custom_themes_management"
         const val KEY_CUSTOM_THEME_IMPORT = "custom_theme_import"
         const val KEY_CUSTOM_THEME_DELETE = "custom_theme_delete"
+        const val KEY_NAV_BAR = "nav_bar"
     }
 }

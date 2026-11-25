@@ -55,12 +55,8 @@ private const val SLIDE_DOWN_ANIMATION_DURATION = 175L
 
 private const val MAX_ITEM_COUNT = 6
 
-private const val DOCK_BUMP_DP = 47f
 private const val DOCK_MARGIN_DP = 16f
 private const val DOCK_BOTTOM_MARGIN_DP = 8f
-private const val DOCK_BUTTON_HEIGHT_DP = 44f
-private const val DOCK_BUTTON_WIDTH_DP = 136f
-private const val DOCK_BUTTON_GAP_DP = 9f
 private const val DOCK_TOP_SPARE_DP = 4f
 
 /** Room inside each rounded end of the dock, so the end items' highlights stay clear of the curve. */
@@ -68,17 +64,12 @@ private const val DOCK_END_INSET_DP = 10f
 private const val COMPACT_DOCK_END_INSET_DP = 6f
 private const val DOCK_ANIMATION_DURATION = 320L
 
-private const val COMPACT_BUMP_DP = 42f
 private const val COMPACT_HEIGHT_DP = 56f
 private const val COMPACT_ITEM_WIDTH_DP = 64f
 private const val COMPACT_ITEM_PADDING_DP = 10f
 private const val COMPACT_ICON_DP = 24f
 private const val COMPACT_INDICATOR_WIDTH_DP = 56f
 private const val COMPACT_INDICATOR_HEIGHT_DP = 36f
-private const val COMPACT_BUTTON_HEIGHT_DP = 36f
-private const val COMPACT_BUTTON_WIDTH_DP = 60f
-private const val COMPACT_BUTTON_ICON_DP = 20f
-private const val COMPACT_BUTTON_GAP_DP = 5f
 
 private const val BESIDE_GAP_DP = 8f
 private const val COMPACT_BESIDE_GAP_DP = 6f
@@ -123,7 +114,6 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 	private var behavior = HideBottomNavigationOnScrollBehavior()
 
 	private val density = resources.displayMetrics.density
-	private var bumpHeight = DOCK_BUMP_DP * density
 	private val defaultItemPaddingTop = itemPaddingTop
 	private val defaultItemPaddingBottom = itemPaddingBottom
 	private val defaultIndicatorWidth = itemActiveIndicatorWidth
@@ -133,10 +123,9 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 	private val dockDrawable = DockBackgroundDrawable(
 		color = context.getThemeColor(materialR.attr.colorSurfaceContainer),
 	)
-	private var defaultButtonIconSize = 0
-	private var defaultButtonIconPadding = 0
-	private var defaultButtonPaddingStart = 0
-	private var defaultButtonPaddingEnd = 0
+	// The Material bar's own look, kept for the Classic style.
+	private val classicBackground: Drawable? = background
+	private val classicElevation = elevation
 	private var requestedLabelMode = LABEL_VISIBILITY_SELECTED
 	private var isContinueShown = false
 	private var dockAnimator: ValueAnimator? = null
@@ -147,48 +136,57 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 
 	/** Rises out of the dock while reading can be resumed from the current screen. */
 	val continueButton = MaterialButton(context).apply {
-		id = R.id.fab
-		setText(R.string._continue)
-		setIconResource(R.drawable.ic_history)
-		val onContainer = context.getThemeColor(materialR.attr.colorOnPrimaryContainer)
-		backgroundTintList = ColorStateList.valueOf(context.getThemeColor(materialR.attr.colorPrimaryContainer))
-		setTextColor(onContainer)
-		iconTint = ColorStateList.valueOf(onContainer)
+		id = R.id.dock_continue
+		contentDescription = context.getString(R.string._continue)
+		setIconResource(R.drawable.ic_play)
+		iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+		iconPadding = 0
+		setPaddingRelative(0, 0, 0, 0)
 		insetTop = 0
 		insetBottom = 0
-		minHeight = (DOCK_BUTTON_HEIGHT_DP * density).toInt()
-		minimumHeight = minHeight
-		minWidth = (DOCK_BUTTON_WIDTH_DP * density).toInt()
-		minimumWidth = minWidth
-		contentDescription = text
-		iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+		// Each style measures it to an exact size in onMeasure.
+		minHeight = 0
+		minimumHeight = 0
+		minWidth = 0
+		minimumWidth = 0
 		isVisible = false
 		alpha = 0f
 	}
 
+	/** A much smaller dock that only shows icons. The Classic bar has no smaller form, so it ignores this. */
+	var isCompact = false
+		get() = field && dockStyle.isDocked
+		set(value) {
+			if (field != value) {
+				field = value
+				applyDockStyle()
+			}
+		}
+
+	/** How the bar looks, and where the Continue button lives. Classic leaves Continue to the activity. */
+	var dockStyle = DockStyle.TUFTED
+		set(value) {
+			if (field != value) {
+				field = value
+				if (!value.isDocked) {
+					setContinueVisible(false)
+				}
+				applyDockStyle()
+			}
+		}
+
 	init {
-		defaultButtonIconSize = continueButton.iconSize
-		defaultButtonIconPadding = continueButton.iconPadding
-		defaultButtonPaddingStart = continueButton.paddingStart
-		defaultButtonPaddingEnd = continueButton.paddingEnd
-		background = dockDrawable
 		elevation = 0f
 		// The outline is expensive to rasterize, and content scrolls behind it on every frame.
 		setLayerType(LAYER_TYPE_HARDWARE, null)
 		// The Continue button sits in the top padding, above the capsule.
 		clipToPadding = false
 		labelVisibilityMode = LABEL_VISIBILITY_SELECTED
-		setPadding(paddingLeft, ((DOCK_BUMP_DP + DOCK_TOP_SPARE_DP) * density).toInt(), paddingRight, paddingBottom)
-		val margin = (DOCK_MARGIN_DP * density).toInt()
-		(getChildAt(0).layoutParams as FrameLayout.LayoutParams).run {
-			marginStart = margin
-			marginEnd = margin
-			bottomMargin = (DOCK_BOTTOM_MARGIN_DP * density).toInt()
-		}
 		addView(
 			continueButton,
 			FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT),
 		)
+		applyDockStyle()
 	}
 
 	// The label preference is applied from outside and must not bring labels back to the compact dock.
@@ -197,22 +195,17 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		super.setLabelVisibilityMode(if (isCompact) LABEL_VISIBILITY_UNLABELED else labelVisibilityMode)
 	}
 
-	/** A much smaller dock that only shows icons. */
-	var isCompact = false
-		set(value) {
-			if (field != value) {
-				field = value
-				applyDockStyle()
-			}
-		}
-
 	private fun applyDockStyle() {
 		val compact = isCompact
 		fun px(dp: Float) = (dp * density).toInt()
+		val isDocked = dockStyle.isDocked
+		background = if (isDocked) dockDrawable else classicBackground
+		elevation = if (isDocked) 0f else classicElevation
+		(getChildAt(0).layoutParams as FrameLayout.LayoutParams).bottomMargin =
+			if (isDocked) px(DOCK_BOTTOM_MARGIN_DP) else 0
 		super.setLabelVisibilityMode(if (compact) LABEL_VISIBILITY_UNLABELED else requestedLabelMode)
 		itemPaddingTop = if (compact) px(COMPACT_ITEM_PADDING_DP) else defaultItemPaddingTop
 		itemPaddingBottom = if (compact) px(COMPACT_ITEM_PADDING_DP) else defaultItemPaddingBottom
-		val isBump = dockStyle == DockStyle.BUMP
 		val isTufted = dockStyle == DockStyle.TUFTED
 		itemActiveIndicatorHeight = if (compact) px(COMPACT_INDICATOR_HEIGHT_DP) else defaultIndicatorHeight
 		// On the cushion the highlights are round, like its buttons, so they stay clear of the tufts between items.
@@ -223,46 +216,25 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		}
 		itemIconSize = if (compact) px(COMPACT_ICON_DP) else defaultIconSize
 		applyMinimumHeight(if (compact) px(COMPACT_HEIGHT_DP) else requestedMinimumHeight)
-		val bumpDp = if (compact) COMPACT_BUMP_DP else DOCK_BUMP_DP
-		bumpHeight = if (isBump) bumpDp * density else 0f
-		// Only the bump and the cushion's button need room above the capsule.
+		// Only the cushion's button needs room above the capsule, and the Classic bar has no gap above it at all.
 		val roomAbove = when {
-			isBump -> bumpDp
+			!isDocked -> null
 			isTufted -> if (compact) COMPACT_TUFT_RISE_DP + COMPACT_TUFT_HALO_DP else TUFT_RISE_DP + TUFT_HALO_DP
 			else -> 0f
 		}
-		setPadding(paddingLeft, px(roomAbove + DOCK_TOP_SPARE_DP), paddingRight, paddingBottom)
+		setPadding(paddingLeft, roomAbove?.let { px(it + DOCK_TOP_SPARE_DP) } ?: 0, paddingRight, paddingBottom)
 		dockDrawable.setCushion(isTufted, context.getThemeColor(materialR.attr.colorOutlineVariant), density)
-		val isLabelled = isBump && !compact
 		with(continueButton) {
-			text = if (isLabelled) context.getString(R.string._continue) else null
-			setIconResource(if (isBump) R.drawable.ic_history else R.drawable.ic_play)
-			iconSize = when {
-				isLabelled -> defaultButtonIconSize
-				isBump -> px(COMPACT_BUTTON_ICON_DP)
-				dockStyle == DockStyle.BESIDE -> px(if (compact) COMPACT_BESIDE_ICON_DP else BESIDE_ICON_DP)
-				isTufted -> px(if (compact) COMPACT_TUFT_ICON_DP else TUFT_ICON_DP)
+			iconSize = when (dockStyle) {
+				DockStyle.BESIDE -> px(if (compact) COMPACT_BESIDE_ICON_DP else BESIDE_ICON_DP)
+				DockStyle.TUFTED -> px(if (compact) COMPACT_TUFT_ICON_DP else TUFT_ICON_DP)
 				else -> px(MERGED_ICON_DP)
 			}
 			foreground = if (isTufted) stitchRing() else null
-			iconPadding = if (isLabelled) defaultButtonIconPadding else 0
-			if (isLabelled) {
-				setPaddingRelative(defaultButtonPaddingStart, 0, defaultButtonPaddingEnd, 0)
-			} else {
-				setPaddingRelative(0, 0, 0, 0)
-			}
-			// The other styles are measured to an exact size in onMeasure.
-			minHeight = if (isBump) px(if (compact) COMPACT_BUTTON_HEIGHT_DP else DOCK_BUTTON_HEIGHT_DP) else 0
-			minimumHeight = minHeight
-			minWidth = if (isBump) px(if (compact) COMPACT_BUTTON_WIDTH_DP else DOCK_BUTTON_WIDTH_DP) else 0
-			minimumWidth = minWidth
 		}
 		mergedShapeRtl = null
 		applyButtonColors()
 		continueButton.shapeAppearanceModel = roundShape
-		if (!isBump) {
-			dockDrawable.bumpProgress = 0f
-		}
 		// Leaving the split pill gives the items back their own widths.
 		getChildAt(0).requestLayout()
 		applyDockProgress(continueProgress)
@@ -288,7 +260,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 	/** Beside the dock the button takes the dock's colour; merged it takes the History highlight's, as one pill. */
 	private fun applyButtonColors() {
 		val (background, content) = when (dockStyle) {
-			DockStyle.BUMP, DockStyle.TUFTED -> ColorStateList.valueOf(context.getThemeColor(materialR.attr.colorPrimaryContainer)) to
+			DockStyle.TUFTED, DockStyle.CLASSIC -> ColorStateList.valueOf(context.getThemeColor(materialR.attr.colorPrimaryContainer)) to
 				context.getThemeColor(materialR.attr.colorOnPrimaryContainer)
 
 			DockStyle.BESIDE -> ColorStateList.valueOf(context.getThemeColor(materialR.attr.colorSurfaceContainer)) to
@@ -306,16 +278,9 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		}
 	}
 
-	/** Where the Continue button lives. Experimental, switched from the main settings page. */
-	var dockStyle = DockStyle.BUMP
-		set(value) {
-			if (field != value) {
-				field = value
-				applyDockStyle()
-			}
-		}
-
-	fun setContinueVisible(isVisible: Boolean) {
+	/** Shows or hides the docked Continue button. The Classic bar has none, and leaves Continue to the activity. */
+	fun setContinueVisible(visible: Boolean) {
+		val isVisible = visible && dockStyle.isDocked
 		if (isContinueShown == isVisible) {
 			return
 		}
@@ -346,12 +311,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 	private fun applyDockProgress(progress: Float) {
 		continueProgress = progress
 		continueButton.alpha = progress
-		if (dockStyle == DockStyle.BUMP) {
-			dockDrawable.bumpProgress = progress
-			(getChildAt(0) as? DockMenuView)?.extra = 0f
-			continueButton.scaleX = 0.7f + 0.3f * progress
-			continueButton.translationY = bumpHeight * (1f - progress)
-		} else if (dockStyle == DockStyle.TUFTED) {
+		if (dockStyle == DockStyle.TUFTED) {
 			// The button sinks into the cushion as it goes, and the items part around it as it comes.
 			continueButton.scaleX = 0.5f + 0.5f * progress
 			continueButton.translationY = tuftRise * (1f - progress)
@@ -405,10 +365,10 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		super.onLayout(changed, left, top, right, bottom)
 		val menu = getChildAt(0)
 		when (dockStyle) {
-			DockStyle.BUMP -> layoutBump(menu)
 			DockStyle.BESIDE -> layoutBeside(menu)
 			DockStyle.MERGED -> layoutMerged(menu)
 			DockStyle.TUFTED -> layoutTufted(menu)
+			DockStyle.CLASSIC -> continueButton.layout(0, 0, 0, 0)
 		}
 	}
 
@@ -464,32 +424,6 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 			top = menu.top.toFloat(),
 			right = (menu.right + endInset).toFloat(),
 			bottom = menu.bottom.toFloat(),
-			bump = 0f,
-			halfWidth = 0f,
-			radius = 0f,
-		)
-	}
-
-	private fun layoutBump(menu: View) {
-		val gap = (if (isCompact) COMPACT_BUTTON_GAP_DP else DOCK_BUTTON_GAP_DP) * density
-		// Anything drawn above the top of this view would be cut off flat.
-		val bump = min(bumpHeight, menu.top.toFloat())
-		dockDrawable.setCapsule(
-			left = (menu.left - endInset).toFloat(),
-			top = menu.top.toFloat(),
-			right = (menu.right + endInset).toFloat(),
-			bottom = menu.bottom.toFloat(),
-			bump = bump,
-			halfWidth = continueButton.measuredWidth / 2f + gap,
-			radius = continueButton.measuredHeight / 2f + gap,
-		)
-		val buttonLeft = (width - continueButton.measuredWidth) / 2
-		val buttonTop = (menu.top - bump + gap).toInt()
-		continueButton.layout(
-			buttonLeft,
-			buttonTop,
-			buttonLeft + continueButton.measuredWidth,
-			buttonTop + continueButton.measuredHeight,
 		)
 	}
 
@@ -565,8 +499,9 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 	}
 
 	override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-		// The empty corners around the capsule and bump belong to the content below.
-		if (ev.actionMasked == MotionEvent.ACTION_DOWN && !dockDrawable.isInside(ev.x, ev.y) && !isOnContinueButton(ev)) {
+		// The empty corners around the capsule belong to the content below. The Classic bar fills its whole width.
+		if (ev.actionMasked == MotionEvent.ACTION_DOWN && dockStyle.isDocked &&
+			!dockDrawable.isInside(ev.x, ev.y) && !isOnContinueButton(ev)) {
 			return false
 		}
 		return super.dispatchTouchEvent(ev)
@@ -603,7 +538,8 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 
 	override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
 		(getChildAt(0).layoutParams as FrameLayout.LayoutParams).run {
-			val margin = (DOCK_MARGIN_DP * density).toInt() + endInset
+			// The Classic bar runs edge to edge.
+			val margin = if (dockStyle.isDocked) (DOCK_MARGIN_DP * density).toInt() + endInset else 0
 			val room = if (dockStyle == DockStyle.BESIDE) besideRoom else 0f
 			// A full dock shrinks to make room. A centred compact dock moves over by half, so the pair stays centred.
 			val start = margin + (if (isCompact) room / 2f else room).toInt()
@@ -643,7 +579,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 
 	private fun measureContinueButton() {
 		val (buttonWidth, buttonHeight) = when (dockStyle) {
-			DockStyle.BUMP -> return
+			DockStyle.CLASSIC -> return
 			DockStyle.BESIDE -> besideSize to besideSize
 			DockStyle.MERGED -> mergedSegmentWidth to itemActiveIndicatorHeight
 			DockStyle.TUFTED -> tuftSize to tuftSize

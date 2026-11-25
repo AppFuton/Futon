@@ -57,11 +57,4 @@
         android:key="about"
         android:title="@string/about" />
 
-    <ListPreference
-        android:entries="@array/dock_styles"
-        android:icon="@drawable/ic_appearance"
-        android:key="dock_style_experimental"
-        android:title="@string/dock_style"
-        app:useSimpleSummaryProvider="true" />
-
 </PreferenceScreen>

@@ -620,7 +620,7 @@ class AppSettings internal constructor(
 		get() = prefs.getBoolean(KEY_MINIMAL_THEME, false)
 
 	val dockStyle: DockStyle
-		get() = prefs.getEnumValue(KEY_DOCK_STYLE, DockStyle.BUMP)
+		get() = prefs.getEnumValue(KEY_DOCK_STYLE, DockStyle.TUFTED)
 
 	var historyViewMode: HistoryViewMode
 		get() = prefs.getEnumValue(KEY_HISTORY_VIEW_MODE, HistoryViewMode.RECENT)
@@ -1051,7 +1051,7 @@ class AppSettings internal constructor(
 		const val KEY_UPDATES_SHELF_WINDOW = "updates_shelf_window"
 		const val KEY_TRACKER_LAST_RUN = "tracker_last_run"
 		const val KEY_MINIMAL_THEME = "minimal_theme"
-		const val KEY_DOCK_STYLE = "dock_style_experimental"
+		const val KEY_DOCK_STYLE = "dock_style"
 		const val KEY_FAVORITES_ORDER = "fav_order"
 		const val KEY_WEBTOON_GAPS = "webtoon_gaps"
 		const val KEY_WEBTOON_ZOOM = "webtoon_zoom"

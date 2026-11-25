@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/navigation_bar">
+
+    <io.github.landwarderer.futon.settings.nav.NavBarPreviewPreference
+        android:key="nav_bar_preview" />
+
+    <PreferenceCategory android:title="@string/navigation_bar_style">
+
+        <io.github.landwarderer.futon.settings.nav.DockStylePreference
+            android:defaultValue="TUFTED"
+            android:key="dock_style"
+            android:title="@string/navigation_bar_style" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/navigation_bar">
+
+        <PreferenceScreen
+            android:fragment="io.github.landwarderer.futon.settings.nav.NavConfigFragment"
+            android:key="nav_main"
+            android:title="@string/main_screen_sections" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="nav_labels"
+            android:title="@string/show_labels_in_navbar" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="minimal_theme"
+            android:summary="@string/minimal_theme_summary"
+            android:title="@string/minimal_theme" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="nav_pinned"
+            android:summary="@string/pin_navigation_ui_summary"
+            android:title="@string/pin_navigation_ui" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="main_fab"
+            android:summary="@string/main_screen_fab_summary"
+            android:title="@string/main_screen_fab" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
