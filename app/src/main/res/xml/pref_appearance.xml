@@ -121,6 +121,11 @@
             android:key="nav_bar"
             android:title="@string/navigation_bar" />
 
+        <PreferenceScreen
+            android:fragment="io.github.landwarderer.futon.settings.history.HistorySettingsFragment"
+            android:key="history_views"
+            android:title="@string/history" />
+
         <SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="exit_confirm"

@@ -95,7 +95,7 @@ class DockStylePreference @JvmOverloads constructor(
 		}
 
 	init {
-		layoutResource = R.layout.preference_dock_style
+		layoutResource = R.layout.preference_card_grid
 		isSelectable = false
 	}
 

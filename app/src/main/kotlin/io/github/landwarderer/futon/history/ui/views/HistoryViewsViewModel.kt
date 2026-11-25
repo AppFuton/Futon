@@ -19,6 +19,7 @@ import io.github.landwarderer.futon.core.prefs.observeAsStateFlow
 import io.github.landwarderer.futon.core.ui.BaseViewModel
 import io.github.landwarderer.futon.history.data.HistoryRepository
 import io.github.landwarderer.futon.history.domain.HistoryViewMode
+import io.github.landwarderer.futon.history.domain.HistoryWheelStyle
 import io.github.landwarderer.futon.history.domain.model.HistoryEntry
 import io.github.landwarderer.futon.history.domain.model.ReadingSession
 import io.github.landwarderer.futon.list.domain.ListSortOrder
@@ -40,6 +41,12 @@ class HistoryViewsViewModel @Inject constructor(
 		scope = viewModelScope + Dispatchers.IO,
 		key = AppSettings.KEY_HISTORY_VIEW_MODE,
 		valueProducer = { historyViewMode },
+	)
+
+	val wheelStyle: StateFlow<HistoryWheelStyle> = settings.observeAsStateFlow(
+		scope = viewModelScope + Dispatchers.IO,
+		key = AppSettings.KEY_HISTORY_WHEEL_STYLE,
+		valueProducer = { historyWheelStyle },
 	)
 
 	val isStatsEnabled: StateFlow<Boolean> = settings.observeAsStateFlow(
@@ -83,8 +90,4 @@ class HistoryViewsViewModel @Inject constructor(
 		}
 	}.flowOn(Dispatchers.Default)
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), null)
-
-	fun setMode(value: HistoryViewMode) {
-		settings.historyViewMode = value
-	}
 }

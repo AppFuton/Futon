@@ -1165,6 +1165,13 @@
     <string name="history_wheel_peek">Peek</string>
     <string name="history_wheel_previous">Previous</string>
     <string name="history_wheel_open">Open</string>
+    <string name="history_view">View</string>
+    <string name="history_view_recent_summary">Weighted by activity</string>
+    <string name="history_view_calendar_summary">What you read each day</string>
+    <string name="history_view_shelf_summary">Spines on a shelf</string>
+    <string name="history_view_wheel_summary">Turn through spines</string>
+    <string name="history_view_list_summary">The plain list</string>
+    <string name="history_wheel_style">Wheel style</string>
     <string name="navigation_bar">Navigation bar</string>
     <string name="navigation_bar_style">Style</string>
     <string name="navigation_bar_preview">Preview of the navigation bar on the History tab</string>

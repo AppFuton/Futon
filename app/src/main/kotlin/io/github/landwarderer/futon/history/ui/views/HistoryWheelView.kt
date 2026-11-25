@@ -10,6 +10,7 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.LifecycleCoroutineScope
 import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.databinding.ViewHistoryWheelBinding
+import io.github.landwarderer.futon.history.domain.HistoryWheelStyle
 import io.github.landwarderer.futon.history.domain.SpineCropAnalyzer
 import io.github.landwarderer.futon.history.domain.model.HistoryEntry
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -27,6 +28,15 @@ class HistoryWheelView(
 	private var entries: List<HistoryEntry> = emptyList()
 	private var selectedId: Long? = null
 
+	/** Picked in the History settings. */
+	var style = HistoryWheelStyle.CLICK_WHEEL
+		set(value) {
+			if (field != value) {
+				field = value
+				applyStyle()
+			}
+		}
+
 	init {
 		orientation = VERTICAL
 		binding.containerSpines.addView(
@@ -35,11 +45,8 @@ class HistoryWheelView(
 		)
 		spines.listener = this
 		binding.wheel.listener = this
-		binding.chipGroupStyle.setOnCheckedStateChangeListener { _, checkedIds ->
-			applyStyle(isClickWheel = checkedIds.firstOrNull() != R.id.chip_arc)
-		}
 		binding.layoutPanel.setOnClickListener { openSelected() }
-		applyStyle(isClickWheel = true)
+		applyStyle()
 	}
 
 	override val scrollsVertically = false
@@ -79,7 +86,8 @@ class HistoryWheelView(
 
 	override fun onWheelPeek() = spines.setPulledOut(!spines.isSelectedPulledOut)
 
-	private fun applyStyle(isClickWheel: Boolean) {
+	private fun applyStyle() {
+		val isClickWheel = style == HistoryWheelStyle.CLICK_WHEEL
 		binding.wheel.isVisible = isClickWheel
 		spines.autoPullOut = !isClickWheel
 		spines.isCurved = !isClickWheel

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:title="@string/history">
+
+    <PreferenceCategory android:title="@string/history_view">
+
+        <io.github.landwarderer.futon.settings.history.HistoryViewPreference
+            android:defaultValue="RECENT"
+            android:key="history_view_mode"
+            android:title="@string/history_view" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/history_view_wheel">
+
+        <ListPreference
+            android:defaultValue="CLICK_WHEEL"
+            android:entries="@array/history_wheel_styles"
+            android:entryValues="@array/history_wheel_styles_values"
+            android:key="history_wheel_style"
+            android:title="@string/history_wheel_style"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

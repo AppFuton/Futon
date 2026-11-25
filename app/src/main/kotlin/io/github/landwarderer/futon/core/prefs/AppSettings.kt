@@ -27,6 +27,7 @@ import io.github.landwarderer.futon.core.util.ext.takeIfReadable
 import io.github.landwarderer.futon.core.util.ext.toUriOrNull
 import io.github.landwarderer.futon.explore.data.SourcesSortOrder
 import io.github.landwarderer.futon.history.domain.HistoryViewMode
+import io.github.landwarderer.futon.history.domain.HistoryWheelStyle
 import io.github.landwarderer.futon.list.domain.ListSortOrder
 import io.github.landwarderer.futon.reader.domain.ReaderColorFilter
 import io.github.landwarderer.futon.tracker.domain.UpdatesShelfWindow
@@ -626,6 +627,9 @@ class AppSettings internal constructor(
 		get() = prefs.getEnumValue(KEY_HISTORY_VIEW_MODE, HistoryViewMode.RECENT)
 		set(value) = prefs.edit { putEnumValue(KEY_HISTORY_VIEW_MODE, value) }
 
+	val historyWheelStyle: HistoryWheelStyle
+		get() = prefs.getEnumValue(KEY_HISTORY_WHEEL_STYLE, HistoryWheelStyle.CLICK_WHEEL)
+
 	var updatesViewMode: UpdatesViewMode
 		get() = prefs.getEnumValue(KEY_UPDATES_VIEW_MODE, UpdatesViewMode.MAP)
 		set(value) = prefs.edit { putEnumValue(KEY_UPDATES_VIEW_MODE, value) }
@@ -1046,6 +1050,7 @@ class AppSettings internal constructor(
 		const val KEY_LOCAL_LIST_ORDER = "local_order"
 		const val KEY_HISTORY_ORDER = "history_order"
 		const val KEY_HISTORY_VIEW_MODE = "history_view_mode"
+		const val KEY_HISTORY_WHEEL_STYLE = "history_wheel_style"
 		const val KEY_UPDATES_VIEW_MODE = "updates_view_mode"
 		const val KEY_FEED_VIEW_MODE = "feed_view_mode"
 		const val KEY_UPDATES_SHELF_WINDOW = "updates_shelf_window"

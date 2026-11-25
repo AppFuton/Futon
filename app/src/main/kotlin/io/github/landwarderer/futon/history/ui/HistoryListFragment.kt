@@ -7,7 +7,6 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.view.ActionMode
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.landwarderer.futon.R
@@ -37,7 +36,6 @@ class HistoryListFragment : MangaListFragment() {
 
 	private val viewsViewModel by viewModels<HistoryViewsViewModel>()
 	private var viewsDelegate: HistoryViewsDelegate? = null
-	private var isModeBarVisible = true
 
 	@Inject
 	lateinit var spineCropAnalyzer: SpineCropAnalyzer
@@ -54,10 +52,6 @@ class HistoryListFragment : MangaListFragment() {
 			spineCropAnalyzer = spineCropAnalyzer,
 			lifecycleOwner = viewLifecycleOwner,
 			onOpen = { router.openDetails(it) },
-			onBarVisibilityChanged = { isVisible ->
-				isModeBarVisible = isVisible
-				updateListTopPadding()
-			},
 			appBarScrollRange = { (activity as? AppBarOwner)?.appBar?.totalScrollRange ?: 0 },
 			onFixedViewShown = {
 				(activity as? AppBarOwner)?.appBar?.setExpanded(true, true)
@@ -68,7 +62,6 @@ class HistoryListFragment : MangaListFragment() {
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
 		val result = super.onApplyWindowInsets(v, insets)
-		updateListTopPadding()
 		viewsDelegate?.setBottomInset(insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom)
 		return result
 	}
@@ -76,12 +69,6 @@ class HistoryListFragment : MangaListFragment() {
 	override fun onDestroyView() {
 		viewsDelegate = null
 		super.onDestroyView()
-	}
-
-	private fun updateListTopPadding() {
-		val base = resources.getDimensionPixelOffset(R.dimen.list_spacing_normal)
-		val bar = if (isModeBarVisible) resources.getDimensionPixelOffset(R.dimen.history_views_bar_height) else 0
-		viewBinding?.recyclerView?.updatePadding(top = base + bar)
 	}
 
 	override fun onScrolledToEnd() = viewModel.requestMoreItems()

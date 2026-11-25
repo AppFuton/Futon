@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A large tile beside two small ones, over a row of three, like the Recent view. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="60dp"
+	android:height="80dp"
+	android:viewportWidth="60"
+	android:viewportHeight="80">
+	<path android:fillColor="#FFFFFFFF" android:pathData="M4,6h33a3,3 0,0 1,3 3v31a3,3 0,0 1,-3 3h-33a3,3 0,0 1,-3 -3v-31a3,3 0,0 1,3 -3z" />
+	<path android:fillAlpha="0.6" android:fillColor="#FFFFFFFF" android:pathData="M45,6h11a3,3 0,0 1,3 3v11a3,3 0,0 1,-3 3h-11a3,3 0,0 1,-3 -3v-11a3,3 0,0 1,3 -3z" />
+	<path android:fillAlpha="0.6" android:fillColor="#FFFFFFFF" android:pathData="M45,26h11a3,3 0,0 1,3 3v11a3,3 0,0 1,-3 3h-11a3,3 0,0 1,-3 -3v-11a3,3 0,0 1,3 -3z" />
+	<path android:fillAlpha="0.4" android:fillColor="#FFFFFFFF" android:pathData="M4,47h12a3,3 0,0 1,3 3v14a3,3 0,0 1,-3 3h-12a3,3 0,0 1,-3 -3v-14a3,3 0,0 1,3 -3z" />
+	<path android:fillAlpha="0.4" android:fillColor="#FFFFFFFF" android:pathData="M24,47h12a3,3 0,0 1,3 3v14a3,3 0,0 1,-3 3h-12a3,3 0,0 1,-3 -3v-14a3,3 0,0 1,3 -3z" />
+	<path android:fillAlpha="0.4" android:fillColor="#FFFFFFFF" android:pathData="M44,47h12a3,3 0,0 1,3 3v14a3,3 0,0 1,-3 3h-12a3,3 0,0 1,-3 -3v-14a3,3 0,0 1,3 -3z" />
+</vector>

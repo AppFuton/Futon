@@ -10,7 +10,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.databinding.ViewHistoryViewsBinding
 import io.github.landwarderer.futon.history.domain.HistoryViewMode
@@ -18,7 +17,7 @@ import io.github.landwarderer.futon.history.domain.SpineCropAnalyzer
 import io.github.landwarderer.futon.main.ui.dockClearance
 import org.koitharu.kotatsu.parsers.model.Manga
 
-/** Switches the history screen between the regular list and its other views. */
+/** Shows the history screen as the regular list or one of its other views, as picked in settings. */
 class HistoryViewsDelegate(
 	private val binding: ViewHistoryViewsBinding,
 	private val listView: View,
@@ -26,7 +25,6 @@ class HistoryViewsDelegate(
 	private val spineCropAnalyzer: SpineCropAnalyzer,
 	private val lifecycleOwner: LifecycleOwner,
 	private val onOpen: (Manga) -> Unit,
-	private val onBarVisibilityChanged: (Boolean) -> Unit,
 	private val appBarScrollRange: () -> Int,
 	private val onFixedViewShown: () -> Unit,
 ) {
@@ -43,23 +41,14 @@ class HistoryViewsDelegate(
 
 	fun attach(isSearching: Flow<Boolean>) {
 		binding.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> applyBottomInsets() }
-		binding.chipGroupModes.setOnCheckedStateChangeListener { _, checkedIds ->
-			val mode = chipModes.entries.firstOrNull { it.value == checkedIds.firstOrNull() }?.key
-			if (mode != null && mode != viewModel.mode.value) {
-				viewModel.setMode(mode)
-			}
-		}
 		viewModel.isMinimalTheme.observe(lifecycleOwner) { applyBottomInsets() }
-		viewModel.mode.observe(lifecycleOwner) { mode ->
-			binding.chipGroupModes.check(checkNotNull(chipModes[mode]))
+		viewModel.wheelStyle.observe(lifecycleOwner) { style ->
+			(modeViews[HistoryViewMode.WHEEL] as? HistoryWheelView)?.style = style
 		}
+		// Searching filters the list, so the list shows while a search is open.
 		combine(viewModel.mode, isSearching) { mode, searching ->
-			if (searching) HistoryViewMode.LIST to true else mode to false
-		}.observe(lifecycleOwner) { (mode, searching) ->
-			binding.scrollViewModes.isGone = searching
-			onBarVisibilityChanged(!searching)
-			show(mode)
-		}
+			if (searching) HistoryViewMode.LIST else mode
+		}.observe(lifecycleOwner, ::show)
 		// Only while visible, since reading elsewhere in the app updates statistics on every page.
 		viewModel.state.observe(lifecycleOwner, Lifecycle.State.STARTED, ::updateState)
 	}
@@ -104,7 +93,9 @@ class HistoryViewsDelegate(
 			HistoryViewMode.RECENT -> HistoryRecentView(context, onOpen)
 			HistoryViewMode.CALENDAR -> HistoryCalendarView(context, onOpen)
 			HistoryViewMode.SHELF -> HistoryShelfView(context, spineCropAnalyzer, lifecycleOwner.lifecycleScope, onOpen)
-			HistoryViewMode.WHEEL -> HistoryWheelView(context, spineCropAnalyzer, lifecycleOwner.lifecycleScope, onOpen)
+			HistoryViewMode.WHEEL -> HistoryWheelView(context, spineCropAnalyzer, lifecycleOwner.lifecycleScope, onOpen).also {
+				it.style = viewModel.wheelStyle.value
+			}
 			HistoryViewMode.LIST -> error("The list is hosted by the fragment")
 		}
 		applyBottomInset(view as HistoryModeView)
@@ -129,16 +120,5 @@ class HistoryViewsDelegate(
 		binding.textViewEmpty.isVisible = state.entries.isEmpty()
 		binding.containerMode.isVisible = state.entries.isNotEmpty()
 		(modeViews[mode] as? HistoryModeView)?.setState(state)
-	}
-
-	private companion object {
-
-		val chipModes = mapOf(
-			HistoryViewMode.LIST to R.id.chip_mode_list,
-			HistoryViewMode.RECENT to R.id.chip_mode_recent,
-			HistoryViewMode.CALENDAR to R.id.chip_mode_calendar,
-			HistoryViewMode.SHELF to R.id.chip_mode_shelf,
-			HistoryViewMode.WHEEL to R.id.chip_mode_wheel,
-		)
 	}
 }
