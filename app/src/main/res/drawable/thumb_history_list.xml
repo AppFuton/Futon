@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Rows of a cover beside a title, like the plain List view. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="60dp"
+	android:height="80dp"
+	android:viewportWidth="60"
+	android:viewportHeight="80">
+	<path android:fillColor="#FFFFFFFF" android:pathData="M3,6h10v14h-10zM3,24h10v14h-10zM3,42h10v14h-10zM3,60h10v14h-10z" />
+	<path android:fillAlpha="0.6" android:fillColor="#FFFFFFFF" android:pathData="M17,9h38v4h-38zM17,27h34v4h-34zM17,45h38v4h-38zM17,63h30v4h-30z" />
+	<path android:fillAlpha="0.4" android:fillColor="#FFFFFFFF" android:pathData="M17,15h22v3h-22zM17,33h26v3h-26zM17,51h20v3h-20zM17,69h24v3h-24z" />
+</vector>

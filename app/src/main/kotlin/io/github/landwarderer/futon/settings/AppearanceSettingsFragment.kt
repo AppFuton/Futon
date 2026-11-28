@@ -45,9 +45,11 @@ import io.github.landwarderer.futon.core.util.ext.printStackTraceDebug
 import io.github.landwarderer.futon.core.util.ext.setDefaultValueCompat
 import io.github.landwarderer.futon.core.util.ext.sortedWithSafe
 import io.github.landwarderer.futon.core.util.ext.toList
+import io.github.landwarderer.futon.history.domain.HistoryViewMode
 import io.github.landwarderer.futon.settings.protect.ProtectSetupActivity
 import io.github.landwarderer.futon.settings.utils.ActivityListPreference
 import io.github.landwarderer.futon.settings.utils.MultiSummaryProvider
+import io.github.landwarderer.futon.settings.utils.NewBadgePreference
 import io.github.landwarderer.futon.settings.utils.PercentSummaryProvider
 import io.github.landwarderer.futon.settings.utils.SliderPreference
 import io.github.landwarderer.futon.settings.utils.ThemeChooserPreference
@@ -129,11 +131,18 @@ class AppearanceSettingsFragment :
         }
         updateCustomThemeSummaries()
         bindNavSummary()
+        bindHistorySummary()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         settings.subscribe(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        findPreference<NewBadgePreference>("nav_bar")?.refresh()
+        findPreference<NewBadgePreference>("history_views")?.refresh()
     }
 
     override fun onDestroyView() {
@@ -165,9 +174,13 @@ class AppearanceSettingsFragment :
                 AppCompatDelegate.setApplicationLocales(settings.appLocales)
             }
 
-            AppSettings.KEY_NAV_MAIN -> {
+            AppSettings.KEY_NAV_MAIN,
+            AppSettings.KEY_DOCK_STYLE,
+                -> {
                 bindNavSummary()
             }
+
+            AppSettings.KEY_HISTORY_VIEW_MODE -> bindHistorySummary()
 
             AppSettings.KEY_APP_PASSWORD -> {
                 findPreference<TwoStatePreference>(AppSettings.KEY_PROTECT_APP)
@@ -323,15 +336,28 @@ class AppearanceSettingsFragment :
     }
 
     private fun bindNavSummary() {
-        val pref = findPreference<Preference>(AppSettings.KEY_NAV_MAIN) ?: return
-        pref.summary = settings.mainNavItems.joinToString {
-            getString(it.title)
-        }
+        val pref = findPreference<Preference>(KEY_NAV_BAR) ?: return
+        val tabs = settings.mainNavItems.joinToString { getString(it.title) }
+        pref.summary = getString(settings.dockStyle.titleResId) + " · " + tabs
+    }
+
+    private fun bindHistorySummary() {
+        findPreference<Preference>(KEY_HISTORY_VIEWS)?.summary = getString(
+            when (settings.historyViewMode) {
+                HistoryViewMode.LIST -> R.string.history_view_list
+                HistoryViewMode.RECENT -> R.string.history_view_recent
+                HistoryViewMode.CALENDAR -> R.string.history_view_calendar
+                HistoryViewMode.SHELF -> R.string.history_view_shelf
+                HistoryViewMode.WHEEL -> R.string.history_view_wheel
+            },
+        )
     }
 
     private companion object {
         const val KEY_CUSTOM_THEMES_MANAGEMENT = "custom_themes_management"
         const val KEY_CUSTOM_THEME_IMPORT = "custom_theme_import"
         const val KEY_CUSTOM_THEME_DELETE = "custom_theme_delete"
+        const val KEY_NAV_BAR = "nav_bar"
+        const val KEY_HISTORY_VIEWS = "history_views"
     }
 }

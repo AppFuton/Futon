@@ -19,6 +19,13 @@ abstract class StatsDao {
 	@Query("SELECT * FROM stats WHERE manga_id = :mangaId ORDER BY started_at")
 	abstract suspend fun findAll(mangaId: Long): List<StatsEntity>
 
+	/** Reading summed per manga and local day, each starting when that day's first session did. */
+	@Query(
+		"SELECT manga_id, MIN(started_at) AS started_at, SUM(duration) AS duration, SUM(pages) AS pages FROM stats " +
+			"GROUP BY manga_id, date(started_at / 1000, 'unixepoch', 'localtime')",
+	)
+	abstract fun observeDailyTotals(): Flow<List<StatsEntity>>
+
 	@Query("SELECT IFNULL(SUM(pages),0) FROM stats WHERE manga_id = :mangaId")
 	abstract suspend fun getReadPagesCount(mangaId: Long): Int
 

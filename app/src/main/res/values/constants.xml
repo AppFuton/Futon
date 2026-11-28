@@ -66,6 +66,10 @@
 		<item>1</item>
 		<item>2</item>
 	</string-array>
+	<string-array name="values_updates_shelf_window" translatable="false">
+		<item>LAST_CHECK</item>
+		<item>LAST_24_HOURS</item>
+	</string-array>
 	<string-array name="values_tracker_frequency" translatable="false">
 		<item>-1</item>
 		<item>0.4</item>

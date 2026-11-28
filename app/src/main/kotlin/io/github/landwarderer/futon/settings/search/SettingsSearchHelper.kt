@@ -21,6 +21,8 @@ import io.github.landwarderer.futon.settings.StorageAndNetworkSettingsFragment
 import io.github.landwarderer.futon.settings.SuggestionsSettingsFragment
 import io.github.landwarderer.futon.settings.about.AboutSettingsFragment
 import io.github.landwarderer.futon.settings.discord.DiscordSettingsFragment
+import io.github.landwarderer.futon.settings.history.HistorySettingsFragment
+import io.github.landwarderer.futon.settings.nav.NavBarSettingsFragment
 import io.github.landwarderer.futon.settings.sources.SourcesSettingsFragment
 import io.github.landwarderer.futon.settings.tracker.TrackerSettingsFragment
 import io.github.landwarderer.futon.settings.userdata.BackupsSettingsFragment
@@ -37,6 +39,18 @@ class SettingsSearchHelper @Inject constructor(
         val preferenceManager = PreferenceManager(context)
         val result = ArrayList<SettingsItem>()
         preferenceManager.inflateTo(result, R.xml.pref_appearance, emptyList(), AppearanceSettingsFragment::class.java)
+        preferenceManager.inflateTo(
+            result,
+            R.xml.pref_nav_bar,
+            listOf(context.getString(R.string.appearance)),
+            NavBarSettingsFragment::class.java,
+        )
+        preferenceManager.inflateTo(
+            result,
+            R.xml.pref_history,
+            listOf(context.getString(R.string.appearance)),
+            HistorySettingsFragment::class.java,
+        )
         preferenceManager.inflateTo(result, R.xml.pref_sources, emptyList(), SourcesSettingsFragment::class.java)
         preferenceManager.inflateTo(result, R.xml.pref_reader, emptyList(), ReaderSettingsFragment::class.java)
         preferenceManager.inflateTo(

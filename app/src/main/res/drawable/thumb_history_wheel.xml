@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spines fanned around the rim of a wheel, the middle one raised, like the Wheel view. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="60dp"
+	android:height="80dp"
+	android:viewportWidth="60"
+	android:viewportHeight="80">
+	<group android:pivotX="30" android:pivotY="78" android:rotation="-40">
+		<path android:fillAlpha="0.4" android:fillColor="#FFFFFFFF" android:pathData="M27,22h6v26h-6z" />
+	</group>
+	<group android:pivotX="30" android:pivotY="78" android:rotation="-20">
+		<path android:fillAlpha="0.6" android:fillColor="#FFFFFFFF" android:pathData="M27,20h6v28h-6z" />
+	</group>
+	<group android:pivotX="30" android:pivotY="78" android:rotation="20">
+		<path android:fillAlpha="0.6" android:fillColor="#FFFFFFFF" android:pathData="M27,20h6v28h-6z" />
+	</group>
+	<group android:pivotX="30" android:pivotY="78" android:rotation="40">
+		<path android:fillAlpha="0.4" android:fillColor="#FFFFFFFF" android:pathData="M27,22h6v26h-6z" />
+	</group>
+	<path android:fillColor="#FFFFFFFF" android:pathData="M25,8h10v38h-10z" />
+	<path android:fillAlpha="0.4" android:fillColor="#FFFFFFFF" android:pathData="M30,52a16,16 0,1 1,0 32a16,16 0,1 1,0 -32zM30,56a12,12 0,1 0,0 24a12,12 0,1 0,0 -24z" />
+</vector>

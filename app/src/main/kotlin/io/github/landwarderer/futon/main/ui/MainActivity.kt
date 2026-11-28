@@ -43,8 +43,10 @@ import io.github.landwarderer.futon.core.exceptions.resolve.SnackbarErrorObserve
 import io.github.landwarderer.futon.core.nav.router
 import io.github.landwarderer.futon.core.os.VoiceInputContract
 import io.github.landwarderer.futon.core.prefs.AppSettings
+import io.github.landwarderer.futon.core.prefs.DockStyle
 import io.github.landwarderer.futon.core.prefs.HomeBackgroundFont
 import io.github.landwarderer.futon.core.prefs.NavItem
+import io.github.landwarderer.futon.core.prefs.observeAsFlow
 import io.github.landwarderer.futon.core.ui.BaseActivity
 import io.github.landwarderer.futon.core.ui.util.FadingAppbarMediator
 import io.github.landwarderer.futon.core.ui.util.FontCache
@@ -133,6 +135,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		updateHomeWatermark()
 
 		viewBinding.fab?.setOnClickListener(this)
+		viewBinding.bottomNav?.continueButton?.setOnClickListener(this)
+		viewBinding.bottomNav?.isCompact = settings.isMinimalThemeEnabled
+		viewBinding.bottomNav?.dockStyle = settings.dockStyle
+		viewBinding.bottomNav?.isBesideOnRight = settings.isDockBesideRight
 		viewBinding.navRail?.headerView?.findViewById<View>(R.id.railFab)?.setOnClickListener(this)
 		fadingAppbarMediator =
 			FadingAppbarMediator(viewBinding.appbar, viewBinding.layoutSearch ?: viewBinding.searchBar)
@@ -185,6 +191,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				viewModel.onError.observeEvent(this@MainActivity, SnackbarErrorObserver(viewBinding.container, null))
 				viewModel.isLoading.observe(this@MainActivity, this@MainActivity::onLoadingStateChanged)
 				viewModel.isResumeEnabled.observe(this@MainActivity, this@MainActivity::onResumeEnabledChanged)
+				settings.observeAsFlow(AppSettings.KEY_MINIMAL_THEME) { isMinimalThemeEnabled }
+					.observe(this@MainActivity) { viewBinding.bottomNav?.isCompact = it }
+				settings.observeAsFlow(AppSettings.KEY_DOCK_STYLE) { dockStyle }
+					.observe(this@MainActivity, ::onDockStyleChanged)
+				settings.observeAsFlow(AppSettings.KEY_DOCK_BESIDE_RIGHT) { isDockBesideRight }
+					.observe(this@MainActivity) { viewBinding.bottomNav?.isBesideOnRight = it }
 				viewModel.feedCounter.observe(this@MainActivity, ::onFeedCounterChanged)
 				viewModel.onShowOnboarding.observeEvent(this@MainActivity) {
 					onboardingLauncher.launch(Intent(this@MainActivity, OnboardingActivity::class.java))
@@ -238,7 +250,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	override fun onClick(v: View) {
 		when (v.id) {
-			R.id.fab, R.id.railFab -> viewModel.openLastReader()
+			R.id.fab, R.id.dock_continue, R.id.railFab -> viewModel.openLastReader()
 		}
 	}
 
@@ -267,22 +279,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		updateContainerBottomMargin()
 		return insets.consume(v, typeMask, start = viewBinding.navRail != null).also {
 			handleSearchSuggestionsInsets(it)
-		}
-	}
-
-	override fun onLayoutChange(
-		v: View?,
-		left: Int,
-		top: Int,
-		right: Int,
-		bottom: Int,
-		oldLeft: Int,
-		oldTop: Int,
-		oldRight: Int,
-		oldBottom: Int
-	) {
-		if (top != oldTop || bottom != oldBottom) {
-			updateContainerBottomMargin()
 		}
 	}
 
@@ -319,8 +315,30 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 
 	private fun onOpenReader(manga: Manga) {
-		val fab = viewBinding.fab ?: viewBinding.navRail?.headerView
-		router.openReader(manga, fab)
+		val anchor = continueAnchor ?: viewBinding.navRail?.headerView
+		router.openReader(manga, anchor)
+	}
+
+	override fun onLayoutChange(
+		v: View?,
+		left: Int,
+		top: Int,
+		right: Int,
+		bottom: Int,
+		oldLeft: Int,
+		oldTop: Int,
+		oldRight: Int,
+		oldBottom: Int,
+	) {
+		if (top != oldTop || bottom != oldBottom) {
+			updateContainerBottomMargin()
+		}
+	}
+
+	private fun onDockStyleChanged(style: DockStyle) {
+		viewBinding.bottomNav?.dockStyle = style
+		adjustFabVisibility()
+		updateContainerBottomMargin()
 	}
 
 	private fun onFeedCounterChanged(counter: Int) {
@@ -339,8 +357,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 
 	private fun onLoadingStateChanged(isLoading: Boolean) {
-		val fab = viewBinding.fab ?: viewBinding.navRail?.headerView ?: return
-		fab.isEnabled = !isLoading
+		viewBinding.fab?.isEnabled = !isLoading
+		val button = viewBinding.bottomNav?.continueButton ?: viewBinding.navRail?.headerView ?: return
+		button.isEnabled = !isLoading
 	}
 
 	private fun onResumeEnabledChanged(isEnabled: Boolean) {
@@ -382,8 +401,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		isSearchOpened: Boolean = viewBinding.searchView.isShowing,
 	) {
 		navigationDelegate.navRailHeader?.railFab?.isVisible = isResumeEnabled
+		val isShown = isResumeEnabled && !actionModeDelegate.isActionModeStarted && !isSearchOpened &&
+			topFragment is HistoryListFragment
+		val isDocked = viewBinding.bottomNav?.dockStyle?.isDocked != false
+		viewBinding.bottomNav?.setContinueVisible(isShown && isDocked)
+		// The Classic bar keeps Continue as a floating button of its own, as before the dock.
 		val fab = viewBinding.fab ?: return
-		if (isResumeEnabled && !actionModeDelegate.isActionModeStarted && !isSearchOpened && topFragment is HistoryListFragment) {
+		if (isShown && !isDocked) {
 			if (!fab.isVisible) {
 				fab.show()
 			}
@@ -480,8 +504,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 
 	private fun setNavbarPinned(isPinned: Boolean) {
-		val bottomNavBar = viewBinding.bottomNav
-		bottomNavBar?.isPinned = isPinned
+		// Pinning keeps the bar from hiding. Content still runs behind a floating dock, but stops above the Classic bar.
+		viewBinding.bottomNav?.isPinned = isPinned
 		for (view in viewBinding.appbar.children) {
 			val lp = view.layoutParams as? AppBarLayout.LayoutParams ?: continue
 			val scrollFlags = if (isPinned) {
@@ -499,7 +523,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	private fun updateContainerBottomMargin() {
 		val bottomNavBar = viewBinding.bottomNav ?: return
-		val newMargin = if (bottomNavBar.isPinned && bottomNavBar.isShownOrShowing) bottomNavBar.height else 0
+		val isBarBelow = !bottomNavBar.dockStyle.isDocked && bottomNavBar.isPinned && bottomNavBar.isShownOrShowing
+		val newMargin = if (isBarBelow) bottomNavBar.height else 0
 		with(viewBinding.container) {
 			val params = layoutParams as MarginLayoutParams
 			if (params.bottomMargin != newMargin) {
@@ -508,6 +533,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			}
 		}
 	}
+
+	/** Where the reader opens from: the floating button under the Classic bar, or the dock's own button. */
+	private val continueAnchor: View?
+		get() {
+			val bottomNavBar = viewBinding.bottomNav ?: return null
+			return if (bottomNavBar.dockStyle.isDocked) bottomNavBar.continueButton else viewBinding.fab
+		}
 
 	private fun updateHomeWatermark() {
 		val tv = viewBinding.textViewWatermark ?: return

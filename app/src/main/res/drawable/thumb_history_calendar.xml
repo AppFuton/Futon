@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A month of day cells, some with reading in them, like the Calendar view. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="60dp"
+	android:height="80dp"
+	android:viewportWidth="60"
+	android:viewportHeight="80">
+	<path android:fillColor="#FFFFFFFF" android:pathData="M3,6h30v4h-30z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M2,16h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M10,16h6v8h-6z" />
+	<path android:fillAlpha="1.0" android:fillColor="#FFFFFFFF" android:pathData="M18,16h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M26,16h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M34,16h6v8h-6z" />
+	<path android:fillAlpha="1.0" android:fillColor="#FFFFFFFF" android:pathData="M42,16h6v8h-6z" />
+	<path android:fillAlpha="1.0" android:fillColor="#FFFFFFFF" android:pathData="M50,16h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M2,26h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M10,26h6v8h-6z" />
+	<path android:fillAlpha="1.0" android:fillColor="#FFFFFFFF" android:pathData="M18,26h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M26,26h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M34,26h6v8h-6z" />
+	<path android:fillAlpha="1.0" android:fillColor="#FFFFFFFF" android:pathData="M42,26h6v8h-6z" />
+	<path android:fillAlpha="1.0" android:fillColor="#FFFFFFFF" android:pathData="M50,26h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M2,36h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M10,36h6v8h-6z" />
+	<path android:fillAlpha="1.0" android:fillColor="#FFFFFFFF" android:pathData="M18,36h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M26,36h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M34,36h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M42,36h6v8h-6z" />
+	<path android:fillAlpha="1.0" android:fillColor="#FFFFFFFF" android:pathData="M50,36h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M2,46h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M10,46h6v8h-6z" />
+	<path android:fillAlpha="1.0" android:fillColor="#FFFFFFFF" android:pathData="M18,46h6v8h-6z" />
+	<path android:fillAlpha="1.0" android:fillColor="#FFFFFFFF" android:pathData="M26,46h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M34,46h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M42,46h6v8h-6z" />
+	<path android:fillAlpha="1.0" android:fillColor="#FFFFFFFF" android:pathData="M50,46h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M2,56h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M10,56h6v8h-6z" />
+	<path android:fillAlpha="1.0" android:fillColor="#FFFFFFFF" android:pathData="M18,56h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M26,56h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M34,56h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M42,56h6v8h-6z" />
+	<path android:fillAlpha="0.25" android:fillColor="#FFFFFFFF" android:pathData="M50,56h6v8h-6z" />
+	<path android:fillAlpha="0.6" android:fillColor="#FFFFFFFF" android:pathData="M3,68h40v3h-40z" />
+</vector>

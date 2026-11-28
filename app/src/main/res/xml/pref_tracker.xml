@@ -26,6 +26,15 @@
 		android:title="@string/frequency_of_check"
 		app:useSimpleSummaryProvider="true" />
 
+	<ListPreference
+		android:defaultValue="LAST_CHECK"
+		android:dependency="tracker_enabled"
+		android:entries="@array/updates_shelf_windows"
+		android:entryValues="@array/values_updates_shelf_window"
+		android:key="updates_shelf_window"
+		android:title="@string/updates_shelf_window"
+		app:useSimpleSummaryProvider="true" />
+
 	<MultiSelectListPreference
 		android:defaultValue="@array/values_track_sources_default"
 		android:dependency="tracker_enabled"

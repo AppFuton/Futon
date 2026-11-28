@@ -116,27 +116,17 @@
             android:key="search_suggest_types"
             android:title="@string/search_suggestions" />
 
-        <PreferenceScreen
-            android:fragment="io.github.landwarderer.futon.settings.nav.NavConfigFragment"
-            android:key="nav_main"
-            android:title="@string/main_screen_sections" />
+        <io.github.landwarderer.futon.settings.utils.NewBadgePreference
+            android:fragment="io.github.landwarderer.futon.settings.nav.NavBarSettingsFragment"
+            android:key="nav_bar"
+            app:badgePosition="inlineTitle"
+            android:title="@string/navigation_bar" />
 
-        <SwitchPreferenceCompat
-            android:defaultValue="true"
-            android:key="main_fab"
-            android:summary="@string/main_screen_fab_summary"
-            android:title="@string/main_screen_fab" />
-
-        <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="nav_labels"
-            android:title="@string/show_labels_in_navbar" />
-
-        <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="nav_pinned"
-            android:summary="@string/pin_navigation_ui_summary"
-            android:title="@string/pin_navigation_ui" />
+        <io.github.landwarderer.futon.settings.utils.NewBadgePreference
+            android:fragment="io.github.landwarderer.futon.settings.history.HistorySettingsFragment"
+            android:key="history_views"
+            app:badgePosition="inlineTitle"
+            android:title="@string/history" />
 
         <SwitchPreferenceCompat
             android:defaultValue="false"

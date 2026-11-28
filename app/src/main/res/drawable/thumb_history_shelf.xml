@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spines of different heights standing on a shelf, one pulled out, like the Shelf view. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="60dp"
+	android:height="80dp"
+	android:viewportWidth="60"
+	android:viewportHeight="80">
+	<path android:fillAlpha="0.6" android:fillColor="#FFFFFFFF" android:pathData="M3,20h6v36h-6z" />
+	<path android:fillAlpha="0.4" android:fillColor="#FFFFFFFF" android:pathData="M10,26h5v30h-5z" />
+	<path android:fillColor="#FFFFFFFF" android:pathData="M16,12h9v40h-9z" />
+	<path android:fillAlpha="0.6" android:fillColor="#FFFFFFFF" android:pathData="M26,22h6v34h-6z" />
+	<path android:fillAlpha="0.4" android:fillColor="#FFFFFFFF" android:pathData="M33,18h5v38h-5z" />
+	<path android:fillAlpha="0.6" android:fillColor="#FFFFFFFF" android:pathData="M39,24h7v32h-7z" />
+	<path android:fillAlpha="0.4" android:fillColor="#FFFFFFFF" android:pathData="M47,20h5v36h-5z" />
+	<path android:fillAlpha="0.6" android:fillColor="#FFFFFFFF" android:pathData="M53,26h4v30h-4z" />
+	<path android:fillColor="#FFFFFFFF" android:pathData="M1,57h58v3h-58z" />
+	<path android:fillAlpha="0.6" android:fillColor="#FFFFFFFF" android:pathData="M6,66h34v4h-34z" />
+	<path android:fillAlpha="0.4" android:fillColor="#FFFFFFFF" android:pathData="M6,73h22v3h-22z" />
+</vector>
