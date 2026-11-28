@@ -133,6 +133,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		setContentView(ActivityMainBinding.inflate(layoutInflater))
 		setSupportActionBar(viewBinding.searchBar)
 		updateHomeWatermark()
+		updateSearchHints()
 
 		viewBinding.fab?.setOnClickListener(this)
 		viewBinding.bottomNav?.continueButton?.setOnClickListener(this)
@@ -209,6 +210,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 					invalidateOptionsMenu()
 					navigationDelegate.reloadCurrentFragment()
 					updateHomeWatermark()
+					updateSearchHints()
+				}
+				viewModel.isModeSwitcherDisabled.observe(this@MainActivity) {
+					invalidateOptionsMenu()
 				}
 				viewModel.homeBackgroundFont.observe(this@MainActivity) {
 					updateHomeWatermark()
@@ -559,13 +564,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		}
 	}
 
+	private fun updateSearchHints() {
+		val isNovel = viewModel.appMode.value.isNovel
+		viewBinding.searchBar.setHint(if (isNovel) R.string.search_novels else R.string.search_manga)
+		viewBinding.searchView.setHint(if (isNovel) R.string.search_hint_novels else R.string.search_hint)
+	}
+
 	override fun onDestroy() {
 		super.onDestroy()
 		modeSwitcherSpotlight = null
 	}
 
 	private fun checkAndShowModeSwitcherSpotlight() {
-		if (settings.isModeSwitcherSpotlightShown || settings.onboardingVersion < AppSettings.CURRENT_ONBOARDING_VERSION) {
+		if (settings.isModeSwitcherDisabled || settings.isModeSwitcherSpotlightShown || settings.onboardingVersion < AppSettings.CURRENT_ONBOARDING_VERSION) {
 			return
 		}
 		if (supportFragmentManager.fragments.any { it is DialogFragment && it.isVisible }) {
@@ -584,12 +595,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			if (modeSwitcherSpotlight != null) return@post
 
 			val contentRoot = findViewById<ViewGroup>(android.R.id.content) ?: return@post
-			val overlay = ModeSwitcherSpotlightOverlay(this, target) { demoToggle ->
+			val overlay = ModeSwitcherSpotlightOverlay(this, target) {
 				settings.isModeSwitcherSpotlightShown = true
 				modeSwitcherSpotlight = null
-				if (demoToggle) {
-					viewModel.toggleAppMode()
-				}
 			}
 			modeSwitcherSpotlight = overlay
 			overlay.showIn(contentRoot)

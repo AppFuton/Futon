@@ -29,7 +29,8 @@ class SearchSuggestionMenuProvider(
 			}
 
 			R.id.action_voice_search -> {
-				voiceInputLauncher.tryLaunch(context.getString(R.string.search_manga), null)
+				val hintRes = if (viewModel.isNovel) R.string.search_novels else R.string.search_manga
+				voiceInputLauncher.tryLaunch(context.getString(hintRes), null)
 			}
 
 			else -> false

@@ -83,6 +83,9 @@ class SearchSuggestionViewModel @Inject constructor(
 		valueProducer = { isIncognitoModeEnabled },
 	)
 
+	val isNovel: Boolean
+		get() = settings.appMode.isNovel
+
 	val suggestion: Flow<List<SearchSuggestionItem>> = combine(
 		query.debounce(DEBOUNCE_TIMEOUT),
 		sourcesRepository.observeEnabledSources().map { it.mapToSet { x -> x.name } },
