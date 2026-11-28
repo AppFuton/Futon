@@ -3,10 +3,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceScreen
+    <io.github.landwarderer.futon.settings.utils.NewBadgePreference
         android:fragment="io.github.landwarderer.futon.settings.AppearanceSettingsFragment"
         android:icon="@drawable/ic_appearance"
         android:key="appearance"
+        app:badgePosition="inlineTitle"
+        app:dependentKeys="nav_bar,history_views"
         android:title="@string/appearance" />
 
     <PreferenceScreen

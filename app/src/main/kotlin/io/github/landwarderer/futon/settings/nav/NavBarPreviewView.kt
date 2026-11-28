@@ -65,6 +65,7 @@ class NavBarPreviewView @JvmOverloads constructor(
 		isCompact: Boolean,
 		isLabeled: Boolean,
 		isContinueEnabled: Boolean,
+		isBesideOnRight: Boolean = false,
 	) {
 		if (tabs != this.tabs) {
 			this.tabs = tabs
@@ -84,6 +85,7 @@ class NavBarPreviewView @JvmOverloads constructor(
 		}
 		bar.dockStyle = style
 		bar.isCompact = isCompact
+		bar.isBesideOnRight = isBesideOnRight
 		val isOnHistory = NavItem.HISTORY in tabs
 		if (isOnHistory) {
 			bar.selectedItemId = NavItem.HISTORY.id

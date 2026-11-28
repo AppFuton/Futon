@@ -164,7 +164,7 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		}
 
 	/** How the bar looks, and where the Continue button lives. Classic leaves Continue to the activity. */
-	var dockStyle = DockStyle.TUFTED
+	var dockStyle = DockStyle.BESIDE
 		set(value) {
 			if (field != value) {
 				field = value
@@ -172,6 +172,15 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 					setContinueVisible(false)
 				}
 				applyDockStyle()
+			}
+		}
+
+	/** Whether the Beside Continue button sits on the right side of the dock instead of the left. */
+	var isBesideOnRight = false
+		set(value) {
+			if (field != value) {
+				field = value
+				requestLayout()
 			}
 		}
 
@@ -431,7 +440,9 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 		setFlatCapsule(menu)
 		val size = continueButton.measuredWidth
 		val gap = besideGap.toInt() + endInset
-		val buttonLeft = if (layoutDirection == LAYOUT_DIRECTION_RTL) menu.right + gap else menu.left - gap - size
+		val isRtl = layoutDirection == LAYOUT_DIRECTION_RTL
+		val onRight = if (isRtl) !isBesideOnRight else isBesideOnRight
+		val buttonLeft = if (onRight) menu.right + gap else menu.left - gap - size
 		val buttonTop = menu.top + (menu.height - size) / 2
 		continueButton.layout(buttonLeft, buttonTop, buttonLeft + size, buttonTop + size)
 	}
@@ -543,14 +554,18 @@ class SlidingBottomNavigationView @JvmOverloads constructor(
 			val room = if (dockStyle == DockStyle.BESIDE) besideRoom else 0f
 			// A full dock shrinks to make room. A centred compact dock moves over by half, so the pair stays centred.
 			val start = margin + (if (isCompact) room / 2f else room).toInt()
-			// Set the resolved sides too: the start margin is only resolved when the params are replaced.
-			marginStart = start
-			if (layoutDirection == LAYOUT_DIRECTION_RTL) {
-				rightMargin = start
+			val isRtl = layoutDirection == LAYOUT_DIRECTION_RTL
+			val onRight = if (isRtl) !isBesideOnRight else isBesideOnRight
+			if (onRight) {
 				leftMargin = margin
+				rightMargin = start
+				marginStart = margin
+				marginEnd = start
 			} else {
 				leftMargin = start
 				rightMargin = margin
+				marginStart = start
+				marginEnd = margin
 			}
 			if (isCompact && menu.size > 0) {
 				val available = MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight - leftMargin - rightMargin

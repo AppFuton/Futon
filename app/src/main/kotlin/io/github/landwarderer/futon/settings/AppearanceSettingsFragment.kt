@@ -49,6 +49,7 @@ import io.github.landwarderer.futon.history.domain.HistoryViewMode
 import io.github.landwarderer.futon.settings.protect.ProtectSetupActivity
 import io.github.landwarderer.futon.settings.utils.ActivityListPreference
 import io.github.landwarderer.futon.settings.utils.MultiSummaryProvider
+import io.github.landwarderer.futon.settings.utils.NewBadgePreference
 import io.github.landwarderer.futon.settings.utils.PercentSummaryProvider
 import io.github.landwarderer.futon.settings.utils.SliderPreference
 import io.github.landwarderer.futon.settings.utils.ThemeChooserPreference
@@ -136,6 +137,12 @@ class AppearanceSettingsFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         settings.subscribe(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        findPreference<NewBadgePreference>("nav_bar")?.refresh()
+        findPreference<NewBadgePreference>("history_views")?.refresh()
     }
 
     override fun onDestroyView() {

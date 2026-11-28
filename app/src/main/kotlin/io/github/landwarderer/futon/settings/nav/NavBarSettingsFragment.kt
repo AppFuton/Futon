@@ -9,6 +9,8 @@ import io.github.landwarderer.futon.R
 import io.github.landwarderer.futon.core.prefs.AppSettings
 import io.github.landwarderer.futon.core.ui.BasePreferenceFragment
 
+import io.github.landwarderer.futon.settings.utils.NewBadgePreference
+
 /** Everything about the bottom navigation bar: its style, a live preview, its tabs and how it behaves. */
 @AndroidEntryPoint
 class NavBarSettingsFragment :
@@ -16,10 +18,12 @@ class NavBarSettingsFragment :
 	SharedPreferences.OnSharedPreferenceChangeListener {
 
 	override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+		NewBadgePreference.markSeen(requireContext(), "nav_bar")
 		addPreferencesFromResource(R.xml.pref_nav_bar)
 		bindPreviews()
 		bindNavSummary()
 		bindMinimalTheme()
+		bindBesideSide()
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -37,6 +41,7 @@ class NavBarSettingsFragment :
 			AppSettings.KEY_DOCK_STYLE -> {
 				bindPreviews()
 				bindMinimalTheme()
+				bindBesideSide()
 			}
 
 			AppSettings.KEY_NAV_MAIN -> {
@@ -49,6 +54,7 @@ class NavBarSettingsFragment :
 			AppSettings.KEY_MAIN_FAB,
 			AppSettings.KEY_TRACKER_ENABLED,
 			AppSettings.KEY_SUGGESTIONS,
+			AppSettings.KEY_DOCK_BESIDE_RIGHT,
 				-> bindPreviews()
 		}
 	}
@@ -74,6 +80,12 @@ class NavBarSettingsFragment :
 		val isAvailable = settings.dockStyle.isDocked
 		pref.isEnabled = isAvailable
 		pref.setSummary(if (isAvailable) R.string.minimal_theme_summary else R.string.minimal_theme_unavailable)
+	}
+
+	private fun bindBesideSide() {
+		val pref = findPreference<Preference>(AppSettings.KEY_DOCK_BESIDE_RIGHT) ?: return
+		val isBeside = settings.dockStyle == io.github.landwarderer.futon.core.prefs.DockStyle.BESIDE
+		pref.isVisible = isBeside
 	}
 
 	private companion object {
