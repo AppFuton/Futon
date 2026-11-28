@@ -60,7 +60,7 @@ class FavouritesListViewModel @Inject constructor(
 	quickFilterFactory: FavoritesListQuickFilter.Factory,
 	private val screenSearchQuery: ScreenSearchQuery,
 	private val sourceSearchFilter: SourceSearchFilter,
-	settings: AppSettings,
+	private val settings: AppSettings,
 	mangaDataRepository: MangaDataRepository,
 	@LocalStorageChanges localStorageChanges: SharedFlow<LocalManga?>,
 ) : MangaListViewModel(settings, mangaDataRepository, localStorageChanges), QuickFilterListener {
@@ -208,6 +208,13 @@ class FavouritesListViewModel @Inject constructor(
 			textPrimary = R.string.nothing_found,
 			textSecondary = R.string.text_empty_holder_secondary_filtered,
 			actionStringRes = R.string.reset_filter,
+		)
+	} else if (settings.appMode.isNovel) {
+		EmptyState(
+			icon = R.drawable.ic_empty_favourites,
+			textPrimary = R.string.novel_favourites_empty_title,
+			textSecondary = R.string.novel_favourites_empty_summary,
+			actionStringRes = 0,
 		)
 	} else {
 		EmptyState(

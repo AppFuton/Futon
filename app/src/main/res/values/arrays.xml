@@ -176,4 +176,12 @@
 		<item>EXTRA_BOLD</item>
 		<item>NONE</item>
 	</string-array>
+	<string-array name="app_modes" translatable="false">
+		<item>@string/content_type_manga</item>
+		<item>@string/content_type_novel</item>
+	</string-array>
+	<string-array name="values_app_modes" translatable="false">
+		<item>MANGA</item>
+		<item>NOVEL</item>
+	</string-array>
 </resources>

@@ -70,6 +70,7 @@ open class BaseApp : Application(), Configuration.Provider {
 	override fun onCreate() {
 		super.onCreate()
 		PlatformRegistry.applicationContext = this // TODO replace with OkHttp.initialize
+		settings.checkAppUpdate(BuildConfig.VERSION_CODE)
 		AppCompatDelegate.setDefaultNightMode(settings.theme)
 		// Initialize Sentry only if user has opted in
 		if (settings.isCrashAnalyticsEnabled) {

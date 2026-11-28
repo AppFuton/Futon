@@ -23,6 +23,7 @@ class MainMenuProvider(
 		val isNovel = viewModel.appMode.value.isNovel
 		val modeItem = menu.findItem(R.id.action_app_mode)
 		if (modeItem != null) {
+			modeItem.isVisible = !viewModel.isModeSwitcherDisabled.value
 			modeItem.setIcon(if (isNovel) R.drawable.ic_read else R.drawable.ic_novel)
 			modeItem.setTitle(if (isNovel) R.string.content_type_manga else R.string.content_type_novel)
 		}
@@ -30,7 +31,9 @@ class MainMenuProvider(
 
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean = when (menuItem.itemId) {
 		R.id.action_app_mode -> {
-			viewModel.toggleAppMode()
+			if (!viewModel.isModeSwitcherDisabled.value) {
+				viewModel.toggleAppMode()
+			}
 			true
 		}
 

@@ -70,6 +70,26 @@ class AppSettings internal constructor(
 
 	fun observeAppMode(): Flow<AppMode> = observeAsFlow(KEY_APP_MODE) { appMode }
 
+	var isModeSwitcherDisabled: Boolean
+		get() = prefs.getBoolean(KEY_DISABLE_MODE_SWITCHER, false)
+		set(value) = prefs.edit { putBoolean(KEY_DISABLE_MODE_SWITCHER, value) }
+
+	fun observeIsModeSwitcherDisabled(): Flow<Boolean> =
+		observeAsFlow(KEY_DISABLE_MODE_SWITCHER) { isModeSwitcherDisabled }
+
+	var lastAppVersion: Int
+		get() = prefs.getInt(KEY_LAST_APP_VERSION, 0)
+		set(value) = prefs.edit { putInt(KEY_LAST_APP_VERSION, value) }
+
+	fun checkAppUpdate(currentVersionCode: Int) {
+		if (lastAppVersion < currentVersionCode) {
+			if (!isModeSwitcherDisabled) {
+				appMode = AppMode.MANGA
+			}
+			lastAppVersion = currentVersionCode
+		}
+	}
+
 	var homeBackgroundFont: HomeBackgroundFont
 		get() = prefs.getEnumValue(KEY_HOME_BACKGROUND_FONT, HomeBackgroundFont.DEFAULT)
 		set(value) = prefs.edit { putEnumValue(KEY_HOME_BACKGROUND_FONT, value) }
@@ -1115,6 +1135,8 @@ class AppSettings internal constructor(
 		const val KEY_ONBOARDING_VERSION = "onboarding_version"
 		const val CURRENT_ONBOARDING_VERSION = 1
 		const val KEY_MODE_SWITCHER_SPOTLIGHT_SHOWN = "mode_switcher_spotlight_shown"
+		const val KEY_DISABLE_MODE_SWITCHER = "disable_mode_switcher"
+		const val KEY_LAST_APP_VERSION = "last_app_version"
 		const val KEY_ABOUT_ONBOARDING = "about_onboarding"
 		const val KEY_SOURCES_ENABLED_ALL = "sources_enabled_all"
 		const val KEY_ACTIVE_SOURCE_PRESET = "active_source_preset"

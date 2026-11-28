@@ -112,6 +112,21 @@
             android:title="@string/home_background_font"
             app:useSimpleSummaryProvider="true" />
 
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="disable_mode_switcher"
+            android:summary="@string/disable_mode_switcher_summary"
+            android:title="@string/disable_mode_switcher" />
+
+        <ListPreference
+            android:defaultValue="MANGA"
+            android:dependency="disable_mode_switcher"
+            android:entries="@array/app_modes"
+            android:entryValues="@array/values_app_modes"
+            android:key="app_mode"
+            android:title="@string/default_mode"
+            app:useSimpleSummaryProvider="true" />
+
         <MultiSelectListPreference
             android:key="search_suggest_types"
             android:title="@string/search_suggestions" />

@@ -271,6 +271,13 @@ class HistoryListViewModel @Inject constructor(
 			textSecondary = R.string.text_empty_holder_secondary_filtered,
 			actionStringRes = R.string.reset_filter,
 		)
+	} else if (settings.appMode.isNovel) {
+		EmptyState(
+			icon = R.drawable.ic_empty_history,
+			textPrimary = R.string.novel_history_empty_title,
+			textSecondary = R.string.novel_history_empty_summary,
+			actionStringRes = 0,
+		)
 	} else {
 		EmptyState(
 			icon = R.drawable.ic_empty_history,

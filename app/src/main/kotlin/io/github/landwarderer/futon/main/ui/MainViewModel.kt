@@ -65,6 +65,12 @@ class MainViewModel @Inject constructor(
 		valueProducer = { appMode },
 	)
 
+	val isModeSwitcherDisabled = settings.observeAsStateFlow(
+		scope = viewModelScope + Dispatchers.IO,
+		key = AppSettings.KEY_DISABLE_MODE_SWITCHER,
+		valueProducer = { isModeSwitcherDisabled },
+	)
+
 	val homeBackgroundFont = settings.observeAsStateFlow(
 		scope = viewModelScope + Dispatchers.IO,
 		key = AppSettings.KEY_HOME_BACKGROUND_FONT,

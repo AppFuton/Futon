@@ -21,7 +21,7 @@ import kotlin.math.min
 class ModeSwitcherSpotlightOverlay(
 	context: Context,
 	private val targetView: View,
-	private val onDismiss: (demoToggle: Boolean) -> Unit,
+	private val onDismiss: () -> Unit,
 ) : FrameLayout(context) {
 
 	private val binding = LayoutModeSwitcherSpotlightBinding.inflate(LayoutInflater.from(context), this, true)
@@ -31,13 +31,13 @@ class ModeSwitcherSpotlightOverlay(
 	init {
 		alpha = 0f
 		setOnClickListener {
-			dismiss(demoToggle = true)
+			dismiss()
 		}
 		binding.buttonGotIt.setOnClickListener {
-			dismiss(demoToggle = true)
+			dismiss()
 		}
 		binding.cardCallout.setOnClickListener {
-			dismiss(demoToggle = true)
+			dismiss()
 		}
 	}
 
@@ -48,7 +48,7 @@ class ModeSwitcherSpotlightOverlay(
 		(context as? OnBackPressedDispatcherOwner)?.let { owner ->
 			val callback = object : OnBackPressedCallback(true) {
 				override fun handleOnBackPressed() {
-					dismiss(demoToggle = false)
+					dismiss()
 				}
 			}
 			owner.onBackPressedDispatcher.addCallback(owner, callback)
@@ -133,7 +133,7 @@ class ModeSwitcherSpotlightOverlay(
 			.start()
 	}
 
-	fun dismiss(demoToggle: Boolean) {
+	fun dismiss() {
 		performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
 		haloAnimator?.cancel()
 		backCallback?.remove()
@@ -143,7 +143,7 @@ class ModeSwitcherSpotlightOverlay(
 			.setDuration(200)
 			.withEndAction {
 				(parent as? ViewGroup)?.removeView(this)
-				onDismiss(demoToggle)
+				onDismiss()
 			}
 			.start()
 	}

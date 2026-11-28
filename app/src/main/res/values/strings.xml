@@ -1195,4 +1195,12 @@
     <string name="updates_view_map">Map</string>
     <string name="minimal_theme">Minimal theme</string>
     <string name="minimal_theme_summary">Use a much smaller navigation bar that only shows icons</string>
+    <string name="disable_mode_switcher">Disable manga / novel switcher</string>
+    <string name="disable_mode_switcher_summary">Hide the switcher from the search bar and use the default mode</string>
+    <string name="novel_favourites_empty_title">No novel favorites yet</string>
+    <string name="novel_favourites_empty_summary">Switch to manga mode to view your manga favorites</string>
+    <string name="novel_history_empty_title">No novel history yet</string>
+    <string name="novel_history_empty_summary">Switch to manga mode to view your manga history</string>
+    <string name="search_novels">Search novels</string>
+    <string name="search_hint_novels">Enter novel title, genre or source name</string>
 </resources>
