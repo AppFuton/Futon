@@ -138,6 +138,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.bottomNav?.continueButton?.setOnClickListener(this)
 		viewBinding.bottomNav?.isCompact = settings.isMinimalThemeEnabled
 		viewBinding.bottomNav?.dockStyle = settings.dockStyle
+		viewBinding.bottomNav?.isBesideOnRight = settings.isDockBesideRight
 		viewBinding.navRail?.headerView?.findViewById<View>(R.id.railFab)?.setOnClickListener(this)
 		fadingAppbarMediator =
 			FadingAppbarMediator(viewBinding.appbar, viewBinding.layoutSearch ?: viewBinding.searchBar)
@@ -194,6 +195,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 					.observe(this@MainActivity) { viewBinding.bottomNav?.isCompact = it }
 				settings.observeAsFlow(AppSettings.KEY_DOCK_STYLE) { dockStyle }
 					.observe(this@MainActivity, ::onDockStyleChanged)
+				settings.observeAsFlow(AppSettings.KEY_DOCK_BESIDE_RIGHT) { isDockBesideRight }
+					.observe(this@MainActivity) { viewBinding.bottomNav?.isBesideOnRight = it }
 				viewModel.feedCounter.observe(this@MainActivity, ::onFeedCounterChanged)
 				viewModel.onShowOnboarding.observeEvent(this@MainActivity) {
 					onboardingLauncher.launch(Intent(this@MainActivity, OnboardingActivity::class.java))

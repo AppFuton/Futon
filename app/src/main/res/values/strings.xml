@@ -1179,6 +1179,8 @@
     <string name="dock_style_tufted_summary">Continue rises from the middle</string>
     <string name="dock_style_beside">Beside</string>
     <string name="dock_style_beside_summary">Continue beside the bar</string>
+    <string name="dock_beside_right">Place Continue button on right</string>
+    <string name="dock_beside_right_summary">Show the Continue button on the right side of the dock</string>
     <string name="dock_style_merged">Merged</string>
     <string name="dock_style_merged_summary">Continue inside History</string>
     <string name="dock_style_classic">Classic</string>

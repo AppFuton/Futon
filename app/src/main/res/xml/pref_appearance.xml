@@ -116,14 +116,16 @@
             android:key="search_suggest_types"
             android:title="@string/search_suggestions" />
 
-        <PreferenceScreen
+        <io.github.landwarderer.futon.settings.utils.NewBadgePreference
             android:fragment="io.github.landwarderer.futon.settings.nav.NavBarSettingsFragment"
             android:key="nav_bar"
+            app:badgePosition="inlineTitle"
             android:title="@string/navigation_bar" />
 
-        <PreferenceScreen
+        <io.github.landwarderer.futon.settings.utils.NewBadgePreference
             android:fragment="io.github.landwarderer.futon.settings.history.HistorySettingsFragment"
             android:key="history_views"
+            app:badgePosition="inlineTitle"
             android:title="@string/history" />
 
         <SwitchPreferenceCompat

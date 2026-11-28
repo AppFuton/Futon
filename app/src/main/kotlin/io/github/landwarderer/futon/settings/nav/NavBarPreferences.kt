@@ -20,6 +20,7 @@ data class NavBarLook(
 	val isCompact: Boolean,
 	val isLabeled: Boolean,
 	val isContinueEnabled: Boolean,
+	val isBesideOnRight: Boolean,
 ) {
 
 	companion object {
@@ -35,6 +36,7 @@ data class NavBarLook(
 			isCompact = settings.isMinimalThemeEnabled,
 			isLabeled = settings.isNavLabelsVisible,
 			isContinueEnabled = settings.isMainFabEnabled,
+			isBesideOnRight = settings.isDockBesideRight,
 		)
 	}
 }
@@ -45,7 +47,7 @@ class NavBarPreviewPreference @JvmOverloads constructor(
 	attrs: AttributeSet? = null,
 ) : Preference(context, attrs) {
 
-	var style: DockStyle = DockStyle.TUFTED
+	var style: DockStyle = DockStyle.BESIDE
 		set(value) {
 			if (field != value) {
 				field = value
@@ -73,7 +75,7 @@ class NavBarPreviewPreference @JvmOverloads constructor(
 		holder.isDividerAllowedBelow = false
 		val look = look ?: return
 		holder.itemView.findViewById<NavBarPreviewView>(R.id.preview)
-			.bind(style, look.tabs, look.isCompact, look.isLabeled, look.isContinueEnabled)
+			.bind(style, look.tabs, look.isCompact, look.isLabeled, look.isContinueEnabled, look.isBesideOnRight)
 	}
 }
 
@@ -83,7 +85,7 @@ class DockStylePreference @JvmOverloads constructor(
 	attrs: AttributeSet? = null,
 ) : Preference(context, attrs) {
 
-	var value: DockStyle = DockStyle.TUFTED
+	var value: DockStyle = DockStyle.BESIDE
 		private set
 
 	var look: NavBarLook? = null
@@ -100,8 +102,8 @@ class DockStylePreference @JvmOverloads constructor(
 	}
 
 	override fun onSetInitialValue(defaultValue: Any?) {
-		val name = getPersistedString(defaultValue as? String ?: DockStyle.TUFTED.name)
-		value = DockStyle.entries.find { it.name == name } ?: DockStyle.TUFTED
+		val name = getPersistedString(defaultValue as? String ?: DockStyle.BESIDE.name)
+		value = DockStyle.entries.find { it.name == name } ?: DockStyle.BESIDE
 	}
 
 	override fun onBindViewHolder(holder: PreferenceViewHolder) {
@@ -123,7 +125,7 @@ class DockStylePreference @JvmOverloads constructor(
 					0
 				}
 				item.card.setOnClickListener { select(style) }
-				look?.let { item.preview.bind(style, it.tabs, it.isCompact, it.isLabeled, it.isContinueEnabled) }
+				look?.let { item.preview.bind(style, it.tabs, it.isCompact, it.isLabeled, it.isContinueEnabled, it.isBesideOnRight) }
 				line.addView(item.root)
 			}
 			grid.addView(line)

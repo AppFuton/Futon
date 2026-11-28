@@ -16,6 +16,7 @@ import io.github.landwarderer.futon.core.util.ext.getQuantityStringSafe
 import io.github.landwarderer.futon.core.util.ext.observe
 import io.github.landwarderer.futon.settings.search.SettingsSearchMenuProvider
 import io.github.landwarderer.futon.settings.search.SettingsSearchViewModel
+import io.github.landwarderer.futon.settings.utils.NewBadgePreference
 
 @AndroidEntryPoint
 class RootSettingsFragment : BasePreferenceFragment(0) {
@@ -34,6 +35,11 @@ class RootSettingsFragment : BasePreferenceFragment(0) {
 		bindPreferenceSummary("tracker", R.string.track_sources, R.string.notifications_settings)
 		bindPreferenceSummary("services", R.string.suggestions, R.string.sync, R.string.tracking)
 		findPreference<Preference>("about")?.summary = getString(R.string.app_version, BuildConfig.VERSION_NAME)
+	}
+
+	override fun onResume() {
+		super.onResume()
+		findPreference<NewBadgePreference>("appearance")?.refresh()
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

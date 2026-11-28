@@ -15,6 +15,16 @@
 	<attr name="badgeViewStyle" />
 	<attr name="coverImageViewStyle" />
 
+	<declare-styleable name="NewBadgePreference">
+		<attr name="badgePosition" format="enum">
+			<enum name="endWidget" value="0" />
+			<enum name="inlineTitle" value="1" />
+			<enum name="both" value="2" />
+		</attr>
+		<attr name="dismissible" format="boolean" />
+		<attr name="dependentKeys" format="string" />
+	</declare-styleable>
+
 	<declare-styleable name="CoilImageView">
 		<attr name="allowRgb565" format="boolean" />
 		<attr name="useExistingDrawable" format="boolean" />
